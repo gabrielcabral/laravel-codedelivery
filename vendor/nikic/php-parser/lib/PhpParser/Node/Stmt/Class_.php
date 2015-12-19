@@ -2,8 +2,8 @@
 
 namespace PhpParser\Node\Stmt;
 
-use PhpParser\Node;
 use PhpParser\Error;
+use PhpParser\Node;
 
 class Class_ extends ClassLike
 {
@@ -15,19 +15,17 @@ class Class_ extends ClassLike
     const MODIFIER_FINAL     = 32;
 
     const VISIBILITY_MODIFER_MASK = 7; // 1 | 2 | 4
-
+    protected static $specialNames = array(
+        'self' => true,
+        'parent' => true,
+        'static' => true,
+    );
     /** @var int Type */
     public $type;
     /** @var null|Node\Name Name of extended class */
     public $extends;
     /** @var Node\Name[] Names of implemented interfaces */
     public $implements;
-
-    protected static $specialNames = array(
-        'self'   => true,
-        'parent' => true,
-        'static' => true,
-    );
 
     /**
      * Constructs a class node.
@@ -41,7 +39,7 @@ class Class_ extends ClassLike
      * @param array       $attributes Additional attributes
      */
     public function __construct($name, array $subNodes = array(), array $attributes = array()) {
-        parent::__construct(null, $attributes);
+        parent::__construct($attributes);
         $this->type = isset($subNodes['type']) ? $subNodes['type'] : 0;
         $this->name = $name;
         $this->extends = isset($subNodes['extends']) ? $subNodes['extends'] : null;
@@ -69,22 +67,6 @@ class Class_ extends ClassLike
         }
     }
 
-    public function getSubNodeNames() {
-        return array('type', 'name', 'extends', 'implements', 'stmts');
-    }
-
-    public function isAbstract() {
-        return (bool) ($this->type & self::MODIFIER_ABSTRACT);
-    }
-
-    public function isFinal() {
-        return (bool) ($this->type & self::MODIFIER_FINAL);
-    }
-
-    public function isAnonymous() {
-        return null === $this->name;
-    }
-
     /**
      * @internal
      */
@@ -108,5 +90,25 @@ class Class_ extends ClassLike
         if ($a & 48 && $b & 48) {
             throw new Error('Cannot use the final modifier on an abstract class member');
         }
+    }
+
+    public function getSubNodeNames()
+    {
+        return array('type', 'name', 'extends', 'implements', 'stmts');
+    }
+
+    public function isAbstract()
+    {
+        return (bool)($this->type & self::MODIFIER_ABSTRACT);
+    }
+
+    public function isFinal()
+    {
+        return (bool)($this->type & self::MODIFIER_FINAL);
+    }
+
+    public function isAnonymous()
+    {
+        return null === $this->name;
     }
 }

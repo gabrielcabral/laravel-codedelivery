@@ -11,6 +11,11 @@ class Swift_Mime_ContentEncoder_PlainContentEncoderTest extends \SwiftMailerTest
         $this->assertEquals('8bit', $encoder->getName());
     }
 
+    private function _getEncoder($name, $canonical = false)
+    {
+        return new Swift_Mime_ContentEncoder_PlainContentEncoder($name, $canonical);
+    }
+
     public function testNoOctetsAreModifiedInString()
     {
         $encoder = $this->_getEncoder('7bit');
@@ -45,12 +50,22 @@ class Swift_Mime_ContentEncoder_PlainContentEncoderTest extends \SwiftMailerTest
         }
     }
 
+    private function _createOutputByteStream($stub = false)
+    {
+        return $this->getMockery('Swift_OutputByteStream')->shouldIgnoreMissing();
+    }
+
+    private function _createInputByteStream($stub = false)
+    {
+        return $this->getMockery('Swift_InputByteStream')->shouldIgnoreMissing();
+    }
+
     public function testLineLengthCanBeSpecified()
     {
         $encoder = $this->_getEncoder('7bit');
 
         $chars = array();
-        for ($i = 0; $i < 50; $i++) {
+        for ($i = 0; $i < 50; ++$i) {
             $chars[] = 'a';
         }
         $input = implode(' ', $chars); //99 chars long
@@ -75,7 +90,7 @@ class Swift_Mime_ContentEncoder_PlainContentEncoderTest extends \SwiftMailerTest
            ->zeroOrMoreTimes()
            ->andReturnUsing($collection);
 
-        for ($i = 0; $i < 50; $i++) {
+        for ($i = 0; $i < 50; ++$i) {
             $os->shouldReceive('read')
                ->once()
                ->andReturn('a ');
@@ -91,6 +106,8 @@ class Swift_Mime_ContentEncoder_PlainContentEncoderTest extends \SwiftMailerTest
             $collection->content
             );
     }
+
+    // -- Private helpers
 
     public function testencodeStringGeneratesCorrectCrlf()
     {
@@ -152,22 +169,5 @@ class Swift_Mime_ContentEncoder_PlainContentEncoderTest extends \SwiftMailerTest
 
         $encoder->encodeByteStream($os, $is);
         $this->assertEquals($expected, $collection->content);
-    }
-
-    // -- Private helpers
-
-    private function _getEncoder($name, $canonical = false)
-    {
-        return new Swift_Mime_ContentEncoder_PlainContentEncoder($name, $canonical);
-    }
-
-    private function _createOutputByteStream($stub = false)
-    {
-        return $this->getMockery('Swift_OutputByteStream')->shouldIgnoreMissing();
-    }
-
-    private function _createInputByteStream($stub = false)
-    {
-        return $this->getMockery('Swift_InputByteStream')->shouldIgnoreMissing();
     }
 }

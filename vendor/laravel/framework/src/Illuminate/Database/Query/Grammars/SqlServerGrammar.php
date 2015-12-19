@@ -18,6 +18,32 @@ class SqlServerGrammar extends Grammar
     ];
 
     /**
+     * Compile a truncate table statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @return array
+     */
+    public function compileTruncate(Builder $query)
+    {
+        return ['truncate table ' . $this->wrapTable($query->from) => []];
+    }
+
+    /**
+     * Compile an exists statement into SQL.
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @return string
+     */
+    public function compileExists(Builder $query)
+    {
+        $existsQuery = clone $query;
+
+        $existsQuery->columns = [];
+
+        return $this->compileSelect($existsQuery->selectRaw('1 [exists]')->limit(1));
+    }
+
+    /**
      * Compile a select query into SQL.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
@@ -39,53 +65,6 @@ class SqlServerGrammar extends Grammar
         }
 
         return $this->concatenate($components);
-    }
-
-    /**
-     * Compile the "select *" portion of the query.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $columns
-     * @return string|null
-     */
-    protected function compileColumns(Builder $query, $columns)
-    {
-        if (! is_null($query->aggregate)) {
-            return;
-        }
-
-        $select = $query->distinct ? 'select distinct ' : 'select ';
-
-        // If there is a limit on the query, but not an offset, we will add the top
-        // clause to the query, which serves as a "limit" type clause within the
-        // SQL Server system similar to the limit keywords available in MySQL.
-        if ($query->limit > 0 && $query->offset <= 0) {
-            $select .= 'top '.$query->limit.' ';
-        }
-
-        return $select.$this->columnize($columns);
-    }
-
-    /**
-     * Compile the "from" portion of the query.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  string  $table
-     * @return string
-     */
-    protected function compileFrom(Builder $query, $table)
-    {
-        $from = parent::compileFrom($query, $table);
-
-        if (is_string($query->lock)) {
-            return $from.' '.$query->lock;
-        }
-
-        if (! is_null($query->lock)) {
-            return $from.' with(rowlock,'.($query->lock ? 'updlock,' : '').'holdlock)';
-        }
-
-        return $from;
     }
 
     /**
@@ -169,68 +148,6 @@ class SqlServerGrammar extends Grammar
     }
 
     /**
-     * Compile the "limit" portions of the query.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  int  $limit
-     * @return string
-     */
-    protected function compileLimit(Builder $query, $limit)
-    {
-        return '';
-    }
-
-    /**
-     * Compile the "offset" portions of the query.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  int  $offset
-     * @return string
-     */
-    protected function compileOffset(Builder $query, $offset)
-    {
-        return '';
-    }
-
-    /**
-     * Compile a truncate table statement into SQL.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @return array
-     */
-    public function compileTruncate(Builder $query)
-    {
-        return ['truncate table '.$this->wrapTable($query->from) => []];
-    }
-
-    /**
-     * Compile an exists statement into SQL.
-     *
-     * @param \Illuminate\Database\Query\Builder $query
-     * @return string
-     */
-    public function compileExists(Builder $query)
-    {
-        $select = $this->compileSelect($query);
-
-        return "select cast(case when exists($select) then 1 else 0 end as bit) as {$this->wrap('exists')}";
-    }
-
-    /**
-     * Compile a "where date" clause.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array  $where
-     * @return string
-     */
-    protected function whereDate(Builder $query, $where)
-    {
-        $value = $this->parameter($where['value']);
-
-        return 'cast('.$this->wrap($where['column']).' as date) '.$where['operator'].' '.$value;
-    }
-
-    /**
      * Determine if the grammar supports savepoints.
      *
      * @return bool
@@ -248,6 +165,140 @@ class SqlServerGrammar extends Grammar
     public function getDateFormat()
     {
         return 'Y-m-d H:i:s.000';
+    }
+
+    /**
+     * Compile an update statement into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array $values
+     * @return string
+     */
+    public function compileUpdate(Builder $query, $values)
+    {
+        $table = $alias = $this->wrapTable($query->from);
+
+        if (strpos(strtolower($table), '] as [') !== false) {
+            $segments = explode('] as [', $table);
+
+            $alias = '[' . $segments[1];
+        }
+
+        // Each one of the columns in the update statements needs to be wrapped in the
+        // keyword identifiers, also a place-holder needs to be created for each of
+        // the values in the list of bindings so we can make the sets statements.
+        $columns = [];
+
+        foreach ($values as $key => $value) {
+            $columns[] = $this->wrap($key) . ' = ' . $this->parameter($value);
+        }
+
+        $columns = implode(', ', $columns);
+
+        // If the query has any "join" clauses, we will setup the joins on the builder
+        // and compile them so we can attach them to this update, as update queries
+        // can get join statements to attach to other tables when they're needed.
+        if (isset($query->joins)) {
+            $joins = ' ' . $this->compileJoins($query, $query->joins);
+        } else {
+            $joins = '';
+        }
+
+        // Of course, update queries may also be constrained by where clauses so we'll
+        // need to compile the where clauses and attach it to the query so only the
+        // intended records are updated by the SQL statements we generate to run.
+        $where = $this->compileWheres($query);
+
+        if (!empty($joins)) {
+            return trim("update {$alias} set {$columns} from {$table}{$joins} {$where}");
+        }
+
+        return trim("update {$table}{$joins} set $columns $where");
+    }
+
+    /**
+     * Compile the "select *" portion of the query.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array $columns
+     * @return string|null
+     */
+    protected function compileColumns(Builder $query, $columns)
+    {
+        if (!is_null($query->aggregate)) {
+            return;
+        }
+
+        $select = $query->distinct ? 'select distinct ' : 'select ';
+
+        // If there is a limit on the query, but not an offset, we will add the top
+        // clause to the query, which serves as a "limit" type clause within the
+        // SQL Server system similar to the limit keywords available in MySQL.
+        if ($query->limit > 0 && $query->offset <= 0) {
+            $select .= 'top ' . $query->limit . ' ';
+        }
+
+        return $select . $this->columnize($columns);
+    }
+
+    /**
+     * Compile the "from" portion of the query.
+     *
+     * @param  \Illuminate\Database\Query\Builder $query
+     * @param  string $table
+     * @return string
+     */
+    protected function compileFrom(Builder $query, $table)
+    {
+        $from = parent::compileFrom($query, $table);
+
+        if (is_string($query->lock)) {
+            return $from . ' ' . $query->lock;
+        }
+
+        if (!is_null($query->lock)) {
+            return $from . ' with(rowlock,' . ($query->lock ? 'updlock,' : '') . 'holdlock)';
+        }
+
+        return $from;
+    }
+
+    /**
+     * Compile the "limit" portions of the query.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  int $limit
+     * @return string
+     */
+    protected function compileLimit(Builder $query, $limit)
+    {
+        return '';
+    }
+
+    /**
+     * Compile the "offset" portions of the query.
+     *
+     * @param  \Illuminate\Database\Query\Builder $query
+     * @param  int $offset
+     * @return string
+     */
+    protected function compileOffset(Builder $query, $offset)
+    {
+        return '';
+    }
+
+    /**
+     * Compile a "where date" clause.
+     *
+     * @param  \Illuminate\Database\Query\Builder $query
+     * @param  array $where
+     * @return string
+     */
+    protected function whereDate(Builder $query, $where)
+    {
+        $value = $this->parameter($where['value']);
+
+        return 'cast(' . $this->wrap($where['column']) . ' as date) ' . $where['operator'] . ' ' . $value;
     }
 
     /**

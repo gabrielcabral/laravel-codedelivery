@@ -11,8 +11,8 @@
 
 namespace Symfony\Component\Console\Tests\Helper;
 
-use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Helper\Helper;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\StreamOutput;
 
 /**
@@ -34,6 +34,18 @@ class ProgressBarTest extends \PHPUnit_Framework_TestCase
             $this->generateOutput('    0 [>---------------------------]'),
             stream_get_contents($output->getStream())
         );
+    }
+
+    protected function getOutputStream($decorated = true, $verbosity = StreamOutput::VERBOSITY_NORMAL)
+    {
+        return new StreamOutput(fopen('php://memory', 'r+', false), $verbosity, $decorated);
+    }
+
+    protected function generateOutput($expected)
+    {
+        $count = substr_count($expected, "\n");
+
+        return "\x0D" . ($count ? sprintf("\033[%dA", $count) : '') . $expected;
     }
 
     public function testAdvance()
@@ -296,7 +308,7 @@ class ProgressBarTest extends \PHPUnit_Framework_TestCase
 
     public function testRedrawFrequency()
     {
-        $bar = $this->getMock('Symfony\Component\Console\Helper\ProgressBar', array('display'), array($output = $this->getOutputStream(), 6));
+        $bar = $this->getMock('Symfony\Component\Console\Helper\ProgressBar', array('display'), array($this->getOutputStream(), 6));
         $bar->expects($this->exactly(4))->method('display');
 
         $bar->setRedrawFrequency(2);
@@ -305,6 +317,26 @@ class ProgressBarTest extends \PHPUnit_Framework_TestCase
         $bar->advance(2);
         $bar->advance(2);
         $bar->advance(1);
+    }
+
+    public function testRedrawFrequencyIsAtLeastOneIfZeroGiven()
+    {
+        $bar = $this->getMock('Symfony\Component\Console\Helper\ProgressBar', array('display'), array($this->getOutputStream()));
+
+        $bar->expects($this->exactly(2))->method('display');
+        $bar->setRedrawFrequency(0);
+        $bar->start();
+        $bar->advance();
+    }
+
+    public function testRedrawFrequencyIsAtLeastOneIfSmallerOneGiven()
+    {
+        $bar = $this->getMock('Symfony\Component\Console\Helper\ProgressBar', array('display'), array($this->getOutputStream()));
+
+        $bar->expects($this->exactly(2))->method('display');
+        $bar->setRedrawFrequency(0.9);
+        $bar->start();
+        $bar->advance();
     }
 
     /**
@@ -634,17 +666,5 @@ class ProgressBarTest extends \PHPUnit_Framework_TestCase
             array('very_verbose'),
             array('debug'),
         );
-    }
-
-    protected function getOutputStream($decorated = true, $verbosity = StreamOutput::VERBOSITY_NORMAL)
-    {
-        return new StreamOutput(fopen('php://memory', 'r+', false), $verbosity, $decorated);
-    }
-
-    protected function generateOutput($expected)
-    {
-        $count = substr_count($expected, "\n");
-
-        return "\x0D".($count ? sprintf("\033[%dA", $count) : '').$expected;
     }
 }

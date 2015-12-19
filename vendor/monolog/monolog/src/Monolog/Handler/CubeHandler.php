@@ -21,79 +21,39 @@ use Monolog\Logger;
  */
 class CubeHandler extends AbstractProcessingHandler
 {
-    private $udpConnection = null;
-    private $httpConnection = null;
-    private $scheme = null;
-    private $host = null;
-    private $port = null;
+    private $udpConnection;
+    private $httpConnection;
+    private $scheme;
+    private $host;
+    private $port;
     private $acceptedSchemes = array('http', 'udp');
 
     /**
      * Create a Cube handler
      *
      * @throws \UnexpectedValueException when given url is not a valid url.
-     *                                  A valid url must consists of three parts : protocol://host:port
-     *                                  Only valid protocol used by Cube are http and udp
+     *                                   A valid url must consist of three parts : protocol://host:port
+     *                                   Only valid protocols used by Cube are http and udp
      */
     public function __construct($url, $level = Logger::DEBUG, $bubble = true)
     {
-        $urlInfos = parse_url($url);
+        $urlInfo = parse_url($url);
 
-        if (!isset($urlInfos['scheme']) || !isset($urlInfos['host']) || !isset($urlInfos['port'])) {
+        if (!isset($urlInfo['scheme'], $urlInfo['host'], $urlInfo['port'])) {
             throw new \UnexpectedValueException('URL "'.$url.'" is not valid');
         }
 
-        if (!in_array($urlInfos['scheme'], $this->acceptedSchemes)) {
+        if (!in_array($urlInfo['scheme'], $this->acceptedSchemes)) {
             throw new \UnexpectedValueException(
-                'Invalid protocol (' . $urlInfos['scheme']  . ').'
+                'Invalid protocol (' . $urlInfo['scheme'] . ').'
                 . ' Valid options are ' . implode(', ', $this->acceptedSchemes));
         }
 
-        $this->scheme = $urlInfos['scheme'];
-        $this->host = $urlInfos['host'];
-        $this->port = $urlInfos['port'];
+        $this->scheme = $urlInfo['scheme'];
+        $this->host = $urlInfo['host'];
+        $this->port = $urlInfo['port'];
 
         parent::__construct($level, $bubble);
-    }
-
-    /**
-     * Establish a connection to an UDP socket
-     *
-     * @throws \LogicException when unable to connect to the socket
-     */
-    protected function connectUdp()
-    {
-        if (!extension_loaded('sockets')) {
-            throw new MissingExtensionException('The sockets extension is required to use udp URLs with the CubeHandler');
-        }
-
-        $this->udpConnection = socket_create(AF_INET, SOCK_DGRAM, 0);
-        if (!$this->udpConnection) {
-            throw new \LogicException('Unable to create a socket');
-        }
-
-        if (!socket_connect($this->udpConnection, $this->host, $this->port)) {
-            throw new \LogicException('Unable to connect to the socket at ' . $this->host . ':' . $this->port);
-        }
-    }
-
-    /**
-     * Establish a connection to a http server
-     */
-    protected function connectHttp()
-    {
-        if (!extension_loaded('curl')) {
-            throw new \LogicException('The curl extension is needed to use http URLs with the CubeHandler');
-        }
-
-        $this->httpConnection = curl_init('http://'.$this->host.':'.$this->port.'/1.0/event/put');
-
-        if (!$this->httpConnection) {
-            throw new \LogicException('Unable to connect to ' . $this->host . ':' . $this->port);
-        }
-
-        curl_setopt($this->httpConnection, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($this->httpConnection, CURLOPT_RETURNTRANSFER, true);
     }
 
     /**
@@ -123,6 +83,41 @@ class CubeHandler extends AbstractProcessingHandler
         }
     }
 
+    private function writeHttp($data)
+    {
+        if (!$this->httpConnection) {
+            $this->connectHttp();
+        }
+
+        curl_setopt($this->httpConnection, CURLOPT_POSTFIELDS, '[' . $data . ']');
+        curl_setopt($this->httpConnection, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen('[' . $data . ']'),
+        ));
+
+        Curl\Util::execute($this->httpConnection, 5, false);
+    }
+
+    /**
+     * Establish a connection to a http server
+     * @throws \LogicException when no curl extension
+     */
+    protected function connectHttp()
+    {
+        if (!extension_loaded('curl')) {
+            throw new \LogicException('The curl extension is needed to use http URLs with the CubeHandler');
+        }
+
+        $this->httpConnection = curl_init('http://'.$this->host.':'.$this->port.'/1.0/event/put');
+
+        if (!$this->httpConnection) {
+            throw new \LogicException('Unable to connect to ' . $this->host . ':' . $this->port);
+        }
+
+        curl_setopt($this->httpConnection, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($this->httpConnection, CURLOPT_RETURNTRANSFER, true);
+    }
+
     private function writeUdp($data)
     {
         if (!$this->udpConnection) {
@@ -132,18 +127,25 @@ class CubeHandler extends AbstractProcessingHandler
         socket_send($this->udpConnection, $data, strlen($data), 0);
     }
 
-    private function writeHttp($data)
+    /**
+     * Establish a connection to an UDP socket
+     *
+     * @throws \LogicException           when unable to connect to the socket
+     * @throws MissingExtensionException when there is no socket extension
+     */
+    protected function connectUdp()
     {
-        if (!$this->httpConnection) {
-            $this->connectHttp();
+        if (!extension_loaded('sockets')) {
+            throw new MissingExtensionException('The sockets extension is required to use udp URLs with the CubeHandler');
         }
 
-        curl_setopt($this->httpConnection, CURLOPT_POSTFIELDS, '['.$data.']');
-        curl_setopt($this->httpConnection, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen('['.$data.']'))
-        );
+        $this->udpConnection = socket_create(AF_INET, SOCK_DGRAM, 0);
+        if (!$this->udpConnection) {
+            throw new \LogicException('Unable to create a socket');
+        }
 
-        Curl\Util::execute($ch, 5, false);
+        if (!socket_connect($this->udpConnection, $this->host, $this->port)) {
+            throw new \LogicException('Unable to connect to the socket at ' . $this->host . ':' . $this->port);
+        }
     }
 }

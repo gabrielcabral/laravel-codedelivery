@@ -100,6 +100,34 @@ class ContainerAwareEventDispatcher extends EventDispatcher
     }
 
     /**
+     * Lazily loads listeners for this event from the dependency injection
+     * container.
+     *
+     * @param string $eventName The name of the event to dispatch. The name of
+     *                          the event is the name of the method that is
+     *                          invoked on listeners.
+     */
+    protected function lazyLoad($eventName)
+    {
+        if (isset($this->listenerIds[$eventName])) {
+            foreach ($this->listenerIds[$eventName] as $args) {
+                list($serviceId, $method, $priority) = $args;
+                $listener = $this->container->get($serviceId);
+
+                $key = $serviceId . '.' . $method;
+                if (!isset($this->listeners[$eventName][$key])) {
+                    $this->addListener($eventName, array($listener, $method), $priority);
+                } elseif ($listener !== $this->listeners[$eventName][$key]) {
+                    parent::removeListener($eventName, array($this->listeners[$eventName][$key], $method));
+                    $this->addListener($eventName, array($listener, $method), $priority);
+                }
+
+                $this->listeners[$eventName][$key] = $listener;
+            }
+        }
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function hasListeners($eventName = null)
@@ -132,6 +160,16 @@ class ContainerAwareEventDispatcher extends EventDispatcher
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function getListenerPriority($eventName, $listener)
+    {
+        $this->lazyLoad($eventName);
+
+        return parent::getListenerPriority($eventName, $listener);
+    }
+
+    /**
      * Adds a service as event subscriber.
      *
      * @param string $serviceId The service ID of the subscriber service
@@ -155,33 +193,5 @@ class ContainerAwareEventDispatcher extends EventDispatcher
     public function getContainer()
     {
         return $this->container;
-    }
-
-    /**
-     * Lazily loads listeners for this event from the dependency injection
-     * container.
-     *
-     * @param string $eventName The name of the event to dispatch. The name of
-     *                          the event is the name of the method that is
-     *                          invoked on listeners.
-     */
-    protected function lazyLoad($eventName)
-    {
-        if (isset($this->listenerIds[$eventName])) {
-            foreach ($this->listenerIds[$eventName] as $args) {
-                list($serviceId, $method, $priority) = $args;
-                $listener = $this->container->get($serviceId);
-
-                $key = $serviceId.'.'.$method;
-                if (!isset($this->listeners[$eventName][$key])) {
-                    $this->addListener($eventName, array($listener, $method), $priority);
-                } elseif ($listener !== $this->listeners[$eventName][$key]) {
-                    parent::removeListener($eventName, array($this->listeners[$eventName][$key], $method));
-                    $this->addListener($eventName, array($listener, $method), $priority);
-                }
-
-                $this->listeners[$eventName][$key] = $listener;
-            }
-        }
     }
 }

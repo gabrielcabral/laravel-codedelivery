@@ -3,8 +3,8 @@
 namespace Illuminate\Queue;
 
 use Aws\Sqs\SqsClient;
-use Illuminate\Queue\Jobs\SqsJob;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Illuminate\Queue\Jobs\SqsJob;
 
 class SqsQueue extends Queue implements QueueContract
 {
@@ -23,6 +23,13 @@ class SqsQueue extends Queue implements QueueContract
     protected $default;
 
     /**
+     * The sqs prefix url.
+     *
+     * @var string
+     */
+    protected $prefix;
+
+    /**
      * The job creator callback.
      *
      * @var callable|null
@@ -34,11 +41,13 @@ class SqsQueue extends Queue implements QueueContract
      *
      * @param  \Aws\Sqs\SqsClient  $sqs
      * @param  string  $default
+     * @param  string $prefix
      * @return void
      */
-    public function __construct(SqsClient $sqs, $default)
+    public function __construct(SqsClient $sqs, $default, $prefix = '')
     {
         $this->sqs = $sqs;
+        $this->prefix = $prefix;
         $this->default = $default;
     }
 
@@ -68,6 +77,23 @@ class SqsQueue extends Queue implements QueueContract
         $response = $this->sqs->sendMessage(['QueueUrl' => $this->getQueue($queue), 'MessageBody' => $payload]);
 
         return $response->get('MessageId');
+    }
+
+    /**
+     * Get the queue or return the default.
+     *
+     * @param  string|null $queue
+     * @return string
+     */
+    public function getQueue($queue)
+    {
+        $queue = $queue ?: $this->default;
+
+        if (filter_var($queue, FILTER_VALIDATE_URL) !== false) {
+            return $queue;
+        }
+
+        return rtrim($this->prefix, '/') . '/' . ($queue);
     }
 
     /**
@@ -126,17 +152,6 @@ class SqsQueue extends Queue implements QueueContract
         $this->jobCreator = $callback;
 
         return $this;
-    }
-
-    /**
-     * Get the queue or return the default.
-     *
-     * @param  string|null  $queue
-     * @return string
-     */
-    public function getQueue($queue)
-    {
-        return $queue ?: $this->default;
     }
 
     /**

@@ -2,18 +2,18 @@
 
 namespace Illuminate\Filesystem;
 
-use Closure;
 use Aws\S3\S3Client;
-use OpenCloud\Rackspace;
-use Illuminate\Support\Arr;
-use League\Flysystem\AdapterInterface;
-use League\Flysystem\FilesystemInterface;
-use League\Flysystem\Filesystem as Flysystem;
-use League\Flysystem\Adapter\Ftp as FtpAdapter;
-use League\Flysystem\Rackspace\RackspaceAdapter;
-use League\Flysystem\Adapter\Local as LocalAdapter;
-use League\Flysystem\AwsS3v3\AwsS3Adapter as S3Adapter;
+use Closure;
 use Illuminate\Contracts\Filesystem\Factory as FactoryContract;
+use Illuminate\Support\Arr;
+use League\Flysystem\Adapter\Ftp as FtpAdapter;
+use League\Flysystem\Adapter\Local as LocalAdapter;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\AwsS3v3\AwsS3Adapter as S3Adapter;
+use League\Flysystem\Filesystem as Flysystem;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\Rackspace\RackspaceAdapter;
+use OpenCloud\Rackspace;
 
 class FilesystemManager implements FactoryContract
 {
@@ -74,6 +74,16 @@ class FilesystemManager implements FactoryContract
     }
 
     /**
+     * Get the default driver name.
+     *
+     * @return string
+     */
+    public function getDefaultDriver()
+    {
+        return $this->app['config']['filesystems.default'];
+    }
+
+    /**
      * Attempt to get the disk from the local cache.
      *
      * @param  string  $name
@@ -102,6 +112,17 @@ class FilesystemManager implements FactoryContract
     }
 
     /**
+     * Get the filesystem connection configuration.
+     *
+     * @param  string $name
+     * @return array
+     */
+    protected function getConfig($name)
+    {
+        return $this->app['config']["filesystems.disks.{$name}"];
+    }
+
+    /**
      * Call a custom driver creator.
      *
      * @param  array  $config
@@ -119,6 +140,17 @@ class FilesystemManager implements FactoryContract
     }
 
     /**
+     * Adapt the filesystem implementation.
+     *
+     * @param  \League\Flysystem\FilesystemInterface $filesystem
+     * @return \Illuminate\Contracts\Filesystem\Filesystem
+     */
+    protected function adapt(FilesystemInterface $filesystem)
+    {
+        return new FilesystemAdapter($filesystem);
+    }
+
+    /**
      * Create an instance of the local driver.
      *
      * @param  array  $config
@@ -128,13 +160,27 @@ class FilesystemManager implements FactoryContract
     {
         $permissions = isset($config['permissions']) ? $config['permissions'] : [];
 
-        $links = (array_get($config, 'links') === 'skip')
+        $links = Arr::get($config, 'links') === 'skip'
             ? LocalAdapter::SKIP_LINKS
             : LocalAdapter::DISALLOW_LINKS;
 
         return $this->adapt($this->createFlysystem(new LocalAdapter(
             $config['root'], LOCK_EX, $links, $permissions
         ), $config));
+    }
+
+    /**
+     * Create a Flysystem instance with the given adapter.
+     *
+     * @param  \League\Flysystem\AdapterInterface $adapter
+     * @param  array $config
+     * @return \Leage\Flysystem\FlysystemInterface
+     */
+    protected function createFlysystem(AdapterInterface $adapter, array $config)
+    {
+        $config = Arr::only($config, ['visibility']);
+
+        return new Flysystem($adapter, count($config) > 0 ? $config : null);
     }
 
     /**
@@ -219,52 +265,6 @@ class FilesystemManager implements FactoryContract
         $store = $client->objectStoreService('cloudFiles', $config['region'], $urlType);
 
         return $store->getContainer($config['container']);
-    }
-
-    /**
-     * Create a Flysystem instance with the given adapter.
-     *
-     * @param  \League\Flysystem\AdapterInterface  $adapter
-     * @param  array  $config
-     * @return \Leage\Flysystem\FlysystemInterface
-     */
-    protected function createFlysystem(AdapterInterface $adapter, array $config)
-    {
-        $config = Arr::only($config, ['visibility']);
-
-        return new Flysystem($adapter, count($config) > 0 ? $config : null);
-    }
-
-    /**
-     * Adapt the filesystem implementation.
-     *
-     * @param  \League\Flysystem\FilesystemInterface  $filesystem
-     * @return \Illuminate\Contracts\Filesystem\Filesystem
-     */
-    protected function adapt(FilesystemInterface $filesystem)
-    {
-        return new FilesystemAdapter($filesystem);
-    }
-
-    /**
-     * Get the filesystem connection configuration.
-     *
-     * @param  string  $name
-     * @return array
-     */
-    protected function getConfig($name)
-    {
-        return $this->app['config']["filesystems.disks.{$name}"];
-    }
-
-    /**
-     * Get the default driver name.
-     *
-     * @return string
-     */
-    public function getDefaultDriver()
-    {
-        return $this->app['config']['filesystems.default'];
     }
 
     /**

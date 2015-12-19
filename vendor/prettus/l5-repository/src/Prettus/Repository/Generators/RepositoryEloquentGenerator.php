@@ -18,33 +18,13 @@ class RepositoryEloquentGenerator extends Generator
     protected $stub = 'repository/eloquent';
 
     /**
-     * Get base path of destination file.
-     *
-     * @return string
-     */
-    public function getBasePath()
-    {
-        return config('repository.generator.basePath', app_path());
-    }
-
-    /**
      * Get root namespace.
      *
      * @return string
      */
     public function getRootNamespace()
     {
-        return parent::getRootNamespace() . parent::getConfigGeneratorClassPath($this->getPathConfigNode());
-    }
-
-    /**
-     * Get generator path config node.
-     *
-     * @return string
-     */
-    public function getPathConfigNode()
-    {
-        return 'repositories';
+        return parent::getRootNamespace() . 'Repositories\\';
     }
 
     /**
@@ -54,7 +34,17 @@ class RepositoryEloquentGenerator extends Generator
      */
     public function getPath()
     {
-        return $this->getBasePath() . '/' . parent::getConfigGeneratorClassPath($this->getPathConfigNode(), true) . '/' . $this->getName() . 'RepositoryEloquent.php';
+        return $this->getBasePath() . '/Repositories/' . $this->getName() . 'RepositoryEloquent.php';
+    }
+
+    /**
+     * Get base path of destination file.
+     *
+     * @return string
+     */
+    public function getBasePath()
+    {
+        return config('repository.generator.basePath', app_path());
     }
 
     /**
@@ -66,19 +56,10 @@ class RepositoryEloquentGenerator extends Generator
     {
         return array_merge(parent::getReplacements(), [
             'fillable' => $this->getFillable(),
-            'repository' => parent::getRootNamespace() . parent::getConfigGeneratorClassPath('interfaces') . '\\' . $this->getName() . 'Repository;',
             'model'    => isset($this->options['model']) ? $this->options['model'] : ''
         ]);
     }
-    /**
-     * Get schema parser.
-     *
-     * @return SchemaParser
-     */
-    public function getSchemaParser()
-    {
-        return new SchemaParser($this->fillable);
-    }
+
     /**
      * Get the fillable attributes.
      *
@@ -94,5 +75,15 @@ class RepositoryEloquentGenerator extends Generator
             $results .= "\t\t'{$column}',".PHP_EOL;
         }
         return $results . "\t" . ']';
+    }
+
+    /**
+     * Get schema parser.
+     *
+     * @return SchemaParser
+     */
+    public function getSchemaParser()
+    {
+        return new SchemaParser($this->fillable);
     }
 }

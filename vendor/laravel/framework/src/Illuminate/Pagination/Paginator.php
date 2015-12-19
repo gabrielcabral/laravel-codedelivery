@@ -2,14 +2,14 @@
 
 namespace Illuminate\Pagination;
 
-use Countable;
 use ArrayAccess;
-use IteratorAggregate;
-use Illuminate\Support\Collection;
-use Illuminate\Contracts\Support\Jsonable;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Pagination\Presenter;
+use Countable;
 use Illuminate\Contracts\Pagination\Paginator as PaginatorContract;
+use Illuminate\Contracts\Pagination\Presenter;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Support\Collection;
+use IteratorAggregate;
 
 class Paginator extends AbstractPaginator implements Arrayable, ArrayAccess, Countable, IteratorAggregate, Jsonable, PaginatorContract
 {
@@ -37,7 +37,7 @@ class Paginator extends AbstractPaginator implements Arrayable, ArrayAccess, Cou
 
         $this->perPage = $perPage;
         $this->currentPage = $this->setCurrentPage($currentPage);
-        $this->path = $this->path != '/' ? rtrim($this->path, '/').'/' : $this->path;
+        $this->path = $this->path != '/' ? rtrim($this->path, '/') : $this->path;
         $this->items = $items instanceof Collection ? $items : Collection::make($items);
 
         $this->checkForMorePages();
@@ -69,18 +69,6 @@ class Paginator extends AbstractPaginator implements Arrayable, ArrayAccess, Cou
     }
 
     /**
-     * Get the URL for the next page.
-     *
-     * @return string|null
-     */
-    public function nextPageUrl()
-    {
-        if ($this->hasMore) {
-            return $this->url($this->currentPage() + 1);
-        }
-    }
-
-    /**
      * Determine if there are more items in the data source.
      *
      * @return bool
@@ -108,6 +96,17 @@ class Paginator extends AbstractPaginator implements Arrayable, ArrayAccess, Cou
     }
 
     /**
+     * Convert the object to its JSON representation.
+     *
+     * @param  int $options
+     * @return string
+     */
+    public function toJson($options = 0)
+    {
+        return json_encode($this->toArray(), $options);
+    }
+
+    /**
      * Get the instance as an array.
      *
      * @return array
@@ -123,13 +122,14 @@ class Paginator extends AbstractPaginator implements Arrayable, ArrayAccess, Cou
     }
 
     /**
-     * Convert the object to its JSON representation.
+     * Get the URL for the next page.
      *
-     * @param  int  $options
-     * @return string
+     * @return string|null
      */
-    public function toJson($options = 0)
+    public function nextPageUrl()
     {
-        return json_encode($this->toArray(), $options);
+        if ($this->hasMore) {
+            return $this->url($this->currentPage() + 1);
+        }
     }
 }

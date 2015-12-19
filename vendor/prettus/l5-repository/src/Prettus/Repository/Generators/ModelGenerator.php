@@ -24,17 +24,17 @@ class ModelGenerator extends Generator {
      */
     public function getRootNamespace()
     {
-        return parent::getRootNamespace() . parent::getConfigGeneratorClassPath($this->getPathConfigNode());
+        return parent::getRootNamespace() . 'Entities\\';
     }
 
     /**
-     * Get generator path config node.
+     * Get destination path for generated file.
      *
      * @return string
      */
-    public function getPathConfigNode()
+    public function getPath()
     {
-        return 'models';
+        return $this->getBasePath() . '/Entities/' . $this->getName() . '.php';
     }
 
     /**
@@ -49,16 +49,6 @@ class ModelGenerator extends Generator {
     }
 
     /**
-     * Get destination path for generated file.
-     *
-     * @return string
-     */
-    public function getPath()
-    {
-        return $this->getBasePath() . '/' . parent::getConfigGeneratorClassPath($this->getPathConfigNode(), true) . '/' . $this->getName() . '.php';
-    }
-
-    /**
      * Get array replacements.
      *
      * @return array
@@ -68,16 +58,6 @@ class ModelGenerator extends Generator {
         return array_merge(parent::getReplacements(), [
             'fillable' => $this->getFillable()
         ]);
-    }
-
-    /**
-     * Get schema parser.
-     *
-     * @return SchemaParser
-     */
-    public function getSchemaParser()
-    {
-        return new SchemaParser($this->fillable);
     }
 
     /**
@@ -95,5 +75,15 @@ class ModelGenerator extends Generator {
             $results .= "\t\t'{$column}',".PHP_EOL;
         }
         return $results . "\t" . ']';
+    }
+
+    /**
+     * Get schema parser.
+     *
+     * @return SchemaParser
+     */
+    public function getSchemaParser()
+    {
+        return new SchemaParser($this->fillable);
     }
 }

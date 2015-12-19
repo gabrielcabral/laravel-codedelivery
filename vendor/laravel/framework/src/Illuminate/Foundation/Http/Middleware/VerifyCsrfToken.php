@@ -3,10 +3,10 @@
 namespace Illuminate\Foundation\Http\Middleware;
 
 use Closure;
-use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\Cookie;
 use Illuminate\Contracts\Encryption\Encrypter;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Cookie;
 
 class VerifyCsrfToken
 {
@@ -54,6 +54,17 @@ class VerifyCsrfToken
     }
 
     /**
+     * Determine if the HTTP request uses a ‘read’ verb.
+     *
+     * @param  \Illuminate\Http\Request $request
+     * @return bool
+     */
+    protected function isReading($request)
+    {
+        return in_array($request->method(), ['HEAD', 'GET', 'OPTIONS']);
+    }
+
+    /**
      * Determine if the request has a URI that should pass through CSRF verification.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -62,7 +73,11 @@ class VerifyCsrfToken
     protected function shouldPassThrough($request)
     {
         foreach ($this->except as $except) {
-            if ($request->is(trim($except, '/'))) {
+            if ($except !== '/') {
+                $except = trim($except, '/');
+            }
+
+            if ($request->is($except)) {
                 return true;
             }
         }
@@ -78,13 +93,19 @@ class VerifyCsrfToken
      */
     protected function tokensMatch($request)
     {
+        $sessionToken = $request->session()->token();
+
         $token = $request->input('_token') ?: $request->header('X-CSRF-TOKEN');
 
         if (! $token && $header = $request->header('X-XSRF-TOKEN')) {
             $token = $this->encrypter->decrypt($header);
         }
 
-        return Str::equals((string) $request->session()->token(), $token);
+        if (!is_string($sessionToken) || !is_string($token)) {
+            return false;
+        }
+
+        return Str::equals($sessionToken, $token);
     }
 
     /**
@@ -101,21 +122,10 @@ class VerifyCsrfToken
         $response->headers->setCookie(
             new Cookie(
                 'XSRF-TOKEN', $request->session()->token(), time() + 60 * 120,
-                $config['path'], $config['domain'], false, false
+                $config['path'], $config['domain'], $config['secure'], false
             )
         );
 
         return $response;
-    }
-
-    /**
-     * Determine if the HTTP request uses a ‘read’ verb.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return bool
-     */
-    protected function isReading($request)
-    {
-        return in_array($request->method(), ['HEAD', 'GET', 'OPTIONS']);
     }
 }

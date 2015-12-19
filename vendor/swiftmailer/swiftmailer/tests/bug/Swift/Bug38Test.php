@@ -57,8 +57,8 @@ class Swift_Bug38Test extends \PHPUnit_Framework_TestCase
             '--'.$boundary."\r\n".
             'Content-Type: image/gif; name=image.gif'."\r\n".
             'Content-Transfer-Encoding: base64'."\r\n".
-            'Content-Disposition: inline; filename=image.gif'."\r\n".
             'Content-ID: <'.preg_quote($imgId, '~').'>'."\r\n".
+            'Content-Disposition: inline; filename=image.gif' . "\r\n" .
             "\r\n".
             preg_quote(base64_encode('<data>'), '~').
             "\r\n\r\n".
@@ -66,6 +66,15 @@ class Swift_Bug38Test extends \PHPUnit_Framework_TestCase
             '$~D',
             $stream
         );
+    }
+
+    public function assertPatternInStream($pattern, $stream, $message = '%s')
+    {
+        $string = '';
+        while (false !== $bytes = $stream->read(8192)) {
+            $string .= $bytes;
+        }
+        $this->assertRegExp($pattern, $string, $message);
     }
 
     public function testWritingMessageToByteStreamTwiceProducesCorrectStructure()
@@ -106,8 +115,8 @@ class Swift_Bug38Test extends \PHPUnit_Framework_TestCase
         '--'.$boundary."\r\n".
         'Content-Type: image/gif; name=image.gif'."\r\n".
         'Content-Transfer-Encoding: base64'."\r\n".
-        'Content-Disposition: inline; filename=image.gif'."\r\n".
         'Content-ID: <'.preg_quote($imgId, '~').'>'."\r\n".
+            'Content-Disposition: inline; filename=image.gif' . "\r\n" .
         "\r\n".
         preg_quote(base64_encode('<data>'), '~').
         "\r\n\r\n".
@@ -124,6 +133,8 @@ class Swift_Bug38Test extends \PHPUnit_Framework_TestCase
         $this->assertPatternInStream($pattern, $streamA);
         $this->assertPatternInStream($pattern, $streamB);
     }
+
+    // -- Helpers
 
     public function testWritingMessageToByteStreamTwiceUsingAFileAttachment()
     {
@@ -179,16 +190,5 @@ class Swift_Bug38Test extends \PHPUnit_Framework_TestCase
 
         $this->assertPatternInStream($pattern, $streamA);
         $this->assertPatternInStream($pattern, $streamB);
-    }
-
-    // -- Helpers
-
-    public function assertPatternInStream($pattern, $stream, $message = '%s')
-    {
-        $string = '';
-        while (false !== $bytes = $stream->read(8192)) {
-            $string .= $bytes;
-        }
-        $this->assertRegExp($pattern, $string, $message);
     }
 }

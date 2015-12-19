@@ -31,7 +31,7 @@ class HtmlDumper extends CliDumper
     protected $headerIsDumped = false;
     protected $lastDepth = -1;
     protected $styles = array(
-        'default' => 'background-color:#18171B; color:#FF8400; line-height:1.2em; font:12px Menlo, Monaco, Consolas, monospace; word-wrap: break-word; white-space: pre-wrap; position:relative; z-index:100000; word-break: normal',
+        'default' => 'background-color:#18171B; color:#FF8400; line-height:1.2em; font:12px Menlo, Monaco, Consolas, monospace; word-wrap: break-word; white-space: pre-wrap; position:relative; z-index:99999; word-break: normal',
         'num' => 'font-weight:bold; color:#1299DA',
         'const' => 'font-weight:bold',
         'str' => 'font-weight:bold; color:#56DB3A',
@@ -76,16 +76,6 @@ class HtmlDumper extends CliDumper
     }
 
     /**
-     * Sets an HTML header that will be dumped once in the output stream.
-     *
-     * @param string $header An HTML string.
-     */
-    public function setDumpHeader($header)
-    {
-        $this->dumpHeader = $header;
-    }
-
-    /**
      * Sets an HTML prefix and suffix that will encapse every single dump.
      *
      * @param string $prefix The prepended HTML string.
@@ -104,6 +94,74 @@ class HtmlDumper extends CliDumper
     {
         parent::dump($data, $output);
         $this->dumpId = 'sf-dump-'.mt_rand();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function enterHash(Cursor $cursor, $type, $class, $hasChild)
+    {
+        parent::enterHash($cursor, $type, $class, false);
+
+        if ($hasChild) {
+            if ($cursor->refIndex) {
+                $r = Cursor::HASH_OBJECT !== $type ? 1 - (Cursor::HASH_RESOURCE !== $type) : 2;
+                $r .= $r && 0 < $cursor->softRefHandle ? $cursor->softRefHandle : $cursor->refIndex;
+
+                $this->line .= sprintf('<samp id=%s-ref%s>', $this->dumpId, $r);
+            } else {
+                $this->line .= '<samp>';
+            }
+            $this->dumpLine($cursor->depth);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function dumpLine($depth, $endOfValue = false)
+    {
+        if (-1 === $this->lastDepth) {
+            $this->line = sprintf($this->dumpPrefix, $this->dumpId, $this->indentPad) . $this->line;
+        }
+        if (!$this->headerIsDumped) {
+            $this->line = $this->getDumpHeader() . $this->line;
+        }
+
+        if (-1 === $depth) {
+            $this->line .= sprintf($this->dumpSuffix, $this->dumpId);
+        }
+        $this->lastDepth = $depth;
+
+        // Replaces non-ASCII UTF-8 chars by numeric HTML entities
+        $this->line = preg_replace_callback(
+            '/[\x80-\xFF]+/',
+            function ($m) {
+                $m = unpack('C*', $m[0]);
+                $i = 1;
+                $entities = '';
+
+                while (isset($m[$i])) {
+                    if (0xF0 <= $m[$i]) {
+                        $c = (($m[$i++] - 0xF0) << 18) + (($m[$i++] - 0x80) << 12) + (($m[$i++] - 0x80) << 6) + $m[$i++] - 0x80;
+                    } elseif (0xE0 <= $m[$i]) {
+                        $c = (($m[$i++] - 0xE0) << 12) + (($m[$i++] - 0x80) << 6) + $m[$i++] - 0x80;
+                    } else {
+                        $c = (($m[$i++] - 0xC0) << 6) + $m[$i++] - 0x80;
+                    }
+
+                    $entities .= '&#' . $c . ';';
+                }
+
+                return $entities;
+            },
+            $this->line
+        );
+
+        if (-1 === $depth) {
+            AbstractDumper::dumpLine(0);
+        }
+        AbstractDumper::dumpLine($depth);
     }
 
     /**
@@ -334,23 +392,13 @@ EOHTML;
     }
 
     /**
-     * {@inheritdoc}
+     * Sets an HTML header that will be dumped once in the output stream.
+     *
+     * @param string $header An HTML string.
      */
-    public function enterHash(Cursor $cursor, $type, $class, $hasChild)
+    public function setDumpHeader($header)
     {
-        parent::enterHash($cursor, $type, $class, false);
-
-        if ($hasChild) {
-            if ($cursor->refIndex) {
-                $r = Cursor::HASH_OBJECT !== $type ? 1 - (Cursor::HASH_RESOURCE !== $type) : 2;
-                $r .= $r && 0 < $cursor->softRefHandle ? $cursor->softRefHandle : $cursor->refIndex;
-
-                $this->line .= sprintf('<samp id=%s-ref%s>', $this->dumpId, $r);
-            } else {
-                $this->line .= '<samp>';
-            }
-            $this->dumpLine($cursor->depth);
-        }
+        $this->dumpHeader = $header;
     }
 
     /**
@@ -423,53 +471,5 @@ EOHTML;
         }
 
         return $v;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function dumpLine($depth, $endOfValue = false)
-    {
-        if (-1 === $this->lastDepth) {
-            $this->line = sprintf($this->dumpPrefix, $this->dumpId, $this->indentPad).$this->line;
-        }
-        if (!$this->headerIsDumped) {
-            $this->line = $this->getDumpHeader().$this->line;
-        }
-
-        if (-1 === $depth) {
-            $this->line .= sprintf($this->dumpSuffix, $this->dumpId);
-        }
-        $this->lastDepth = $depth;
-
-        // Replaces non-ASCII UTF-8 chars by numeric HTML entities
-        $this->line = preg_replace_callback(
-            '/[\x80-\xFF]+/',
-            function ($m) {
-                $m = unpack('C*', $m[0]);
-                $i = 1;
-                $entities = '';
-
-                while (isset($m[$i])) {
-                    if (0xF0 <= $m[$i]) {
-                        $c = (($m[$i++] - 0xF0) << 18) + (($m[$i++] - 0x80) << 12) + (($m[$i++] - 0x80) << 6) + $m[$i++] - 0x80;
-                    } elseif (0xE0 <= $m[$i]) {
-                        $c = (($m[$i++] - 0xE0) << 12) + (($m[$i++] - 0x80) << 6) + $m[$i++]  - 0x80;
-                    } else {
-                        $c = (($m[$i++] - 0xC0) << 6) + $m[$i++] - 0x80;
-                    }
-
-                    $entities .= '&#'.$c.';';
-                }
-
-                return $entities;
-            },
-            $this->line
-        );
-
-        if (-1 === $depth) {
-            AbstractDumper::dumpLine(0);
-        }
-        AbstractDumper::dumpLine($depth);
     }
 }

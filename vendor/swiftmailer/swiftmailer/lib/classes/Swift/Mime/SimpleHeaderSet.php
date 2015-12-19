@@ -56,6 +56,16 @@ class Swift_Mime_SimpleHeaderSet implements Swift_Mime_HeaderSet
         $this->_notifyHeadersOfCharset($charset);
     }
 
+    /** Notify all Headers of the new charset */
+    private function _notifyHeadersOfCharset($charset)
+    {
+        foreach ($this->_headers as $headerGroup) {
+            foreach ($headerGroup as $header) {
+                $header->setCharset($charset);
+            }
+        }
+    }
+
     /**
      * Add a new Mailbox Header with a list of $addresses.
      *
@@ -66,6 +76,19 @@ class Swift_Mime_SimpleHeaderSet implements Swift_Mime_HeaderSet
     {
         $this->_storeHeader($name,
         $this->_factory->createMailboxHeader($name, $addresses));
+    }
+
+    /** Save a Header to the internal collection */
+    private function _storeHeader($name, Swift_Mime_Header $header, $offset = null)
+    {
+        if (!isset($this->_headers[strtolower($name)])) {
+            $this->_headers[strtolower($name)] = array();
+        }
+        if (!isset($offset)) {
+            $this->_headers[strtolower($name)][] = $header;
+        } else {
+            $this->_headers[strtolower($name)][$offset] = $header;
+        }
     }
 
     /**
@@ -127,23 +150,6 @@ class Swift_Mime_SimpleHeaderSet implements Swift_Mime_HeaderSet
     }
 
     /**
-     * Returns true if at least one header with the given $name exists.
-     *
-     * If multiple headers match, the actual one may be specified by $index.
-     *
-     * @param string $name
-     * @param int    $index
-     *
-     * @return bool
-     */
-    public function has($name, $index = 0)
-    {
-        $lowerName = strtolower($name);
-
-        return array_key_exists($lowerName, $this->_headers) && array_key_exists($index, $this->_headers[$lowerName]);
-    }
-
-    /**
      * Set a header in the HeaderSet.
      *
      * The header may be a previously fetched header via {@link get()} or it may
@@ -178,6 +184,23 @@ class Swift_Mime_SimpleHeaderSet implements Swift_Mime_HeaderSet
 
             return $this->_headers[$lowerName][$index];
         }
+    }
+
+    /**
+     * Returns true if at least one header with the given $name exists.
+     *
+     * If multiple headers match, the actual one may be specified by $index.
+     *
+     * @param string $name
+     * @param int $index
+     *
+     * @return bool
+     */
+    public function has($name, $index = 0)
+    {
+        $lowerName = strtolower($name);
+
+        return array_key_exists($lowerName, $this->_headers) && array_key_exists($index, $this->_headers[$lowerName]);
     }
 
     /**
@@ -219,6 +242,12 @@ class Swift_Mime_SimpleHeaderSet implements Swift_Mime_HeaderSet
         }
 
         return array_keys($headers);
+    }
+
+    /** Test if the headers can be sorted */
+    private function _canSort()
+    {
+        return count($this->_order) > 0;
     }
 
     /**
@@ -291,6 +320,18 @@ class Swift_Mime_SimpleHeaderSet implements Swift_Mime_HeaderSet
     }
 
     /**
+     * Returns a string representation of this object.
+     *
+     * @return string
+     *
+     * @see toString()
+     */
+    public function __toString()
+    {
+        return $this->toString();
+    }
+
+    /**
      * Returns a string with a representation of all headers.
      *
      * @return string
@@ -313,72 +354,10 @@ class Swift_Mime_SimpleHeaderSet implements Swift_Mime_HeaderSet
         return $string;
     }
 
-    /**
-     * Returns a string representation of this object.
-     *
-     * @return string
-     *
-     * @see toString()
-     */
-    public function __toString()
-    {
-        return $this->toString();
-    }
-
-    /** Save a Header to the internal collection */
-    private function _storeHeader($name, Swift_Mime_Header $header, $offset = null)
-    {
-        if (!isset($this->_headers[strtolower($name)])) {
-            $this->_headers[strtolower($name)] = array();
-        }
-        if (!isset($offset)) {
-            $this->_headers[strtolower($name)][] = $header;
-        } else {
-            $this->_headers[strtolower($name)][$offset] = $header;
-        }
-    }
-
-    /** Test if the headers can be sorted */
-    private function _canSort()
-    {
-        return count($this->_order) > 0;
-    }
-
-    /** uksort() algorithm for Header ordering */
-    private function _sortHeaders($a, $b)
-    {
-        $lowerA = strtolower($a);
-        $lowerB = strtolower($b);
-        $aPos = array_key_exists($lowerA, $this->_order)
-            ? $this->_order[$lowerA]
-            : -1;
-        $bPos = array_key_exists($lowerB, $this->_order)
-            ? $this->_order[$lowerB]
-            : -1;
-
-        if ($aPos == -1) {
-            return 1;
-        } elseif ($bPos == -1) {
-            return -1;
-        }
-
-        return ($aPos < $bPos) ? -1 : 1;
-    }
-
     /** Test if the given Header is always displayed */
     private function _isDisplayed(Swift_Mime_Header $header)
     {
         return array_key_exists(strtolower($header->getFieldName()), $this->_required);
-    }
-
-    /** Notify all Headers of the new charset */
-    private function _notifyHeadersOfCharset($charset)
-    {
-        foreach ($this->_headers as $headerGroup) {
-            foreach ($headerGroup as $header) {
-                $header->setCharset($charset);
-            }
-        }
     }
 
     /**
@@ -392,5 +371,27 @@ class Swift_Mime_SimpleHeaderSet implements Swift_Mime_HeaderSet
                 $this->_headers[$groupKey][$key] = clone $header;
             }
         }
+    }
+
+    /** uksort() algorithm for Header ordering */
+    private function _sortHeaders($a, $b)
+    {
+        $lowerA = strtolower($a);
+        $lowerB = strtolower($b);
+        $aPos = array_key_exists($lowerA, $this->_order) ? $this->_order[$lowerA] : -1;
+        $bPos = array_key_exists($lowerB, $this->_order) ? $this->_order[$lowerB] : -1;
+
+        if (-1 === $aPos && -1 === $bPos) {
+            // just be sure to be determinist here
+            return $a > $b ? -1 : 1;
+        }
+
+        if ($aPos == -1) {
+            return 1;
+        } elseif ($bPos == -1) {
+            return -1;
+        }
+
+        return $aPos < $bPos ? -1 : 1;
     }
 }

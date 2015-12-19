@@ -11,8 +11,8 @@
 
 namespace Symfony\Component\HttpFoundation;
 
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * BinaryFileResponse represents an HTTP response delivering a file.
@@ -71,6 +71,24 @@ class BinaryFileResponse extends Response
     }
 
     /**
+     * Trust X-Sendfile-Type header.
+     */
+    public static function trustXSendfileTypeHeader()
+    {
+        self::$trustXSendfileTypeHeader = true;
+    }
+
+    /**
+     * Gets the file.
+     *
+     * @return File The file to stream
+     */
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    /**
      * Sets the file to stream.
      *
      * @param \SplFileInfo|string $file               The file to stream
@@ -111,16 +129,6 @@ class BinaryFileResponse extends Response
         }
 
         return $this;
-    }
-
-    /**
-     * Gets the file.
-     *
-     * @return File The file to stream
-     */
-    public function getFile()
-    {
-        return $this->file;
     }
 
     /**
@@ -193,6 +201,10 @@ class BinaryFileResponse extends Response
             // Use X-Sendfile, do not send any content.
             $type = $request->headers->get('X-Sendfile-Type');
             $path = $this->file->getRealPath();
+            // Fall back to scheme://path for stream wrapped locations.
+            if (false === $path) {
+                $path = $this->file->getPathname();
+            }
             if (strtolower($type) == 'x-accel-redirect') {
                 // Do X-Accel-Mapping substitutions.
                 // @link http://wiki.nginx.org/X-accel#X-Accel-Redirect
@@ -295,14 +307,6 @@ class BinaryFileResponse extends Response
     public function getContent()
     {
         return false;
-    }
-
-    /**
-     * Trust X-Sendfile-Type header.
-     */
-    public static function trustXSendfileTypeHeader()
-    {
-        self::$trustXSendfileTypeHeader = true;
     }
 
     /**

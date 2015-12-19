@@ -11,22 +11,12 @@
 
 namespace Symfony\Component\Yaml\Tests;
 
-use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Yaml\Parser;
+use Symfony\Component\Yaml\Yaml;
 
 class ParserTest extends \PHPUnit_Framework_TestCase
 {
     protected $parser;
-
-    protected function setUp()
-    {
-        $this->parser = new Parser();
-    }
-
-    protected function tearDown()
-    {
-        $this->parser = null;
-    }
 
     /**
      * @dataProvider getDataFormSpecifications
@@ -782,6 +772,39 @@ EOF;
         );
 
         $this->assertEquals($expected, $this->parser->parse($yaml));
+    }
+
+    /**
+     * @expectedException \Symfony\Component\Yaml\Exception\ParseException
+     * @expectedExceptionMessage A colon cannot be used in an unquoted mapping value
+     */
+    public function testColonInMappingValueException()
+    {
+        $yaml = <<<EOF
+foo: bar: baz
+EOF;
+
+        $this->parser->parse($yaml);
+    }
+
+    public function testColonInMappingValueExceptionNotTriggeredByColonInComment()
+    {
+        $yaml = <<<EOT
+foo:
+    bar: foobar # Note: a comment after a colon
+EOT;
+
+        $this->assertSame(array('foo' => array('bar' => 'foobar')), $this->parser->parse($yaml));
+    }
+
+    protected function setUp()
+    {
+        $this->parser = new Parser();
+    }
+
+    protected function tearDown()
+    {
+        $this->parser = null;
     }
 }
 

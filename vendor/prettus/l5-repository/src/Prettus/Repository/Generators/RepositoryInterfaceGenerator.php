@@ -24,17 +24,17 @@ class RepositoryInterfaceGenerator extends Generator {
      */
     public function getRootNamespace()
     {
-        return parent::getRootNamespace() . parent::getConfigGeneratorClassPath($this->getPathConfigNode());
+        return parent::getRootNamespace() . 'Repositories\\';
     }
 
     /**
-     * Get generator path config node.
+     * Get destination path for generated file.
      *
      * @return string
      */
-    public function getPathConfigNode()
+    public function getPath()
     {
-        return 'interfaces';
+        return $this->getBasePath() . '/Repositories/' . $this->getName() . 'Repository.php';
     }
 
     /**
@@ -48,16 +48,6 @@ class RepositoryInterfaceGenerator extends Generator {
     }
 
     /**
-     * Get destination path for generated file.
-     *
-     * @return string
-     */
-    public function getPath()
-    {
-        return $this->getBasePath() . '/' . parent::getConfigGeneratorClassPath($this->getPathConfigNode(), true) . '/' . $this->getName() . 'Repository.php';
-    }
-
-    /**
      * Get array replacements.
      *
      * @return array
@@ -67,16 +57,6 @@ class RepositoryInterfaceGenerator extends Generator {
         return array_merge(parent::getReplacements(), [
             'fillable' => $this->getFillable()
         ]);
-    }
-
-    /**
-     * Get schema parser.
-     *
-     * @return SchemaParser
-     */
-    public function getSchemaParser()
-    {
-        return new SchemaParser($this->fillable);
     }
 
     /**
@@ -94,5 +74,15 @@ class RepositoryInterfaceGenerator extends Generator {
             $results .= "\t\t'{$column}',".PHP_EOL;
         }
         return $results . "\t" . ']';
+    }
+
+    /**
+     * Get schema parser.
+     *
+     * @return SchemaParser
+     */
+    public function getSchemaParser()
+    {
+        return new SchemaParser($this->fillable);
     }
 }

@@ -2,13 +2,13 @@
 
 namespace Illuminate\Foundation\Console;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+use Illuminate\Console\Command;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
-use Illuminate\Console\Command;
-use Illuminate\Routing\Controller;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 
 class RouteListCommand extends Command
@@ -77,6 +77,17 @@ class RouteListCommand extends Command
     }
 
     /**
+     * Display the route information on the console.
+     *
+     * @param  array $routes
+     * @return void
+     */
+    protected function displayRoutes(array $routes)
+    {
+        $this->table($this->headers, $routes);
+    }
+
+    /**
      * Compile the routes into a displayable format.
      *
      * @return array
@@ -90,7 +101,7 @@ class RouteListCommand extends Command
         }
 
         if ($sort = $this->option('sort')) {
-            $results = array_sort($results, function ($value) use ($sort) {
+            $results = Arr::sort($results, function ($value) use ($sort) {
                 return $value[$sort];
             });
         }
@@ -121,14 +132,21 @@ class RouteListCommand extends Command
     }
 
     /**
-     * Display the route information on the console.
+     * Filter the route by URI and / or name.
      *
-     * @param  array  $routes
-     * @return void
+     * @param  array $route
+     * @return array|null
      */
-    protected function displayRoutes(array $routes)
+    protected function filterRoute(array $route)
     {
-        $this->table($this->headers, $routes);
+        if (($this->option('name') && !Str::contains($route['name'], $this->option('name'))) ||
+            $this->option('path') && !Str::contains($route['uri'], $this->option('path')) ||
+            $this->option('method') && !Str::contains($route['method'], $this->option('method'))
+        ) {
+            return;
+        }
+
+        return $route;
     }
 
     /**
@@ -152,6 +170,42 @@ class RouteListCommand extends Command
         }
 
         return implode(',', $middlewares);
+    }
+
+    /**
+     * Get all of the pattern filters matching the route.
+     *
+     * @param  \Illuminate\Routing\Route $route
+     * @return array
+     */
+    protected function getPatternFilters($route)
+    {
+        $patterns = [];
+
+        foreach ($route->methods() as $method) {
+            // For each method supported by the route we will need to gather up the patterned
+            // filters for that method. We will then merge these in with the other filters
+            // we have already gathered up then return them back out to these consumers.
+            $inner = $this->getMethodPatterns($route->uri(), $method);
+
+            $patterns = array_merge($patterns, array_keys($inner));
+        }
+
+        return $patterns;
+    }
+
+    /**
+     * Get the pattern filters for a given URI and method.
+     *
+     * @param  string $uri
+     * @param  string $method
+     * @return array
+     */
+    protected function getMethodPatterns($uri, $method)
+    {
+        return $this->router->findPatternFilters(
+            Request::create($uri, $method)
+        );
     }
 
     /**
@@ -204,59 +258,6 @@ class RouteListCommand extends Command
     {
         return (! empty($options['only']) && ! in_array($method, (array) $options['only'])) ||
             (! empty($options['except']) && in_array($method, (array) $options['except']));
-    }
-
-    /**
-     * Get all of the pattern filters matching the route.
-     *
-     * @param  \Illuminate\Routing\Route  $route
-     * @return array
-     */
-    protected function getPatternFilters($route)
-    {
-        $patterns = [];
-
-        foreach ($route->methods() as $method) {
-            // For each method supported by the route we will need to gather up the patterned
-            // filters for that method. We will then merge these in with the other filters
-            // we have already gathered up then return them back out to these consumers.
-            $inner = $this->getMethodPatterns($route->uri(), $method);
-
-            $patterns = array_merge($patterns, array_keys($inner));
-        }
-
-        return $patterns;
-    }
-
-    /**
-     * Get the pattern filters for a given URI and method.
-     *
-     * @param  string  $uri
-     * @param  string  $method
-     * @return array
-     */
-    protected function getMethodPatterns($uri, $method)
-    {
-        return $this->router->findPatternFilters(
-            Request::create($uri, $method)
-        );
-    }
-
-    /**
-     * Filter the route by URI and / or name.
-     *
-     * @param  array  $route
-     * @return array|null
-     */
-    protected function filterRoute(array $route)
-    {
-        if (($this->option('name') && ! Str::contains($route['name'], $this->option('name'))) ||
-             $this->option('path') && ! Str::contains($route['uri'], $this->option('path')) ||
-             $this->option('method') && ! Str::contains($route['method'], $this->option('method'))) {
-            return;
-        }
-
-        return $route;
     }
 
     /**

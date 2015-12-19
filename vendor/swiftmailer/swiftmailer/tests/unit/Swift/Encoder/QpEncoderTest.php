@@ -51,6 +51,11 @@ class Swift_Encoder_QpEncoderTest extends \SwiftMailerTestCase
         }
     }
 
+    private function _createCharStream()
+    {
+        return $this->getMockery('Swift_CharacterStream')->shouldIgnoreMissing();
+    }
+
     public function testWhiteSpaceAtLineEndingIsEncoded()
     {
         /* -- RFC 2045, 6.7 --
@@ -374,8 +379,24 @@ class Swift_Encoder_QpEncoderTest extends \SwiftMailerTestCase
 
     // -- Creation methods
 
-    private function _createCharStream()
+    public function testTextIsPreWrapped()
     {
-        return $this->getMockery('Swift_CharacterStream')->shouldIgnoreMissing();
+        $encoder = $this->createEncoder();
+
+        $input = str_repeat('a', 70) . "\r\n" .
+            str_repeat('a', 70) . "\r\n" .
+            str_repeat('a', 70);
+
+        $this->assertEquals(
+            $input, $encoder->encodeString($input)
+        );
+    }
+
+    private function createEncoder()
+    {
+        $factory = new Swift_CharacterReaderFactory_SimpleCharacterReaderFactory();
+        $charStream = new Swift_CharacterStream_NgCharacterStream($factory, 'utf-8');
+
+        return new Swift_Encoder_QpEncoder($charStream);
     }
 }

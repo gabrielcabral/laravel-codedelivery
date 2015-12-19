@@ -26,6 +26,11 @@ class Swift_Mime_ContentEncoder_QpContentEncoderTest extends \SwiftMailerTestCas
                     allow an alternative encoding.
                     */
 
+    private function _createCharacterStream($stub = false)
+    {
+        return $this->getMockery('Swift_CharacterStream')->shouldIgnoreMissing();
+    }
+
     public function testPermittedCharactersAreNotEncoded()
     {
         /* -- RFC 2045, 6.7 --
@@ -64,6 +69,16 @@ class Swift_Mime_ContentEncoder_QpContentEncoderTest extends \SwiftMailerTestCas
             $encoder->encodeByteStream($os, $is);
             $this->assertIdenticalBinary($char, $collection->content);
         }
+    }
+
+    private function _createOutputByteStream($stub = false)
+    {
+        return $this->getMockery('Swift_OutputByteStream')->shouldIgnoreMissing();
+    }
+
+    private function _createInputByteStream($stub = false)
+    {
+        return $this->getMockery('Swift_InputByteStream')->shouldIgnoreMissing();
     }
 
     public function testLinearWhiteSpaceAtLineEndingIsEncoded()
@@ -428,6 +443,8 @@ class Swift_Mime_ContentEncoder_QpContentEncoderTest extends \SwiftMailerTestCas
         }
     }
 
+    // -- Creation Methods
+
     public function testFirstLineLengthCanBeDifferent()
     {
         $os = $this->_createOutputByteStream(true);
@@ -472,25 +489,30 @@ class Swift_Mime_ContentEncoder_QpContentEncoderTest extends \SwiftMailerTestCas
         $encoder->charsetChanged('windows-1252');
     }
 
-    // -- Creation Methods
-
-    private function _createCharacterStream($stub = false)
+    public function testTextIsPreWrapped()
     {
-        return $this->getMockery('Swift_CharacterStream')->shouldIgnoreMissing();
+        $encoder = $this->createEncoder();
+
+        $input = str_repeat('a', 70) . "\r\n" .
+            str_repeat('a', 70) . "\r\n" .
+            str_repeat('a', 70);
+
+        $os = new Swift_ByteStream_ArrayByteStream();
+        $is = new Swift_ByteStream_ArrayByteStream();
+        $is->write($input);
+
+        $encoder->encodeByteStream($is, $os);
+
+        $this->assertEquals(
+            $input, $os->read(PHP_INT_MAX)
+        );
     }
 
-    private function _createEncoder($charStream)
+    private function createEncoder()
     {
-        return new Swift_Mime_HeaderEncoder_QpHeaderEncoder($charStream);
-    }
+        $factory = new Swift_CharacterReaderFactory_SimpleCharacterReaderFactory();
+        $charStream = new Swift_CharacterStream_NgCharacterStream($factory, 'utf-8');
 
-    private function _createOutputByteStream($stub = false)
-    {
-        return $this->getMockery('Swift_OutputByteStream')->shouldIgnoreMissing();
-    }
-
-    private function _createInputByteStream($stub = false)
-    {
-        return $this->getMockery('Swift_InputByteStream')->shouldIgnoreMissing();
+        return new Swift_Mime_ContentEncoder_QpContentEncoder($charStream);
     }
 }

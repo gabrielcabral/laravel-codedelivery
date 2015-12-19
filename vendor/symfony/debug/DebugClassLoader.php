@@ -24,13 +24,13 @@ namespace Symfony\Component\Debug;
  */
 class DebugClassLoader
 {
-    private $classLoader;
-    private $isFinder;
-    private $wasFinder;
     private static $caseCheck;
     private static $deprecated = array();
     private static $php7Reserved = array('int', 'float', 'bool', 'string', 'true', 'false', 'null');
     private static $darwinCache = array('/' => array('/', array()));
+    private $classLoader;
+    private $isFinder;
+    private $wasFinder;
 
     /**
      * Constructor.
@@ -53,16 +53,6 @@ class DebugClassLoader
         if (!isset(self::$caseCheck)) {
             self::$caseCheck = false !== stripos(PHP_OS, 'win') ? (false !== stripos(PHP_OS, 'darwin') ? 2 : 1) : 0;
         }
-    }
-
-    /**
-     * Gets the wrapped class loader.
-     *
-     * @return callable|object A class loader. Since version 2.5, returning an object is @deprecated and support for it will be removed in 3.0
-     */
-    public function getClassLoader()
-    {
-        return $this->wasFinder ? $this->classLoader[0] : $this->classLoader;
     }
 
     /**
@@ -114,6 +104,16 @@ class DebugClassLoader
     }
 
     /**
+     * Gets the wrapped class loader.
+     *
+     * @return callable|object A class loader. Since version 2.5, returning an object is @deprecated and support for it will be removed in 3.0
+     */
+    public function getClassLoader()
+    {
+        return $this->wasFinder ? $this->classLoader[0] : $this->classLoader;
+    }
+
+    /**
      * Finds a file by class name.
      *
      * @param string $class A class name to resolve to file
@@ -147,7 +147,7 @@ class DebugClassLoader
         try {
             if ($this->isFinder) {
                 if ($file = $this->classLoader[0]->findFile($class)) {
-                    require $file;
+                    require_once $file;
                 }
             } else {
                 call_user_func($this->classLoader, $class);

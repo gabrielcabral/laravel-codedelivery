@@ -2,10 +2,11 @@
 
 namespace Illuminate\Queue\Console;
 
-use Illuminate\Queue\Listener;
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Input\InputOption;
+use Illuminate\Queue\Listener;
+use InvalidArgumentException;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 
 class ListenCommand extends Command
 {
@@ -63,6 +64,12 @@ class ListenCommand extends Command
 
         $timeout = $this->input->getOption('timeout');
 
+        if ($timeout <= $this->input->getOption('sleep')) {
+            throw new InvalidArgumentException(
+                "Job timeout must be greater than 'sleep' option value."
+            );
+        }
+
         // We need to get the right queue for the connection which is set in the queue
         // configuration file for the application. We will pull it based on the set
         // connection being run for the queue operation currently being executed.
@@ -71,23 +78,6 @@ class ListenCommand extends Command
         $this->listener->listen(
             $connection, $queue, $delay, $memory, $timeout
         );
-    }
-
-    /**
-     * Get the name of the queue connection to listen on.
-     *
-     * @param  string  $connection
-     * @return string
-     */
-    protected function getQueue($connection)
-    {
-        if (is_null($connection)) {
-            $connection = $this->laravel['config']['queue.default'];
-        }
-
-        $queue = $this->laravel['config']->get("queue.connections.{$connection}.queue", 'default');
-
-        return $this->input->getOption('queue') ?: $queue;
     }
 
     /**
@@ -106,6 +96,23 @@ class ListenCommand extends Command
         $this->listener->setOutputHandler(function ($type, $line) {
             $this->output->write($line);
         });
+    }
+
+    /**
+     * Get the name of the queue connection to listen on.
+     *
+     * @param  string $connection
+     * @return string
+     */
+    protected function getQueue($connection)
+    {
+        if (is_null($connection)) {
+            $connection = $this->laravel['config']['queue.default'];
+        }
+
+        $queue = $this->laravel['config']->get("queue.connections.{$connection}.queue", 'default');
+
+        return $this->input->getOption('queue') ?: $queue;
     }
 
     /**

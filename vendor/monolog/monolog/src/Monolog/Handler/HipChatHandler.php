@@ -84,16 +84,16 @@ class HipChatHandler extends SocketHandler
     private $version;
 
     /**
-     * @param string  $token    HipChat API Token
-     * @param string  $room     The room that should be alerted of the message (Id or Name)
-     * @param string  $name     Name used in the "from" field.  Not used for v2
-     * @param bool    $notify   Trigger a notification in clients or not
-     * @param int     $level    The minimum logging level at which this handler will be triggered
-     * @param bool    $bubble   Whether the messages that are handled can bubble up the stack or not
-     * @param bool    $useSSL   Whether to connect via SSL.
-     * @param string  $format   The format of the messages (default to text, can be set to html if you have html in the messages)
-     * @param string  $host     The HipChat server hostname.
-     * @param string  $version  The HipChat API version (default HipChatHandler::API_V1)
+     * @param string $token HipChat API Token
+     * @param string $room The room that should be alerted of the message (Id or Name)
+     * @param string $name Name used in the "from" field.
+     * @param bool $notify Trigger a notification in clients or not
+     * @param int $level The minimum logging level at which this handler will be triggered
+     * @param bool $bubble Whether the messages that are handled can bubble up the stack or not
+     * @param bool $useSSL Whether to connect via SSL.
+     * @param string $format The format of the messages (default to text, can be set to html if you have html in the messages)
+     * @param string $host The HipChat server hostname.
+     * @param string $version The HipChat API version (default HipChatHandler::API_V1)
      */
     public function __construct($token, $room, $name = 'Monolog', $notify = false, $level = Logger::CRITICAL, $bubble = true, $useSSL = true, $format = 'text', $host = 'api.hipchat.com', $version = self::API_V1)
     {
@@ -114,99 +114,27 @@ class HipChatHandler extends SocketHandler
     }
 
     /**
-     * {@inheritdoc}
+     * Validates the length of a string.
      *
-     * @param  array  $record
-     * @return string
-     */
-    protected function generateDataStream($record)
-    {
-        $content = $this->buildContent($record);
-
-        return $this->buildHeader($content) . $content;
-    }
-
-    /**
-     * Builds the body of API call
+     * If the `mb_strlen()` function is available, it will use that, as HipChat
+     * allows UTF-8 characters. Otherwise, it will fall back to `strlen()`.
      *
-     * @param  array  $record
-     * @return string
+     * Note that this might cause false failures in the specific case of using
+     * a valid name with less than 16 characters, but 16 or more bytes, on a
+     * system where `mb_strlen()` is unavailable.
+     *
+     * @param string $str
+     * @param int $length
+     *
+     * @return bool
      */
-    private function buildContent($record)
+    private function validateStringLength($str, $length)
     {
-        $dataArray = array(
-            'notify' => $this->version == self::API_V1 ?
-                ($this->notify ? 1 : 0) :
-                ($this->notify ? 'true' : 'false'),
-            'message' => $record['formatted'],
-            'message_format' => $this->format,
-            'color' => $this->getAlertColor($record['level']),
-        );
-
-        // if we are using the legacy API then we need to send some additional information
-        if ($this->version == self::API_V1) {
-            $dataArray['room_id'] = $this->room;
-            $dataArray['from'] = $this->name;
+        if (function_exists('mb_strlen')) {
+            return (mb_strlen($str) <= $length);
         }
 
-        return http_build_query($dataArray);
-    }
-
-    /**
-     * Builds the header of the API Call
-     *
-     * @param  string $content
-     * @return string
-     */
-    private function buildHeader($content)
-    {
-        if ($this->version == self::API_V1) {
-            $header = "POST /v1/rooms/message?format=json&auth_token={$this->token} HTTP/1.1\r\n";
-        } else {
-            // needed for rooms with special (spaces, etc) characters in the name
-            $room = rawurlencode($this->room);
-            $header = "POST /v2/room/{$room}/notification?auth_token={$this->token} HTTP/1.1\r\n";
-        }
-
-        $header .= "Host: {$this->host}\r\n";
-        $header .= "Content-Type: application/x-www-form-urlencoded\r\n";
-        $header .= "Content-Length: " . strlen($content) . "\r\n";
-        $header .= "\r\n";
-
-        return $header;
-    }
-
-    /**
-     * Assigns a color to each level of log records.
-     *
-     * @param  integer $level
-     * @return string
-     */
-    protected function getAlertColor($level)
-    {
-        switch (true) {
-            case $level >= Logger::ERROR:
-                return 'red';
-            case $level >= Logger::WARNING:
-                return 'yellow';
-            case $level >= Logger::INFO:
-                return 'green';
-            case $level == Logger::DEBUG:
-                return 'gray';
-            default:
-                return 'yellow';
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @param array $record
-     */
-    protected function write(array $record)
-    {
-        parent::write($record);
-        $this->closeSocket();
+        return (strlen($str) <= $length);
     }
 
     /**
@@ -303,7 +231,7 @@ class HipChatHandler extends SocketHandler
                 array(
                     'level'      => $level,
                     'level_name' => $levelName,
-                    'datetime'   => $datetime
+                    'datetime' => $datetime,
                 )
             );
         }
@@ -312,26 +240,103 @@ class HipChatHandler extends SocketHandler
     }
 
     /**
-     * Validates the length of a string.
+     * {@inheritdoc}
      *
-     * If the `mb_strlen()` function is available, it will use that, as HipChat
-     * allows UTF-8 characters. Otherwise, it will fall back to `strlen()`.
-     *
-     * Note that this might cause false failures in the specific case of using
-     * a valid name with less than 16 characters, but 16 or more bytes, on a
-     * system where `mb_strlen()` is unavailable.
-     *
-     * @param string $str
-     * @param int    $length
-     *
-     * @return bool
+     * @param array $record
      */
-    private function validateStringLength($str, $length)
+    protected function write(array $record)
     {
-        if (function_exists('mb_strlen')) {
-            return (mb_strlen($str) <= $length);
+        parent::write($record);
+        $this->closeSocket();
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param  array $record
+     * @return string
+     */
+    protected function generateDataStream($record)
+    {
+        $content = $this->buildContent($record);
+
+        return $this->buildHeader($content) . $content;
+    }
+
+    /**
+     * Builds the body of API call
+     *
+     * @param  array $record
+     * @return string
+     */
+    private function buildContent($record)
+    {
+        $dataArray = array(
+            'notify' => $this->version == self::API_V1 ?
+                ($this->notify ? 1 : 0) :
+                ($this->notify ? 'true' : 'false'),
+            'message' => $record['formatted'],
+            'message_format' => $this->format,
+            'color' => $this->getAlertColor($record['level']),
+        );
+
+        // if we are using the legacy API then we need to send some additional information
+        if ($this->version == self::API_V1) {
+            $dataArray['room_id'] = $this->room;
         }
 
-        return (strlen($str) <= $length);
+        // append the sender name if it is set
+        // always append it if we use the v1 api (it is required in v1)
+        if ($this->version == self::API_V1 || $this->name !== null) {
+            $dataArray['from'] = (string)$this->name;
+        }
+
+        return http_build_query($dataArray);
+    }
+
+    /**
+     * Assigns a color to each level of log records.
+     *
+     * @param  int $level
+     * @return string
+     */
+    protected function getAlertColor($level)
+    {
+        switch (true) {
+            case $level >= Logger::ERROR:
+                return 'red';
+            case $level >= Logger::WARNING:
+                return 'yellow';
+            case $level >= Logger::INFO:
+                return 'green';
+            case $level == Logger::DEBUG:
+                return 'gray';
+            default:
+                return 'yellow';
+        }
+    }
+
+    /**
+     * Builds the header of the API Call
+     *
+     * @param  string $content
+     * @return string
+     */
+    private function buildHeader($content)
+    {
+        if ($this->version == self::API_V1) {
+            $header = "POST /v1/rooms/message?format=json&auth_token={$this->token} HTTP/1.1\r\n";
+        } else {
+            // needed for rooms with special (spaces, etc) characters in the name
+            $room = rawurlencode($this->room);
+            $header = "POST /v2/room/{$room}/notification?auth_token={$this->token} HTTP/1.1\r\n";
+        }
+
+        $header .= "Host: {$this->host}\r\n";
+        $header .= "Content-Type: application/x-www-form-urlencoded\r\n";
+        $header .= "Content-Length: " . strlen($content) . "\r\n";
+        $header .= "\r\n";
+
+        return $header;
     }
 }

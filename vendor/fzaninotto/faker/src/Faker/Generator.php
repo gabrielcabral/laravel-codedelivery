@@ -41,6 +41,7 @@ namespace Faker;
  * @property string $creditCardExpirationDateString
  * @property string $creditCardDetails
  * @property string $bankAccountNumber
+ * @method string iban($countryCode = null, $prefix = '', $length = null)
  * @property string $swiftBicNumber
  * @property string $vat
  *
@@ -184,8 +185,41 @@ class Generator
         if ($seed === null) {
             mt_srand();
         } else {
-            mt_srand($seed);
+            mt_srand((int)$seed);
         }
+    }
+
+    /**
+     * Replaces tokens ('{{ tokenName }}') with the result from the token method call
+     *
+     * @param  string $string String that needs to bet parsed
+     * @return string
+     */
+    public function parse($string)
+    {
+        return preg_replace_callback('/\{\{\s?(\w+)\s?\}\}/u', array($this, 'callFormatWithMatches'), $string);
+    }
+
+    /**
+     * @param string $attribute
+     */
+    public function __get($attribute)
+    {
+        return $this->format($attribute);
+    }
+
+    /**
+     * @param string $method
+     * @param array $attributes
+     */
+    public function __call($method, $attributes)
+    {
+        return $this->format($method, $attributes);
+    }
+
+    protected function callFormatWithMatches($matches)
+    {
+        return $this->format($matches[1]);
     }
 
     public function format($formatter, $arguments = array())
@@ -209,31 +243,5 @@ class Generator
             }
         }
         throw new \InvalidArgumentException(sprintf('Unknown formatter "%s"', $formatter));
-    }
-
-    /**
-     * Replaces tokens ('{{ tokenName }}') with the result from the token method call
-     *
-     * @param  string $string String that needs to bet parsed
-     * @return string
-     */
-    public function parse($string)
-    {
-        return preg_replace_callback('/\{\{\s?(\w+)\s?\}\}/u', array($this, 'callFormatWithMatches'), $string);
-    }
-
-    protected function callFormatWithMatches($matches)
-    {
-        return $this->format($matches[1]);
-    }
-
-    public function __get($attribute)
-    {
-        return $this->format($attribute);
-    }
-
-    public function __call($method, $attributes)
-    {
-        return $this->format($method, $attributes);
     }
 }

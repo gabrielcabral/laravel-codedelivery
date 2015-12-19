@@ -15,6 +15,11 @@ class Swift_ByteStream_ArrayByteStreamTest extends \PHPUnit_Framework_TestCase
             );
     }
 
+    private function _createArrayStream($input)
+    {
+        return new Swift_ByteStream_ArrayByteStream($input);
+    }
+
     public function testReadingMultipleBytesFromBaseInput()
     {
         $input = array('a', 'b', 'c', 'd');
@@ -55,8 +60,7 @@ class Swift_ByteStream_ArrayByteStreamTest extends \PHPUnit_Framework_TestCase
     {
         $input = array('a', 'b', 'c');
         $bs = $this->_createArrayStream($input);
-
-        while (false !== $bs->read(1));
+        while (false !== $bs->read(1)) ;
 
         $bs->setReadPointer(0);
         $this->assertEquals('a', $bs->read(1),
@@ -169,6 +173,8 @@ class Swift_ByteStream_ArrayByteStreamTest extends \PHPUnit_Framework_TestCase
         $bs->flushBuffers();
     }
 
+    // -- Creation Methods
+
     public function testUnbindingStreamPreventsFurtherWrites()
     {
         $bs = $this->_createArrayStream('');
@@ -193,12 +199,5 @@ class Swift_ByteStream_ArrayByteStreamTest extends \PHPUnit_Framework_TestCase
         $bs->unbind($is2);
 
         $bs->write('y');
-    }
-
-    // -- Creation Methods
-
-    private function _createArrayStream($input)
-    {
-        return new Swift_ByteStream_ArrayByteStream($input);
     }
 }

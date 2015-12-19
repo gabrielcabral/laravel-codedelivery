@@ -14,6 +14,12 @@ class Factory implements ArrayAccess
      * @var \Faker\Generator
      */
     protected $faker;
+    /**
+     * The model definitions in the container.
+     *
+     * @var array
+     */
+    protected $definitions = [];
 
     /**
      * Create a new factory instance.
@@ -27,13 +33,6 @@ class Factory implements ArrayAccess
     }
 
     /**
-     * The model definitions in the container.
-     *
-     * @var array
-     */
-    protected $definitions = [];
-
-    /**
      * Create a new factory container.
      *
      * @param  \Faker\Generator  $faker
@@ -44,10 +43,21 @@ class Factory implements ArrayAccess
     {
         $pathToFactories = $pathToFactories ?: database_path('factories');
 
-        $factory = new static($faker);
+        return (new static($faker))->load($pathToFactories);
+    }
 
-        if (is_dir($pathToFactories)) {
-            foreach (Finder::create()->files()->in($pathToFactories) as $file) {
+    /**
+     * Load factories from path.
+     *
+     * @param  string $path
+     * @return $this
+     */
+    public function load($path)
+    {
+        $factory = $this;
+
+        if (is_dir($path)) {
+            foreach (Finder::create()->files()->in($path) as $file) {
                 require $file->getRealPath();
             }
         }
@@ -94,28 +104,28 @@ class Factory implements ArrayAccess
     }
 
     /**
-     * Create an instance of the given model and type and persist it to the database.
+     * Create a builder for the given model.
      *
      * @param  string  $class
      * @param  string  $name
+     * @return \Illuminate\Database\Eloquent\FactoryBuilder
+     */
+    public function of($class, $name = 'default')
+    {
+        return new FactoryBuilder($class, $name, $this->definitions, $this->faker);
+    }
+
+    /**
+     * Create an instance of the given model and type and persist it to the database.
+     *
+     * @param  string  $class
+     * @param  string $name
      * @param  array  $attributes
      * @return mixed
      */
     public function createAs($class, $name, array $attributes = [])
     {
         return $this->of($class, $name)->create($attributes);
-    }
-
-    /**
-     * Create an instance of the given model.
-     *
-     * @param  string  $class
-     * @param  array  $attributes
-     * @return mixed
-     */
-    public function make($class, array $attributes = [])
-    {
-        return $this->of($class)->make($attributes);
     }
 
     /**
@@ -160,18 +170,6 @@ class Factory implements ArrayAccess
     }
 
     /**
-     * Create a builder for the given model.
-     *
-     * @param  string  $class
-     * @param  string  $name
-     * @return \Illuminate\Database\Eloquent\FactoryBuilder
-     */
-    public function of($class, $name = 'default')
-    {
-        return new FactoryBuilder($class, $name, $this->definitions, $this->faker);
-    }
-
-    /**
      * Determine if the given offset exists.
      *
      * @param  string  $offset
@@ -191,6 +189,18 @@ class Factory implements ArrayAccess
     public function offsetGet($offset)
     {
         return $this->make($offset);
+    }
+
+    /**
+     * Create an instance of the given model.
+     *
+     * @param  string $class
+     * @param  array $attributes
+     * @return mixed
+     */
+    public function make($class, array $attributes = [])
+    {
+        return $this->of($class)->make($attributes);
     }
 
     /**

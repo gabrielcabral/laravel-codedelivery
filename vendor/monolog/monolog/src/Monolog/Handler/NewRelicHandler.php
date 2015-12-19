@@ -11,8 +11,8 @@
 
 namespace Monolog\Handler;
 
-use Monolog\Logger;
 use Monolog\Formatter\NormalizerFormatter;
+use Monolog\Logger;
 
 /**
  * Class to record a log on a NewRelic application.
@@ -41,16 +41,16 @@ class NewRelicHandler extends AbstractProcessingHandler
      * Some context and extra data is passed into the handler as arrays of values. Do we send them as is
      * (useful if we are using the API), or explode them for display on the NewRelic RPM website?
      *
-     * @var boolean
+     * @var bool
      */
     protected $explodeArrays;
 
     /**
      * {@inheritDoc}
      *
-     * @param string  $appName
-     * @param boolean $explodeArrays
-     * @param string  $transactionName
+     * @param string $appName
+     * @param bool $explodeArrays
+     * @param string $transactionName
      */
     public function __construct(
         $level = Logger::ERROR,
@@ -139,6 +139,16 @@ class NewRelicHandler extends AbstractProcessingHandler
     }
 
     /**
+     * Sets the NewRelic application that should receive this log.
+     *
+     * @param string $appName
+     */
+    protected function setNewRelicAppName($appName)
+    {
+        newrelic_set_appname($appName);
+    }
+
+    /**
      * Returns the name of the current transaction. Each log can override the default transaction name, set in this
      * handler's constructor, by providing the transaction_name in it's context
      *
@@ -153,16 +163,6 @@ class NewRelicHandler extends AbstractProcessingHandler
         }
 
         return $this->transactionName;
-    }
-
-    /**
-     * Sets the NewRelic application that should receive this log.
-     *
-     * @param string $appName
-     */
-    protected function setNewRelicAppName($appName)
-    {
-        newrelic_set_appname($appName);
     }
 
     /**

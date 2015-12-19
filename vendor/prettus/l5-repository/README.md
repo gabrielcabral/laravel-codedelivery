@@ -6,7 +6,7 @@ Laravel 5 Repositories is used to abstract the data layer, making our applicatio
 [![Analytics](https://ga-beacon.appspot.com/UA-61050740-1/l5-repository/readme)](https://packagist.org/packages/prettus/l5-repository)
 
 #### See versions: [1.0.*](https://github.com/andersao/l5-repository/tree/1.0.4) / [2.0.*](https://github.com/andersao/l5-repository/tree/2.0.14)
-#### Migrate to: [2.0](migration-to-2.0.md) / [2.1](migration-to-2.1.md) 
+#### Migrate to: [2.0](migration-to-2.0.md) / [2.1](migration-to-2.1.md)
 
 You want to know a little more about the Repository pattern? [Read this great article](http://bit.ly/1IdmRNS).
 
@@ -55,7 +55,7 @@ Execute the following command to get the latest version of the package:
 
 ### Laravel
 
-In your `config/app.php` add `Prettus\Repository\Providers\RepositoryServiceProvider::class` to the end of the `providers` array:
+In your `config/app.php` add `Prettus\Repository\Providers\RepositoryServiceProvider:class` to the end of the `providers` array:
 
 ```php
 'providers' => [
@@ -186,15 +186,8 @@ You must first configure the storage location of the repository files. By defaul
 ```php
     ...
     'generator'=>[
-        'basePath'=>app_path(),
-        'rootNamespace'=>'App\\',
-        'paths'=>[
-            'models'=>'Entities',
-            'repositories'=>'Repositories',
-            'interfaces'=>'Repositories',
-            'transformers'=>'Transformers',
-            'presenters'=>'Presenters'
-        ]
+        'basePath'      =>app_path(),
+        'rootNamespace' =>'App\\'
     ]
 ```
 
@@ -205,22 +198,6 @@ You may want to save the root of your project folder out of the app and add anot
      'generator'=>[
         'basePath'      => base_path('src/Lorem'),
         'rootNamespace' => 'Lorem\\'
-    ]
-```
-
-Additionally, you may wish to customize where your generated classes end up being saved.  That can be accomplished by editing the `paths` node to your liking.  For example:
-
-```php
-    'generator'=>[
-        'basePath'=>app_path(),
-        'rootNamespace'=>'App\\',
-        'paths'=>[
-            'models'=>'Models',
-            'repositories'=>'Repositories\\Eloquent',
-            'interfaces'=>'Contracts\\Repositories',
-            'transformers'=>'Transformers',
-            'presenters'=>'Presenters'
-        ]
     ]
 ```
 
@@ -872,7 +849,7 @@ Requires [Fractal](http://fractal.thephpleague.com/). `composer require league/f
 
 There are two ways to implement the Presenter, the first is creating a TransformerAbstract and set it using your Presenter class as described in the Create a Transformer Class.
 
-The second way is to make your model implement the Transformable interface, and use the default Presenter ModelFractarPresenter, this will have the same effect.
+The second way is to make your model implement the Transformable interface, and use the default Prenseter ModelFractarPresenter, this will have the same effect.
 
 ##### Transformer Class
 

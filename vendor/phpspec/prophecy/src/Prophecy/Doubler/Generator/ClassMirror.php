@@ -11,8 +11,8 @@
 
 namespace Prophecy\Doubler\Generator;
 
-use Prophecy\Exception\InvalidArgumentException;
 use Prophecy\Exception\Doubler\ClassMirrorException;
+use Prophecy\Exception\InvalidArgumentException;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
@@ -32,6 +32,7 @@ class ClassMirror
         '__wakeup',
         '__toString',
         '__call',
+        '__invoke'
     );
 
     /**
@@ -116,15 +117,6 @@ class ClassMirror
         }
     }
 
-    private function reflectInterfaceToNode(ReflectionClass $interface, Node\ClassNode $node)
-    {
-        $node->addInterface($interface->getName());
-
-        foreach ($interface->getMethods() as $method) {
-            $this->reflectMethodToNode($method, $node);
-        }
-    }
-
     private function reflectMethodToNode(ReflectionMethod $method, Node\ClassNode $classNode)
     {
         $node = new Node\MethodNode($method->getName());
@@ -205,6 +197,15 @@ class ClassMirror
             preg_match('/\[\s\<\w+?>\s([\w,\\\]+)/s', $parameter, $matches);
 
             return isset($matches[1]) ? $matches[1] : null;
+        }
+    }
+
+    private function reflectInterfaceToNode(ReflectionClass $interface, Node\ClassNode $node)
+    {
+        $node->addInterface($interface->getName());
+
+        foreach ($interface->getMethods() as $method) {
+            $this->reflectMethodToNode($method, $node);
         }
     }
 }

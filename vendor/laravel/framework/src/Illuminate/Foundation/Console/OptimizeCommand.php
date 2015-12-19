@@ -2,19 +2,19 @@
 
 namespace Illuminate\Foundation\Console;
 
-use PhpParser\Lexer;
-use PhpParser\Parser;
-use ClassPreloader\Factory;
-use Illuminate\Console\Command;
 use ClassPreloader\ClassPreloader;
-use Illuminate\Foundation\Composer;
+use ClassPreloader\Exceptions\SkipFileException;
+use ClassPreloader\Exceptions\VisitorExceptionInterface;
+use ClassPreloader\Factory;
 use ClassPreloader\Parser\DirVisitor;
 use ClassPreloader\Parser\FileVisitor;
 use ClassPreloader\Parser\NodeTraverser;
-use ClassPreloader\Exceptions\SkipFileException;
-use Symfony\Component\Console\Input\InputOption;
+use Illuminate\Console\Command;
+use Illuminate\Foundation\Composer;
+use PhpParser\Lexer;
+use PhpParser\Parser;
 use PhpParser\PrettyPrinter\Standard as PrettyPrinter;
-use ClassPreloader\Exceptions\VisitorExceptionInterface;
+use Symfony\Component\Console\Input\InputOption;
 
 class OptimizeCommand extends Command
 {
@@ -111,11 +111,26 @@ class OptimizeCommand extends Command
             return (new Factory)->create(['skip' => true]);
         }
 
+        // Class Preloader 2.x
+        return new ClassPreloader(new PrettyPrinter, new Parser(new Lexer), $this->getTraverser());
+    }
+
+    /**
+     * Get the node traverser used by the command.
+     *
+     * Note that this method is only called if we're using Class Preloader 2.x.
+     *
+     * @return \ClassPreloader\Parser\NodeTraverser
+     */
+    protected function getTraverser()
+    {
         $traverser = new NodeTraverser;
+
         $traverser->addVisitor(new DirVisitor(true));
+
         $traverser->addVisitor(new FileVisitor(true));
 
-        return new ClassPreloader(new PrettyPrinter, new Parser(new Lexer), $traverser);
+        return $traverser;
     }
 
     /**

@@ -50,17 +50,15 @@ class RepositoryCommand extends Command
         $this->generators->push($modelGenerator);
 
         $this->generators->push(new RepositoryInterfaceGenerator([
-            'name'      => $this->argument('name'),
-            'force'     => $this->option('force'),
+            'name' => $this->argument('name')
         ]));
 
-        $model = $modelGenerator->getRootNamespace().'\\'.$modelGenerator->getName();
+        $model = $modelGenerator->getRootNamespace() . $modelGenerator->getName();
         $model = str_replace(["\\",'/'],'\\', $model);
 
         $this->generators->push(new RepositoryEloquentGenerator([
             'name'      => $this->argument('name'),
             'rules'     => $this->option('rules'),
-            'force'     => $this->option('force'),
             'model'     => $model
         ]));
 

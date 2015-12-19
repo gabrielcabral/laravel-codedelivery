@@ -11,12 +11,12 @@
 
 namespace Symfony\Component\HttpKernel\Bundle;
 
+use Symfony\Component\Console\Application;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\Console\Application;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
+use Symfony\Component\Finder\Finder;
 
 /**
  * An implementation of BundleInterface that adds a few conventions
@@ -98,39 +98,15 @@ abstract class Bundle extends ContainerAware implements BundleInterface
     }
 
     /**
-     * Gets the Bundle namespace.
+     * Returns the bundle's container extension class.
      *
-     * @return string The Bundle namespace
+     * @return string
      */
-    public function getNamespace()
+    protected function getContainerExtensionClass()
     {
-        $class = get_class($this);
+        $basename = preg_replace('/Bundle$/', '', $this->getName());
 
-        return substr($class, 0, strrpos($class, '\\'));
-    }
-
-    /**
-     * Gets the Bundle directory path.
-     *
-     * @return string The Bundle absolute path
-     */
-    public function getPath()
-    {
-        if (null === $this->path) {
-            $reflected = new \ReflectionObject($this);
-            $this->path = dirname($reflected->getFileName());
-        }
-
-        return $this->path;
-    }
-
-    /**
-     * Returns the bundle parent name.
-     *
-     * @return string The Bundle parent name it overrides or null if no parent
-     */
-    public function getParent()
-    {
+        return $this->getNamespace() . '\\DependencyInjection\\' . $basename . 'Extension';
     }
 
     /**
@@ -151,6 +127,27 @@ abstract class Bundle extends ContainerAware implements BundleInterface
     }
 
     /**
+     * Gets the Bundle namespace.
+     *
+     * @return string The Bundle namespace
+     */
+    public function getNamespace()
+    {
+        $class = get_class($this);
+
+        return substr($class, 0, strrpos($class, '\\'));
+    }
+
+    /**
+     * Returns the bundle parent name.
+     *
+     * @return string The Bundle parent name it overrides or null if no parent
+     */
+    public function getParent()
+    {
+    }
+
+    /**
      * Finds and registers Commands.
      *
      * Override this method if your bundle commands do not follow the conventions:
@@ -164,6 +161,10 @@ abstract class Bundle extends ContainerAware implements BundleInterface
     {
         if (!is_dir($dir = $this->getPath().'/Command')) {
             return;
+        }
+
+        if (!class_exists('Symfony\Component\Finder\Finder')) {
+            throw new \RuntimeException('You need the symfony/finder component to register bundle commands.');
         }
 
         $finder = new Finder();
@@ -190,14 +191,17 @@ abstract class Bundle extends ContainerAware implements BundleInterface
     }
 
     /**
-     * Returns the bundle's container extension class.
+     * Gets the Bundle directory path.
      *
-     * @return string
+     * @return string The Bundle absolute path
      */
-    protected function getContainerExtensionClass()
+    public function getPath()
     {
-        $basename = preg_replace('/Bundle$/', '', $this->getName());
+        if (null === $this->path) {
+            $reflected = new \ReflectionObject($this);
+            $this->path = dirname($reflected->getFileName());
+        }
 
-        return $this->getNamespace().'\\DependencyInjection\\'.$basename.'Extension';
+        return $this->path;
     }
 }

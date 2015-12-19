@@ -21,8 +21,6 @@ use Symfony\Component\Yaml\Exception\ParseException;
 class Parser
 {
     const BLOCK_SCALAR_HEADER_PATTERN = '(?P<separator>\||>)(?P<modifiers>\+|\-|\d+|\+\d+|\-\d+|\d+\+|\d+\-)?(?P<comments> +#.*)?';
-    // BC - wrongly named
-    const FOLDED_SCALAR_PATTERN = self::BLOCK_SCALAR_HEADER_PATTERN;
 
     private $offset = 0;
     private $lines = array();
@@ -62,7 +60,7 @@ class Parser
         $value = $this->cleanup($value);
         $this->lines = explode("\n", $value);
 
-        if (function_exists('mb_internal_encoding') && ((int) ini_get('mbstring.func_overload')) & 2) {
+        if (2 /* MB_OVERLOAD_STRING */ & (int)ini_get('mbstring.func_overload')) {
             $mbEncoding = mb_internal_encoding();
             mb_internal_encoding('UTF-8');
         }
@@ -114,7 +112,7 @@ class Parser
 
                         $data[] = $parser->parse($block, $exceptionOnInvalidType, $objectSupport, $objectForMap);
                     } else {
-                        $data[] = $this->parseValue($values['value'], $exceptionOnInvalidType, $objectSupport, $objectForMap);
+                        $data[] = $this->parseValue($values['value'], $exceptionOnInvalidType, $objectSupport, $objectForMap, $context);
                     }
                 }
                 if ($isRef) {
@@ -230,7 +228,7 @@ class Parser
                         }
                     }
                 } else {
-                    $value = $this->parseValue($values['value'], $exceptionOnInvalidType, $objectSupport, $objectForMap);
+                    $value = $this->parseValue($values['value'], $exceptionOnInvalidType, $objectSupport, $objectForMap, $context);
                     // Spec: Keys MUST be unique; first one wins.
                     // But overwriting is allowed when a merge node is used in current block.
                     if ($allowOverwrite || !isset($data[$key])) {
@@ -307,6 +305,93 @@ class Parser
     }
 
     /**
+     * Cleanups a YAML string to be parsed.
+     *
+     * @param string $value The input YAML string
+     *
+     * @return string A cleaned up YAML string
+     */
+    private function cleanup($value)
+    {
+        $value = str_replace(array("\r\n", "\r"), "\n", $value);
+
+        // strip YAML header
+        $count = 0;
+        $value = preg_replace('#^\%YAML[: ][\d\.]+.*\n#u', '', $value, -1, $count);
+        $this->offset += $count;
+
+        // remove leading comments
+        $trimmedValue = preg_replace('#^(\#.*?\n)+#s', '', $value, -1, $count);
+        if ($count == 1) {
+            // items have been removed, update the offset
+            $this->offset += substr_count($value, "\n") - substr_count($trimmedValue, "\n");
+            $value = $trimmedValue;
+        }
+
+        // remove start of the document marker (---)
+        $trimmedValue = preg_replace('#^\-\-\-.*?\n#s', '', $value, -1, $count);
+        if ($count == 1) {
+            // items have been removed, update the offset
+            $this->offset += substr_count($value, "\n") - substr_count($trimmedValue, "\n");
+            $value = $trimmedValue;
+
+            // remove end of the document marker (...)
+            $value = preg_replace('#\.\.\.\s*$#', '', $value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Moves the parser to the next line.
+     *
+     * @return bool
+     */
+    private function moveToNextLine()
+    {
+        if ($this->currentLineNb >= count($this->lines) - 1) {
+            return false;
+        }
+
+        $this->currentLine = $this->lines[++$this->currentLineNb];
+
+        return true;
+    }
+
+    /**
+     * Returns true if the current line is blank or if it is a comment line.
+     *
+     * @return bool Returns true if the current line is empty or if it is a comment line, false otherwise
+     */
+    private function isCurrentLineEmpty()
+    {
+        return $this->isCurrentLineBlank() || $this->isCurrentLineComment();
+    }
+
+    /**
+     * Returns true if the current line is blank.
+     *
+     * @return bool Returns true if the current line is blank, false otherwise
+     */
+    private function isCurrentLineBlank()
+    {
+        return '' == trim($this->currentLine, ' ');
+    }
+
+    /**
+     * Returns true if the current line is a comment line.
+     *
+     * @return bool Returns true if the current line is a comment line, false otherwise
+     */
+    private function isCurrentLineComment()
+    {
+        //checking explicitly the first char of the trim is faster than loops or strpos
+        $ltrimmedLine = ltrim($this->currentLine, ' ');
+
+        return $ltrimmedLine[0] === '#';
+    }
+
+    /**
      * Returns the current line number (takes the offset into account).
      *
      * @return int The current line number
@@ -314,16 +399,6 @@ class Parser
     private function getRealCurrentLineNb()
     {
         return $this->currentLineNb + $this->offset;
-    }
-
-    /**
-     * Returns the current line indentation.
-     *
-     * @return int The current line indentation
-     */
-    private function getCurrentLineIndentation()
-    {
-        return strlen($this->currentLine) - strlen(ltrim($this->currentLine, ' '));
     }
 
     /**
@@ -347,7 +422,7 @@ class Parser
         if (null === $indentation) {
             $newIndent = $this->getCurrentLineIndentation();
 
-            $unindentedEmbedBlock = $this->isStringUnIndentedCollectionItem($this->currentLine);
+            $unindentedEmbedBlock = $this->isStringUnIndentedCollectionItem();
 
             if (!$this->isCurrentLineEmpty() && 0 === $newIndent && !$unindentedEmbedBlock) {
                 throw new ParseException('Indentation problem.', $this->getRealCurrentLineNb() + 1, $this->currentLine);
@@ -373,7 +448,7 @@ class Parser
             return;
         }
 
-        $isItUnindentedCollection = $this->isStringUnIndentedCollectionItem($this->currentLine);
+        $isItUnindentedCollection = $this->isStringUnIndentedCollectionItem();
 
         // Comments must not be removed inside a block scalar
         $removeCommentsPattern = '~'.self::BLOCK_SCALAR_HEADER_PATTERN.'$~';
@@ -386,7 +461,7 @@ class Parser
                 $removeComments = !preg_match($removeCommentsPattern, $this->currentLine);
             }
 
-            if ($isItUnindentedCollection && !$this->isStringUnIndentedCollectionItem($this->currentLine) && $newIndent === $indent) {
+            if ($isItUnindentedCollection && !$this->isStringUnIndentedCollectionItem() && $newIndent === $indent) {
                 $this->moveToPreviousLine();
                 break;
             }
@@ -415,19 +490,23 @@ class Parser
     }
 
     /**
-     * Moves the parser to the next line.
+     * Returns the current line indentation.
      *
-     * @return bool
+     * @return int The current line indentation
      */
-    private function moveToNextLine()
+    private function getCurrentLineIndentation()
     {
-        if ($this->currentLineNb >= count($this->lines) - 1) {
-            return false;
-        }
+        return strlen($this->currentLine) - strlen(ltrim($this->currentLine, ' '));
+    }
 
-        $this->currentLine = $this->lines[++$this->currentLineNb];
-
-        return true;
+    /**
+     * Returns true if the string is un-indented collection item.
+     *
+     * @return bool Returns true if the string is un-indented collection item, false otherwise
+     */
+    private function isStringUnIndentedCollectionItem()
+    {
+        return 0 === strpos($this->currentLine, '- ');
     }
 
     /**
@@ -439,18 +518,47 @@ class Parser
     }
 
     /**
+     * Returns true if the next line is indented.
+     *
+     * @return bool Returns true if the next line is indented, false otherwise
+     */
+    private function isNextLineIndented()
+    {
+        $currentIndentation = $this->getCurrentLineIndentation();
+        $EOF = !$this->moveToNextLine();
+
+        while (!$EOF && $this->isCurrentLineEmpty()) {
+            $EOF = !$this->moveToNextLine();
+        }
+
+        if ($EOF) {
+            return false;
+        }
+
+        $ret = false;
+        if ($this->getCurrentLineIndentation() > $currentIndentation) {
+            $ret = true;
+        }
+
+        $this->moveToPreviousLine();
+
+        return $ret;
+    }
+
+    /**
      * Parses a YAML value.
      *
      * @param string $value                  A YAML value
      * @param bool   $exceptionOnInvalidType True if an exception must be thrown on invalid types false otherwise
      * @param bool   $objectSupport          True if object support is enabled, false otherwise
      * @param bool   $objectForMap           true if maps should return a stdClass instead of array()
+     * @param string $context The parser context (either sequence or mapping)
      *
      * @return mixed A PHP value
      *
      * @throws ParseException When reference does not exist
      */
-    private function parseValue($value, $exceptionOnInvalidType, $objectSupport, $objectForMap)
+    private function parseValue($value, $exceptionOnInvalidType, $objectSupport, $objectForMap, $context)
     {
         if (0 === strpos($value, '*')) {
             if (false !== $pos = strpos($value, '#')) {
@@ -473,7 +581,13 @@ class Parser
         }
 
         try {
-            return Inline::parse($value, $exceptionOnInvalidType, $objectSupport, $objectForMap, $this->refs);
+            $parsedValue = Inline::parse($value, $exceptionOnInvalidType, $objectSupport, $objectForMap, $this->refs);
+
+            if ('mapping' === $context && '"' !== $value[0] && "'" !== $value[0] && '[' !== $value[0] && '{' !== $value[0] && '!' !== $value[0] && false !== strpos($parsedValue, ': ')) {
+                throw new ParseException('A colon cannot be used in an unquoted mapping value.');
+            }
+
+            return $parsedValue;
         } catch (ParseException $e) {
             $e->setParsedLine($this->getRealCurrentLineNb() + 1);
             $e->setSnippet($this->currentLine);
@@ -570,105 +684,6 @@ class Parser
     }
 
     /**
-     * Returns true if the next line is indented.
-     *
-     * @return bool Returns true if the next line is indented, false otherwise
-     */
-    private function isNextLineIndented()
-    {
-        $currentIndentation = $this->getCurrentLineIndentation();
-        $EOF = !$this->moveToNextLine();
-
-        while (!$EOF && $this->isCurrentLineEmpty()) {
-            $EOF = !$this->moveToNextLine();
-        }
-
-        if ($EOF) {
-            return false;
-        }
-
-        $ret = false;
-        if ($this->getCurrentLineIndentation() > $currentIndentation) {
-            $ret = true;
-        }
-
-        $this->moveToPreviousLine();
-
-        return $ret;
-    }
-
-    /**
-     * Returns true if the current line is blank or if it is a comment line.
-     *
-     * @return bool Returns true if the current line is empty or if it is a comment line, false otherwise
-     */
-    private function isCurrentLineEmpty()
-    {
-        return $this->isCurrentLineBlank() || $this->isCurrentLineComment();
-    }
-
-    /**
-     * Returns true if the current line is blank.
-     *
-     * @return bool Returns true if the current line is blank, false otherwise
-     */
-    private function isCurrentLineBlank()
-    {
-        return '' == trim($this->currentLine, ' ');
-    }
-
-    /**
-     * Returns true if the current line is a comment line.
-     *
-     * @return bool Returns true if the current line is a comment line, false otherwise
-     */
-    private function isCurrentLineComment()
-    {
-        //checking explicitly the first char of the trim is faster than loops or strpos
-        $ltrimmedLine = ltrim($this->currentLine, ' ');
-
-        return $ltrimmedLine[0] === '#';
-    }
-
-    /**
-     * Cleanups a YAML string to be parsed.
-     *
-     * @param string $value The input YAML string
-     *
-     * @return string A cleaned up YAML string
-     */
-    private function cleanup($value)
-    {
-        $value = str_replace(array("\r\n", "\r"), "\n", $value);
-
-        // strip YAML header
-        $count = 0;
-        $value = preg_replace('#^\%YAML[: ][\d\.]+.*\n#u', '', $value, -1, $count);
-        $this->offset += $count;
-
-        // remove leading comments
-        $trimmedValue = preg_replace('#^(\#.*?\n)+#s', '', $value, -1, $count);
-        if ($count == 1) {
-            // items have been removed, update the offset
-            $this->offset += substr_count($value, "\n") - substr_count($trimmedValue, "\n");
-            $value = $trimmedValue;
-        }
-
-        // remove start of the document marker (---)
-        $trimmedValue = preg_replace('#^\-\-\-.*?\n#s', '', $value, -1, $count);
-        if ($count == 1) {
-            // items have been removed, update the offset
-            $this->offset += substr_count($value, "\n") - substr_count($trimmedValue, "\n");
-            $value = $trimmedValue;
-
-            // remove end of the document marker (...)
-            $value = preg_replace('#\.\.\.\s*$#', '', $value);
-        }
-
-        return $value;
-    }
-
-    /**
      * Returns true if the next line starts unindented collection.
      *
      * @return bool Returns true if the next line starts unindented collection, false otherwise
@@ -690,7 +705,7 @@ class Parser
         if (
             $this->getCurrentLineIndentation() == $currentIndentation
             &&
-            $this->isStringUnIndentedCollectionItem($this->currentLine)
+            $this->isStringUnIndentedCollectionItem()
         ) {
             $ret = true;
         }
@@ -698,15 +713,5 @@ class Parser
         $this->moveToPreviousLine();
 
         return $ret;
-    }
-
-    /**
-     * Returns true if the string is un-indented collection item.
-     *
-     * @return bool Returns true if the string is un-indented collection item, false otherwise
-     */
-    private function isStringUnIndentedCollectionItem()
-    {
-        return (0 === strpos($this->currentLine, '- '));
     }
 }

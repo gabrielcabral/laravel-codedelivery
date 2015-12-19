@@ -55,7 +55,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
      * Determine if a translation exists for a given locale.
      *
      * @param  string  $key
-     * @param  string  $locale
+     * @param  string|null $locale
      * @return bool
      */
     public function hasForLocale($key, $locale = null)
@@ -67,7 +67,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
      * Determine if a translation exists.
      *
      * @param  string  $key
-     * @param  string  $locale
+     * @param  string|null $locale
      * @param  bool  $fallback
      * @return bool
      */
@@ -81,7 +81,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
      *
      * @param  string  $key
      * @param  array   $replace
-     * @param  string  $locale
+     * @param  string|null $locale
      * @param  bool  $fallback
      * @return string
      */
@@ -92,7 +92,7 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
         // Here we will get the locale that should be used for the language line. If one
         // was not passed, we will use the default locales which was given to us when
         // the translator was instantiated. Then, we can load the lines and return.
-        $locales = $fallback ? $this->parseLocale($locale) : [$locale];
+        $locales = $fallback ? $this->parseLocale($locale) : [$locale ?: $this->locale];
 
         foreach ($locales as $locale) {
             $this->load($namespace, $group, $locale);
@@ -114,6 +114,73 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
         }
 
         return $line;
+    }
+
+    /**
+     * Parse a key into namespace, group, and item.
+     *
+     * @param  string $key
+     * @return array
+     */
+    public function parseKey($key)
+    {
+        $segments = parent::parseKey($key);
+
+        if (is_null($segments[0])) {
+            $segments[0] = '*';
+        }
+
+        return $segments;
+    }
+
+    /**
+     * Get the array of locales to be checked.
+     *
+     * @param  string|null $locale
+     * @return array
+     */
+    protected function parseLocale($locale)
+    {
+        if (!is_null($locale)) {
+            return array_filter([$locale, $this->fallback]);
+        }
+
+        return array_filter([$this->locale, $this->fallback]);
+    }
+
+    /**
+     * Load the specified language group.
+     *
+     * @param  string $namespace
+     * @param  string $group
+     * @param  string $locale
+     * @return void
+     */
+    public function load($namespace, $group, $locale)
+    {
+        if ($this->isLoaded($namespace, $group, $locale)) {
+            return;
+        }
+
+        // The loader is responsible for returning the array of language lines for the
+        // given namespace, group, and locale. We'll set the lines in this array of
+        // lines that have already been loaded so that we can easily access them.
+        $lines = $this->loader->load($locale, $group, $namespace);
+
+        $this->loaded[$namespace][$group][$locale] = $lines;
+    }
+
+    /**
+     * Determine if the given group has been loaded.
+     *
+     * @param  string $namespace
+     * @param  string $group
+     * @param  string $locale
+     * @return bool
+     */
+    protected function isLoaded($namespace, $group, $locale)
+    {
+        return isset($this->loaded[$namespace][$group][$locale]);
     }
 
     /**
@@ -169,24 +236,6 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
     }
 
     /**
-     * Get a translation according to an integer value.
-     *
-     * @param  string  $key
-     * @param  int     $number
-     * @param  array   $replace
-     * @param  string  $locale
-     * @return string
-     */
-    public function choice($key, $number, array $replace = [], $locale = null)
-    {
-        $line = $this->get($key, $replace, $locale = $locale ?: $this->locale ?: $this->fallback);
-
-        $replace['count'] = $number;
-
-        return $this->makeReplacements($this->getSelector()->choose($line, $number, $locale), $replace);
-    }
-
-    /**
      * Get the translation for a given key.
      *
      * @param  string  $id
@@ -216,38 +265,35 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
     }
 
     /**
-     * Load the specified language group.
+     * Get a translation according to an integer value.
      *
-     * @param  string  $namespace
-     * @param  string  $group
+     * @param  string $key
+     * @param  int $number
+     * @param  array $replace
      * @param  string  $locale
-     * @return void
+     * @return string
      */
-    public function load($namespace, $group, $locale)
+    public function choice($key, $number, array $replace = [], $locale = null)
     {
-        if ($this->isLoaded($namespace, $group, $locale)) {
-            return;
-        }
+        $line = $this->get($key, $replace, $locale = $locale ?: $this->locale ?: $this->fallback);
 
-        // The loader is responsible for returning the array of language lines for the
-        // given namespace, group, and locale. We'll set the lines in this array of
-        // lines that have already been loaded so that we can easily access them.
-        $lines = $this->loader->load($locale, $group, $namespace);
+        $replace['count'] = $number;
 
-        $this->loaded[$namespace][$group][$locale] = $lines;
+        return $this->makeReplacements($this->getSelector()->choose($line, $number, $locale), $replace);
     }
 
     /**
-     * Determine if the given group has been loaded.
+     * Get the message selector instance.
      *
-     * @param  string  $namespace
-     * @param  string  $group
-     * @param  string  $locale
-     * @return bool
+     * @return \Symfony\Component\Translation\MessageSelector
      */
-    protected function isLoaded($namespace, $group, $locale)
+    public function getSelector()
     {
-        return isset($this->loaded[$namespace][$group][$locale]);
+        if (!isset($this->selector)) {
+            $this->selector = new MessageSelector;
+        }
+
+        return $this->selector;
     }
 
     /**
@@ -260,52 +306,6 @@ class Translator extends NamespacedItemResolver implements TranslatorInterface
     public function addNamespace($namespace, $hint)
     {
         $this->loader->addNamespace($namespace, $hint);
-    }
-
-    /**
-     * Parse a key into namespace, group, and item.
-     *
-     * @param  string  $key
-     * @return array
-     */
-    public function parseKey($key)
-    {
-        $segments = parent::parseKey($key);
-
-        if (is_null($segments[0])) {
-            $segments[0] = '*';
-        }
-
-        return $segments;
-    }
-
-    /**
-     * Get the array of locales to be checked.
-     *
-     * @param  string|null  $locale
-     * @return array
-     */
-    protected function parseLocale($locale)
-    {
-        if (! is_null($locale)) {
-            return array_filter([$locale, $this->fallback]);
-        }
-
-        return array_filter([$this->locale, $this->fallback]);
-    }
-
-    /**
-     * Get the message selector instance.
-     *
-     * @return \Symfony\Component\Translation\MessageSelector
-     */
-    public function getSelector()
-    {
-        if (! isset($this->selector)) {
-            $this->selector = new MessageSelector;
-        }
-
-        return $this->selector;
     }
 
     /**

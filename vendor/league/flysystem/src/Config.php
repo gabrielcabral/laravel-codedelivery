@@ -34,23 +34,11 @@ class Config
      */
     public function get($key, $default = null)
     {
-        if (! array_key_exists($key, $this->settings)) {
+        if (!array_key_exists($key, $this->settings)) {
             return $this->getDefault($key, $default);
         }
 
         return $this->settings[$key];
-    }
-
-    /**
-     * Check if an item exists by key.
-     *
-     * @param string $key
-     *
-     * @return bool
-     */
-    public function has($key)
-    {
-        return array_key_exists($key, $this->settings);
     }
 
     /**
@@ -63,11 +51,23 @@ class Config
      */
     protected function getDefault($key, $default)
     {
-        if (! $this->fallback) {
+        if (!$this->fallback) {
             return $default;
         }
 
         return $this->fallback->get($key, $default);
+    }
+
+    /**
+     * Check if an item exists by key.
+     *
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function has($key)
+    {
+        return array_key_exists($key, $this->settings);
     }
 
     /**

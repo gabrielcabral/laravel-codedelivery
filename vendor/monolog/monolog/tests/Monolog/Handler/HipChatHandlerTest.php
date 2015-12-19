@@ -11,8 +11,8 @@
 
 namespace Monolog\Handler;
 
-use Monolog\TestCase;
 use Monolog\Logger;
+use Monolog\TestCase;
 
 /**
  * @author Rafael Dohms <rafael@doh.ms>
@@ -21,6 +21,7 @@ use Monolog\Logger;
 class HipChatHandlerTest extends TestCase
 {
     private $res;
+    /** @var  HipChatHandler */
     private $handler;
 
     public function testWriteHeader()
@@ -33,6 +34,33 @@ class HipChatHandlerTest extends TestCase
         $this->assertRegexp('/POST \/v1\/rooms\/message\?format=json&auth_token=.* HTTP\/1.1\\r\\nHost: api.hipchat.com\\r\\nContent-Type: application\/x-www-form-urlencoded\\r\\nContent-Length: \d{2,4}\\r\\n\\r\\n/', $content);
 
         return $content;
+    }
+
+    private function createHandler($token = 'myToken', $room = 'room1', $name = 'Monolog', $notify = false, $host = 'api.hipchat.com', $version = 'v1')
+    {
+        $constructorArgs = array($token, $room, $name, $notify, Logger::DEBUG, true, true, 'text', $host, $version);
+        $this->res = fopen('php://memory', 'a');
+        $this->handler = $this->getMock(
+            '\Monolog\Handler\HipChatHandler',
+            array('fsockopen', 'streamSetTimeout', 'closeSocket'),
+            $constructorArgs
+        );
+
+        $reflectionProperty = new \ReflectionProperty('\Monolog\Handler\SocketHandler', 'connectionString');
+        $reflectionProperty->setAccessible(true);
+        $reflectionProperty->setValue($this->handler, 'localhost:1234');
+
+        $this->handler->expects($this->any())
+            ->method('fsockopen')
+            ->will($this->returnValue($this->res));
+        $this->handler->expects($this->any())
+            ->method('streamSetTimeout')
+            ->will($this->returnValue(true));
+        $this->handler->expects($this->any())
+            ->method('closeSocket')
+            ->will($this->returnValue(true));
+
+        $this->handler->setFormatter($this->getIdentityFormatter());
     }
 
     public function testWriteCustomHostHeader()
@@ -91,6 +119,18 @@ class HipChatHandlerTest extends TestCase
         $this->assertRegexp('/notify=0&message=test1&message_format=text&color=red&room_id=room1&from=Monolog$/', $content);
     }
 
+    public function testWriteContentV1WithoutName()
+    {
+        $this->createHandler('myToken', 'room1', null, false, 'hipchat.foo.bar', 'v1');
+        $this->handler->handle($this->getRecord(Logger::CRITICAL, 'test1'));
+        fseek($this->res, 0);
+        $content = fread($this->res, 1024);
+
+        $this->assertRegexp('/notify=0&message=test1&message_format=text&color=red&room_id=room1&from=$/', $content);
+
+        return $content;
+    }
+
     /**
      * @depends testWriteCustomHostHeader
      */
@@ -104,7 +144,7 @@ class HipChatHandlerTest extends TestCase
      */
     public function testWriteContentV2($content)
     {
-        $this->assertRegexp('/notify=false&message=test1&message_format=text&color=red$/', $content);
+        $this->assertRegexp('/notify=false&message=test1&message_format=text&color=red&from=Monolog$/', $content);
     }
 
     /**
@@ -112,7 +152,19 @@ class HipChatHandlerTest extends TestCase
      */
     public function testWriteContentV2Notify($content)
     {
-        $this->assertRegexp('/notify=true&message=test1&message_format=text&color=red$/', $content);
+        $this->assertRegexp('/notify=true&message=test1&message_format=text&color=red&from=Monolog$/', $content);
+    }
+
+    public function testWriteContentV2WithoutName()
+    {
+        $this->createHandler('myToken', 'room1', null, false, 'hipchat.foo.bar', 'v2');
+        $this->handler->handle($this->getRecord(Logger::CRITICAL, 'test1'));
+        fseek($this->res, 0);
+        $content = fread($this->res, 1024);
+
+        $this->assertRegexp('/notify=false&message=test1&message_format=text&color=red$/', $content);
+
+        return $content;
     }
 
     public function testWriteWithComplexMessage()
@@ -174,7 +226,7 @@ class HipChatHandlerTest extends TestCase
                 array(
                     array('level' => Logger::WARNING, 'message' => 'Oh bugger!', 'level_name' => 'warning', 'datetime' => new \DateTime()),
                     array('level' => Logger::NOTICE, 'message' => 'Something noticeable happened.', 'level_name' => 'notice', 'datetime' => new \DateTime()),
-                    array('level' => Logger::CRITICAL, 'message' => 'Everything is broken!', 'level_name' => 'critical', 'datetime' => new \DateTime())
+                    array('level' => Logger::CRITICAL, 'message' => 'Everything is broken!', 'level_name' => 'critical', 'datetime' => new \DateTime()),
                 ),
                 'red',
             ),
@@ -199,33 +251,6 @@ class HipChatHandlerTest extends TestCase
                 'gray',
             ),
         );
-    }
-
-    private function createHandler($token = 'myToken', $room = 'room1', $name = 'Monolog', $notify = false, $host = 'api.hipchat.com', $version = 'v1')
-    {
-        $constructorArgs = array($token, $room, $name, $notify, Logger::DEBUG, true, true, 'text', $host, $version);
-        $this->res = fopen('php://memory', 'a');
-        $this->handler = $this->getMock(
-            '\Monolog\Handler\HipChatHandler',
-            array('fsockopen', 'streamSetTimeout', 'closeSocket'),
-            $constructorArgs
-        );
-
-        $reflectionProperty = new \ReflectionProperty('\Monolog\Handler\SocketHandler', 'connectionString');
-        $reflectionProperty->setAccessible(true);
-        $reflectionProperty->setValue($this->handler, 'localhost:1234');
-
-        $this->handler->expects($this->any())
-            ->method('fsockopen')
-            ->will($this->returnValue($this->res));
-        $this->handler->expects($this->any())
-            ->method('streamSetTimeout')
-            ->will($this->returnValue(true));
-        $this->handler->expects($this->any())
-            ->method('closeSocket')
-            ->will($this->returnValue(true));
-
-        $this->handler->setFormatter($this->getIdentityFormatter());
     }
 
     /**

@@ -41,7 +41,7 @@ class Address extends \Faker\Provider\Address
         'Малайзия', 'Мали', 'Мальдивы', 'Мальта', 'Марокко',
         'Мартиник', 'Маршалловы Острова', 'Мексика', 'Мелкие отдаленные острова США', 'Мозамбик',
         'Молдова', 'Монако', 'Монголия', 'Монтсеррат', 'Мьянма',
-        'Намибия', 'Науру', 'Непал', 'Нигерия', 'Нигерия',
+        'Намибия', 'Науру', 'Непал', 'Нигер', 'Нигерия',
         'Нидерландские Антильские острова', 'Нидерланды', 'Никарагуа', 'Ниуэ', 'Новая Зеландия',
         'Новая Каледония', 'Норвегия', 'Объединённые Арабские Эмираты', 'О. Гернси', 'Оман',
         'Острова Зеленого Мыса', 'Острова Кука', 'Острова Теркс И Кайкос', 'Острова Уоллис и Футуна', 'Острова Херд и Макдональд',
@@ -107,13 +107,6 @@ class Address extends \Faker\Provider\Address
         return static::numerify(static::randomElement(static::$buildingNumber));
     }
 
-    public function address()
-    {
-        $format = static::randomElement(static::$addressFormats);
-
-        return $this->generator->parse($format);
-    }
-
     public static function country()
     {
         return static::randomElement(static::$country);
@@ -139,11 +132,6 @@ class Address extends \Faker\Provider\Address
         return static::randomElement(static::$cityPrefix);
     }
 
-    public function city()
-    {
-        return static::randomElement(static::$city);
-    }
-
     public static function streetPrefix()
     {
         return static::randomElement(static::$streetPrefix);
@@ -152,5 +140,17 @@ class Address extends \Faker\Provider\Address
     public static function street()
     {
         return static::randomElement(static::$street);
+    }
+
+    public function address()
+    {
+        $format = static::randomElement(static::$addressFormats);
+
+        return $this->generator->parse($format);
+    }
+
+    public function city()
+    {
+        return static::randomElement(static::$city);
     }
 }

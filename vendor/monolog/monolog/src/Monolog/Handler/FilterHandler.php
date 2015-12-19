@@ -31,7 +31,7 @@ class FilterHandler extends AbstractHandler
     protected $handler;
 
     /**
-     * Minimum level for logs that are passes to handler
+     * Minimum level for logs that are passed to handler
      *
      * @var int[]
      */
@@ -70,8 +70,8 @@ class FilterHandler extends AbstractHandler
     }
 
     /**
-     * @param int|array $minLevelOrList A list of levels to accept or a minimum level if maxLevel is provided
-     * @param int       $maxLevel       Maximum level to accept, only used if $minLevelOrList is not an array
+     * @param int|string|array $minLevelOrList A list of levels to accept or a minimum level or level name if maxLevel is provided
+     * @param int|string $maxLevel Maximum level or level name to accept, only used if $minLevelOrList is not an array
      */
     public function setAcceptedLevels($minLevelOrList = Logger::DEBUG, $maxLevel = Logger::EMERGENCY)
     {
@@ -85,14 +85,6 @@ class FilterHandler extends AbstractHandler
             }));
         }
         $this->acceptedLevels = array_flip($acceptedLevels);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isHandling(array $record)
-    {
-        return isset($this->acceptedLevels[$record['level']]);
     }
 
     /**
@@ -121,6 +113,14 @@ class FilterHandler extends AbstractHandler
         $this->handler->handle($record);
 
         return false === $this->bubble;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isHandling(array $record)
+    {
+        return isset($this->acceptedLevels[$record['level']]);
     }
 
     /**

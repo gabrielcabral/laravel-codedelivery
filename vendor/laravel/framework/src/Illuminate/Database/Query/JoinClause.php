@@ -2,6 +2,9 @@
 
 namespace Illuminate\Database\Query;
 
+use Closure;
+use InvalidArgumentException;
+
 class JoinClause
 {
     /**
@@ -46,6 +49,19 @@ class JoinClause
     }
 
     /**
+     * Add an "or on" clause to the join.
+     *
+     * @param  string|\Closure $first
+     * @param  string|null $operator
+     * @param  string|null $second
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function orOn($first, $operator = null, $second = null)
+    {
+        return $this->on($first, $operator, $second, 'or');
+    }
+
+    /**
      * Add an "on" clause to the join.
      *
      * On clauses can be chained, e.g.
@@ -57,15 +73,25 @@ class JoinClause
      *
      * on `contacts`.`user_id` = `users`.`id`  and `contacts`.`info_id` = `info`.`id`
      *
-     * @param  string  $first
-     * @param  string  $operator
-     * @param  string  $second
+     * @param  string|\Closure $first
+     * @param  string|null $operator
+     * @param  string|null $second
      * @param  string  $boolean
      * @param  bool  $where
      * @return $this
+     *
+     * @throws \InvalidArgumentException
      */
-    public function on($first, $operator, $second, $boolean = 'and', $where = false)
+    public function on($first, $operator = null, $second = null, $boolean = 'and', $where = false)
     {
+        if ($first instanceof Closure) {
+            return $this->nest($first, $boolean);
+        }
+
+        if (func_num_args() < 3) {
+            throw new InvalidArgumentException('Not enough arguments for the on clause.');
+        }
+
         if ($where) {
             $this->bindings[] = $second;
         }
@@ -74,34 +100,46 @@ class JoinClause
             $second = count($second);
         }
 
-        $this->clauses[] = compact('first', 'operator', 'second', 'boolean', 'where');
+        $nested = false;
+
+        $this->clauses[] = compact('first', 'operator', 'second', 'boolean', 'where', 'nested');
 
         return $this;
     }
 
     /**
-     * Add an "or on" clause to the join.
+     * Add a nested where statement to the query.
      *
-     * @param  string  $first
-     * @param  string  $operator
-     * @param  string  $second
+     * @param  \Closure $callback
+     * @param  string $boolean
      * @return \Illuminate\Database\Query\JoinClause
      */
-    public function orOn($first, $operator, $second)
+    public function nest(Closure $callback, $boolean = 'and')
     {
-        return $this->on($first, $operator, $second, 'or');
+        $join = new static($this->type, $this->table);
+
+        $callback($join);
+
+        if (count($join->clauses)) {
+            $nested = true;
+
+            $this->clauses[] = compact('nested', 'join', 'boolean');
+            $this->bindings = array_merge($this->bindings, $join->bindings);
+        }
+
+        return $this;
     }
 
     /**
      * Add an "on where" clause to the join.
      *
-     * @param  string  $first
-     * @param  string  $operator
-     * @param  string  $second
+     * @param  string|\Closure $first
+     * @param  string|null $operator
+     * @param  string|null $second
      * @param  string  $boolean
      * @return \Illuminate\Database\Query\JoinClause
      */
-    public function where($first, $operator, $second, $boolean = 'and')
+    public function where($first, $operator = null, $second = null, $boolean = 'and')
     {
         return $this->on($first, $operator, $second, $boolean, true);
     }
@@ -109,26 +147,14 @@ class JoinClause
     /**
      * Add an "or on where" clause to the join.
      *
-     * @param  string  $first
-     * @param  string  $operator
-     * @param  string  $second
+     * @param  string|\Closure $first
+     * @param  string|null $operator
+     * @param  string|null $second
      * @return \Illuminate\Database\Query\JoinClause
      */
-    public function orWhere($first, $operator, $second)
+    public function orWhere($first, $operator = null, $second = null)
     {
         return $this->on($first, $operator, $second, 'or', true);
-    }
-
-    /**
-     * Add an "on where is null" clause to the join.
-     *
-     * @param  string  $column
-     * @param  string  $boolean
-     * @return \Illuminate\Database\Query\JoinClause
-     */
-    public function whereNull($column, $boolean = 'and')
-    {
-        return $this->on($column, 'is', new Expression('null'), $boolean, false);
     }
 
     /**
@@ -143,15 +169,15 @@ class JoinClause
     }
 
     /**
-     * Add an "on where is not null" clause to the join.
+     * Add an "on where is null" clause to the join.
      *
      * @param  string  $column
-     * @param  string  $boolean
+     * @param  string $boolean
      * @return \Illuminate\Database\Query\JoinClause
      */
-    public function whereNotNull($column, $boolean = 'and')
+    public function whereNull($column, $boolean = 'and')
     {
-        return $this->on($column, 'is', new Expression('not null'), $boolean, false);
+        return $this->on($column, 'is', new Expression('null'), $boolean, false);
     }
 
     /**
@@ -163,6 +189,18 @@ class JoinClause
     public function orWhereNotNull($column)
     {
         return $this->whereNotNull($column, 'or');
+    }
+
+    /**
+     * Add an "on where is not null" clause to the join.
+     *
+     * @param  string  $column
+     * @param  string $boolean
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function whereNotNull($column, $boolean = 'and')
+    {
+        return $this->on($column, 'is', new Expression('not null'), $boolean, false);
     }
 
     /**

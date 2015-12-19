@@ -35,20 +35,6 @@ class Swift_Mime_ContentEncoder_QpContentEncoder extends Swift_Encoder_QpEncoder
         return array('_charStream', '_filter', '_dotEscape');
     }
 
-    protected function getSafeMapShareId()
-    {
-        return get_class($this).($this->_dotEscape ? '.dotEscape' : '');
-    }
-
-    protected function initSafeMap()
-    {
-        parent::initSafeMap();
-        if ($this->_dotEscape) {
-            /* Encode . as =2e for buggy remote servers */
-            unset($this->_safeMap[0x2e]);
-        }
-    }
-
     /**
      * Encode stream $in to stream $out.
      *
@@ -95,15 +81,26 @@ class Swift_Mime_ContentEncoder_QpContentEncoder extends Swift_Encoder_QpEncoder
             }
 
             $enc = $this->_encodeByteSequence($bytes, $size);
-            if ($currentLine && $lineLen + $size >= $thisLineLength) {
+
+            $i = strpos($enc, '=0D=0A');
+            $newLineLength = $lineLen + ($i === false ? $size : $i);
+
+            if ($currentLine && $newLineLength >= $thisLineLength) {
                 $is->write($prepend.$this->_standardize($currentLine));
                 $currentLine = '';
                 $prepend = "=\r\n";
                 $thisLineLength = $maxLineLength;
                 $lineLen = 0;
             }
-            $lineLen += $size;
+
             $currentLine .= $enc;
+
+            if ($i === false) {
+                $lineLen += $size;
+            } else {
+                // 6 is the length of '=0D=0A'.
+                $lineLen = $size - strrpos($enc, '=0D=0A') - 6;
+            }
         }
         if (strlen($currentLine)) {
             $is->write($prepend.$this->_standardize($currentLine));
@@ -119,5 +116,19 @@ class Swift_Mime_ContentEncoder_QpContentEncoder extends Swift_Encoder_QpEncoder
     public function getName()
     {
         return 'quoted-printable';
+    }
+
+    protected function getSafeMapShareId()
+    {
+        return get_class($this) . ($this->_dotEscape ? '.dotEscape' : '');
+    }
+
+    protected function initSafeMap()
+    {
+        parent::initSafeMap();
+        if ($this->_dotEscape) {
+            /* Encode . as =2e for buggy remote servers */
+            unset($this->_safeMap[0x2e]);
+        }
     }
 }

@@ -2,17 +2,17 @@
 
 namespace Illuminate\Console;
 
+use Illuminate\Contracts\Foundation\Application as LaravelApplication;
 use Illuminate\Contracts\Support\Arrayable;
+use Symfony\Component\Console\Command\Command as SymfonyCommand;
+use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\NullOutput;
-use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Symfony\Component\Console\Command\Command as SymfonyCommand;
-use Illuminate\Contracts\Foundation\Application as LaravelApplication;
+use Symfony\Component\Console\Question\Question;
 
 class Command extends SymfonyCommand
 {
@@ -121,6 +121,26 @@ class Command extends SymfonyCommand
     }
 
     /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getArguments()
+    {
+        return [];
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return [];
+    }
+
+    /**
      * Run the console command.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
@@ -134,20 +154,6 @@ class Command extends SymfonyCommand
         $this->output = new OutputStyle($input, $output);
 
         return parent::run($input, $output);
-    }
-
-    /**
-     * Execute the console command.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return mixed
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
-        $method = method_exists($this, 'handle') ? 'handle' : 'fire';
-
-        return $this->laravel->call([$this, $method]);
     }
 
     /**
@@ -290,7 +296,7 @@ class Command extends SymfonyCommand
      * @param  string  $default
      * @param  mixed   $attempts
      * @param  bool    $multiple
-     * @return bool
+     * @return string
      */
     public function choice($question, array $choices, $default = null, $attempts = null, $multiple = null)
     {
@@ -383,31 +389,13 @@ class Command extends SymfonyCommand
      */
     public function warn($string)
     {
-        $style = new OutputFormatterStyle('yellow');
+        if (!$this->output->getFormatter()->hasStyle('warning')) {
+            $style = new OutputFormatterStyle('yellow');
 
-        $this->output->getFormatter()->setStyle('warning', $style);
+            $this->output->getFormatter()->setStyle('warning', $style);
+        }
 
         $this->output->writeln("<warning>$string</warning>");
-    }
-
-    /**
-     * Get the console command arguments.
-     *
-     * @return array
-     */
-    protected function getArguments()
-    {
-        return [];
-    }
-
-    /**
-     * Get the console command options.
-     *
-     * @return array
-     */
-    protected function getOptions()
-    {
-        return [];
     }
 
     /**
@@ -439,5 +427,19 @@ class Command extends SymfonyCommand
     public function setLaravel(LaravelApplication $laravel)
     {
         $this->laravel = $laravel;
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface $output
+     * @return mixed
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $method = method_exists($this, 'handle') ? 'handle' : 'fire';
+
+        return $this->laravel->call([$this, $method]);
     }
 }

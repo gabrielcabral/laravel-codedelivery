@@ -67,6 +67,18 @@ class Swift_Transport_MailTransport implements Swift_Transport
     }
 
     /**
+     * Get the additional parameters used on the mail() function.
+     *
+     * This string is formatted for sprintf() where %s is the sender address.
+     *
+     * @return string
+     */
+    public function getExtraParams()
+    {
+        return $this->_extraParams;
+    }
+
+    /**
      * Set the additional parameters used on the mail() function.
      *
      * This string is formatted for sprintf() where %s is the sender address.
@@ -80,18 +92,6 @@ class Swift_Transport_MailTransport implements Swift_Transport
         $this->_extraParams = $params;
 
         return $this;
-    }
-
-    /**
-     * Get the additional parameters used on the mail() function.
-     *
-     * This string is formatted for sprintf() where %s is the sender address.
-     *
-     * @return string
-     */
-    public function getExtraParams()
-    {
-        return $this->_extraParams;
     }
 
     /**
@@ -156,15 +156,18 @@ class Swift_Transport_MailTransport implements Swift_Transport
         if ("\r\n" != PHP_EOL) {
             // Non-windows (not using SMTP)
             $headers = str_replace("\r\n", PHP_EOL, $headers);
+            $subject = str_replace("\r\n", PHP_EOL, $subject);
             $body = str_replace("\r\n", PHP_EOL, $body);
         } else {
             // Windows, using SMTP
             $headers = str_replace("\r\n.", "\r\n..", $headers);
+            $subject = str_replace("\r\n.", "\r\n..", $subject);
             $body = str_replace("\r\n.", "\r\n..", $body);
         }
 
         if ($this->_invoker->mail($to, $subject, $body, $headers,
-            sprintf($this->_extraParams, $reversePath))) {
+            sprintf($this->_extraParams, escapeshellarg($reversePath)))
+        ) {
             if ($evt) {
                 $evt->setResult(Swift_Events_SendEvent::RESULT_SUCCESS);
                 $evt->setFailedRecipients($failedRecipients);
@@ -190,16 +193,6 @@ class Swift_Transport_MailTransport implements Swift_Transport
         }
 
         return $count;
-    }
-
-    /**
-     * Register a plugin.
-     *
-     * @param Swift_Events_EventListener $plugin
-     */
-    public function registerPlugin(Swift_Events_EventListener $plugin)
-    {
-        $this->_eventDispatcher->bindEventListener($plugin);
     }
 
     /** Throw a TransportException, first sending it to any listeners */
@@ -233,5 +226,15 @@ class Swift_Transport_MailTransport implements Swift_Transport
         }
 
         return $path;
+    }
+
+    /**
+     * Register a plugin.
+     *
+     * @param Swift_Events_EventListener $plugin
+     */
+    public function registerPlugin(Swift_Events_EventListener $plugin)
+    {
+        $this->_eventDispatcher->bindEventListener($plugin);
     }
 }

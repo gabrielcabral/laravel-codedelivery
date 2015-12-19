@@ -3,19 +3,40 @@
 namespace Illuminate\Mail;
 
 use Aws\Ses\SesClient;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Manager;
 use GuzzleHttp\Client as HttpClient;
-use Swift_SmtpTransport as SmtpTransport;
-use Swift_MailTransport as MailTransport;
 use Illuminate\Mail\Transport\LogTransport;
 use Illuminate\Mail\Transport\MailgunTransport;
 use Illuminate\Mail\Transport\MandrillTransport;
 use Illuminate\Mail\Transport\SesTransport;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Manager;
+use Swift_MailTransport as MailTransport;
 use Swift_SendmailTransport as SendmailTransport;
+use Swift_SmtpTransport as SmtpTransport;
 
 class TransportManager extends Manager
 {
+    /**
+     * Get the default cache driver name.
+     *
+     * @return string
+     */
+    public function getDefaultDriver()
+    {
+        return $this->app['config']['mail.driver'];
+    }
+
+    /**
+     * Set the default cache driver name.
+     *
+     * @param  string $name
+     * @return void
+     */
+    public function setDefaultDriver($name)
+    {
+        $this->app['config']['mail.driver'] = $name;
+    }
+
     /**
      * Create an instance of the SMTP Swift Transport driver.
      *
@@ -97,8 +118,9 @@ class TransportManager extends Manager
      */
     protected function createMailgunDriver()
     {
-        $client = new HttpClient;
         $config = $this->app['config']->get('services.mailgun', []);
+
+        $client = new HttpClient(Arr::get($config, 'guzzle', []));
 
         return new MailgunTransport($client, $config['secret'], $config['domain']);
     }
@@ -110,8 +132,9 @@ class TransportManager extends Manager
      */
     protected function createMandrillDriver()
     {
-        $client = new HttpClient;
         $config = $this->app['config']->get('services.mandrill', []);
+
+        $client = new HttpClient(Arr::get($config, 'guzzle', []));
 
         return new MandrillTransport($client, $config['secret']);
     }
@@ -124,26 +147,5 @@ class TransportManager extends Manager
     protected function createLogDriver()
     {
         return new LogTransport($this->app->make('Psr\Log\LoggerInterface'));
-    }
-
-    /**
-     * Get the default cache driver name.
-     *
-     * @return string
-     */
-    public function getDefaultDriver()
-    {
-        return $this->app['config']['mail.driver'];
-    }
-
-    /**
-     * Set the default cache driver name.
-     *
-     * @param  string  $name
-     * @return void
-     */
-    public function setDefaultDriver($name)
-    {
-        $this->app['config']['mail.driver'] = $name;
     }
 }

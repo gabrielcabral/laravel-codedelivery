@@ -41,9 +41,9 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
     /**
      * Constructor.
      *
-     * @param string $certificate
-     * @param string $privateKey
-     * @param string $encryptCertificate
+     * @param string|null $signCertificate
+     * @param string|null $signPrivateKey
+     * @param string|null $encryptCertificate
      */
     public function __construct($signCertificate = null, $signPrivateKey = null, $encryptCertificate = null)
     {
@@ -69,6 +69,36 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
     }
 
     /**
+     * Set the certificate location to use for encryption.
+     *
+     * @link http://www.php.net/manual/en/openssl.pkcs7.flags.php
+     * @link http://nl3.php.net/manual/en/openssl.ciphers.php
+     *
+     * @param string|array $recipientCerts Either an single X.509 certificate, or an assoc array of X.509 certificates.
+     * @param int $cipher
+     *
+     * @return Swift_Signers_SMimeSigner
+     */
+    public function setEncryptCertificate($recipientCerts, $cipher = null)
+    {
+        if (is_array($recipientCerts)) {
+            $this->encryptCert = array();
+
+            foreach ($recipientCerts as $cert) {
+                $this->encryptCert[] = 'file://' . str_replace('\\', '/', realpath($cert));
+            }
+        } else {
+            $this->encryptCert = 'file://' . str_replace('\\', '/', realpath($recipientCerts));
+        }
+
+        if (null !== $cipher) {
+            $this->encryptCipher = $cipher;
+        }
+
+        return $this;
+    }
+
+    /**
      * Returns an new Swift_Signers_SMimeSigner instance.
      *
      * @param string $certificate
@@ -79,6 +109,14 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
     public static function newInstance($certificate = null, $privateKey = null)
     {
         return new self($certificate, $privateKey);
+    }
+
+    /**
+     * @return string
+     */
+    public function getSignCertificate()
+    {
+        return $this->signCertificate;
     }
 
     /**
@@ -115,49 +153,19 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
     }
 
     /**
-     * Set the certificate location to use for encryption.
-     *
-     * @link http://www.php.net/manual/en/openssl.pkcs7.flags.php
-     * @link http://nl3.php.net/manual/en/openssl.ciphers.php
-     *
-     * @param string|array $recipientCerts Either an single X.509 certificate, or an assoc array of X.509 certificates.
-     * @param int          $cipher
-     *
-     * @return Swift_Signers_SMimeSigner
-     */
-    public function setEncryptCertificate($recipientCerts, $cipher = null)
-    {
-        if (is_array($recipientCerts)) {
-            $this->encryptCert = array();
-
-            foreach ($recipientCerts as $cert) {
-                $this->encryptCert[] = 'file://'.str_replace('\\', '/', realpath($cert));
-            }
-        } else {
-            $this->encryptCert = 'file://'.str_replace('\\', '/', realpath($recipientCerts));
-        }
-
-        if (null !== $cipher) {
-            $this->encryptCipher = $cipher;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSignCertificate()
-    {
-        return $this->signCertificate;
-    }
-
-    /**
      * @return string
      */
     public function getSignPrivateKey()
     {
         return $this->signPrivateKey;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSignThenEncrypt()
+    {
+        return $this->signThenEncrypt;
     }
 
     /**
@@ -167,7 +175,7 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
      * But some older mail clients, namely Microsoft Outlook 2000 will work when the message first encrypted.
      * As this goes against the official specs, its recommended to only use 'encryption -> signing' when specifically targeting these 'broken' clients.
      *
-     * @param string $signThenEncrypt
+     * @param bool $signThenEncrypt
      *
      * @return Swift_Signers_SMimeSigner
      */
@@ -176,14 +184,6 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
         $this->signThenEncrypt = $signThenEncrypt;
 
         return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isSignThenEncrypt()
-    {
-        return $this->signThenEncrypt;
     }
 
     /**
@@ -220,16 +220,6 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
 
         $message->setChildren(array());
         $this->streamToMime($messageStream, $message);
-    }
-
-    /**
-     * Return the list of header a signer might tamper.
-     *
-     * @return array
-     */
-    public function getAlteredHeaders()
-    {
-        return array('Content-Type', 'Content-Transfer-Encoding', 'Content-Disposition');
     }
 
     /**
@@ -305,23 +295,6 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
     }
 
     /**
-     * @param Swift_FileStream      $outputStream
-     * @param Swift_InputByteStream $is
-     *
-     * @throws Swift_IoException
-     */
-    protected function messageStreamToEncryptedByteStream(Swift_FileStream $outputStream, Swift_InputByteStream $is)
-    {
-        $encryptedMessageStream = new Swift_ByteStream_TemporaryFileByteStream();
-
-        if (!openssl_pkcs7_encrypt($outputStream->getPath(), $encryptedMessageStream->getPath(), $this->encryptCert, array(), 0, $this->encryptCipher)) {
-            throw new Swift_IoException(sprintf('Failed to encrypt S/Mime message. Error: "%s".', openssl_error_string()));
-        }
-
-        $this->copyFromOpenSSLOutput($encryptedMessageStream, $is);
-    }
-
-    /**
      * @param Swift_OutputByteStream $fromStream
      * @param Swift_InputByteStream  $toStream
      */
@@ -343,6 +316,23 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
         }
 
         $toStream->commit();
+    }
+
+    /**
+     * @param Swift_FileStream $outputStream
+     * @param Swift_InputByteStream $is
+     *
+     * @throws Swift_IoException
+     */
+    protected function messageStreamToEncryptedByteStream(Swift_FileStream $outputStream, Swift_InputByteStream $is)
+    {
+        $encryptedMessageStream = new Swift_ByteStream_TemporaryFileByteStream();
+
+        if (!openssl_pkcs7_encrypt($outputStream->getPath(), $encryptedMessageStream->getPath(), $this->encryptCert, array(), 0, $this->encryptCipher)) {
+            throw new Swift_IoException(sprintf('Failed to encrypt S/Mime message. Error: "%s".', openssl_error_string()));
+        }
+
+        $this->copyFromOpenSSLOutput($encryptedMessageStream, $is);
     }
 
     /**
@@ -400,7 +390,6 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
             }
 
             $boundary = trim($contentTypeData['1'], '"');
-            $boundaryLen = strlen($boundary);
 
             // Skip the header and CRLF CRLF
             $fromStream->setReadPointer($headersPosEnd + 4);
@@ -433,5 +422,15 @@ class Swift_Signers_SMimeSigner implements Swift_Signers_BodySigner
             $messageStream->commit();
             $message->setBody($messageStream);
         }
+    }
+
+    /**
+     * Return the list of header a signer might tamper.
+     *
+     * @return array
+     */
+    public function getAlteredHeaders()
+    {
+        return array('Content-Type', 'Content-Transfer-Encoding', 'Content-Disposition');
     }
 }

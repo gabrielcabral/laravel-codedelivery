@@ -2,12 +2,13 @@
 
 namespace PhpParser\NodeVisitor;
 
-use PhpParser\NodeVisitorAbstract;
 use PhpParser\Error;
 use PhpParser\Node;
-use PhpParser\Node\Name;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Name;
+use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt;
+use PhpParser\NodeVisitorAbstract;
 
 class NameResolver extends NodeVisitorAbstract
 {
@@ -21,12 +22,26 @@ class NameResolver extends NodeVisitorAbstract
         $this->resetState();
     }
 
+    protected function resetState(Name $namespace = null)
+    {
+        $this->namespace = $namespace;
+        $this->aliases = array(
+            Stmt\Use_::TYPE_NORMAL => array(),
+            Stmt\Use_::TYPE_FUNCTION => array(),
+            Stmt\Use_::TYPE_CONSTANT => array(),
+        );
+    }
+
     public function enterNode(Node $node) {
         if ($node instanceof Stmt\Namespace_) {
             $this->resetState($node->name);
         } elseif ($node instanceof Stmt\Use_) {
             foreach ($node->uses as $use) {
-                $this->addAlias($use, $node->type);
+                $this->addAlias($use, $node->type, null);
+            }
+        } elseif ($node instanceof Stmt\GroupUse) {
+            foreach ($node->uses as $use) {
+                $this->addAlias($use, $node->type, $node->prefix);
             }
         } elseif ($node instanceof Stmt\Class_) {
             if (null !== $node->extends) {
@@ -96,16 +111,13 @@ class NameResolver extends NodeVisitorAbstract
         }
     }
 
-    protected function resetState(Name $namespace = null) {
-        $this->namespace = $namespace;
-        $this->aliases   = array(
-            Stmt\Use_::TYPE_NORMAL   => array(),
-            Stmt\Use_::TYPE_FUNCTION => array(),
-            Stmt\Use_::TYPE_CONSTANT => array(),
-        );
-    }
+    protected function addAlias(Stmt\UseUse $use, $type, Name $prefix = null)
+    {
+        // Add prefix for group uses
+        $name = $prefix ? Name::concat($prefix, $use->name) : $use->name;
+        // Type is determined either by individual element or whole use declaration
+        $type |= $use->type;
 
-    protected function addAlias(Stmt\UseUse $use, $type) {
         // Constant names are case sensitive, everything else case insensitive
         if ($type === Stmt\Use_::TYPE_CONSTANT) {
             $aliasName = $use->alias;
@@ -123,25 +135,13 @@ class NameResolver extends NodeVisitorAbstract
             throw new Error(
                 sprintf(
                     'Cannot use %s%s as %s because the name is already in use',
-                    $typeStringMap[$type], $use->name, $use->alias
+                    $typeStringMap[$type], $name, $use->alias
                 ),
                 $use->getLine()
             );
         }
 
-        $this->aliases[$type][$aliasName] = $use->name;
-    }
-
-    /** @param Stmt\Function_|Stmt\ClassMethod|Expr\Closure $node */
-    private function resolveSignature($node) {
-        foreach ($node->params as $param) {
-            if ($param->type instanceof Name) {
-                $param->type = $this->resolveClassName($param->type);
-            }
-        }
-        if ($node->returnType instanceof Name) {
-            $node->returnType = $this->resolveClassName($node->returnType);
-        }
+        $this->aliases[$type][$aliasName] = $name;
     }
 
     protected function resolveClassName(Name $name) {
@@ -165,13 +165,38 @@ class NameResolver extends NodeVisitorAbstract
         $aliasName = strtolower($name->getFirst());
         if (!$name->isRelative() && isset($this->aliases[Stmt\Use_::TYPE_NORMAL][$aliasName])) {
             // resolve aliases (for non-relative names)
-            $name->setFirst($this->aliases[Stmt\Use_::TYPE_NORMAL][$aliasName]);
-        } elseif (null !== $this->namespace) {
-            // if no alias exists prepend current namespace
-            $name->prepend($this->namespace);
+            $alias = $this->aliases[Stmt\Use_::TYPE_NORMAL][$aliasName];
+            return FullyQualified::concat($alias, $name->slice(1), $name->getAttributes());
         }
 
-        return new Name\FullyQualified($name->parts, $name->getAttributes());
+        if (null !== $this->namespace) {
+            // if no alias exists prepend current namespace
+            return FullyQualified::concat($this->namespace, $name, $name->getAttributes());
+        }
+
+        return new FullyQualified($name->parts, $name->getAttributes());
+    }
+
+    protected function addNamespacedName(Node $node)
+    {
+        if (null !== $this->namespace) {
+            $node->namespacedName = Name::concat($this->namespace, $node->name);
+        } else {
+            $node->namespacedName = new Name($node->name);
+        }
+    }
+
+    /** @param Stmt\Function_|Stmt\ClassMethod|Expr\Closure $node */
+    private function resolveSignature($node)
+    {
+        foreach ($node->params as $param) {
+            if ($param->type instanceof Name) {
+                $param->type = $this->resolveClassName($param->type);
+            }
+        }
+        if ($node->returnType instanceof Name) {
+            $node->returnType = $this->resolveClassName($node->returnType);
+        }
     }
 
     protected function resolveOtherName(Name $name, $type) {
@@ -183,34 +208,30 @@ class NameResolver extends NodeVisitorAbstract
         // resolve aliases for qualified names
         $aliasName = strtolower($name->getFirst());
         if ($name->isQualified() && isset($this->aliases[Stmt\Use_::TYPE_NORMAL][$aliasName])) {
-            $name->setFirst($this->aliases[Stmt\Use_::TYPE_NORMAL][$aliasName]);
-        } elseif ($name->isUnqualified()) {
+            $alias = $this->aliases[Stmt\Use_::TYPE_NORMAL][$aliasName];
+            return FullyQualified::concat($alias, $name->slice(1), $name->getAttributes());
+        }
+
+        if ($name->isUnqualified()) {
             if ($type === Stmt\Use_::TYPE_CONSTANT) {
                 // constant aliases are case-sensitive, function aliases case-insensitive
                 $aliasName = $name->getFirst();
             }
 
-            if (isset($this->aliases[$type][$aliasName])) {
-                // resolve unqualified aliases
-                $name->set($this->aliases[$type][$aliasName]);
-            } else {
+            if (!isset($this->aliases[$type][$aliasName])) {
                 // unqualified, unaliased names cannot be resolved at compile-time
                 return $name;
             }
-        } elseif (null !== $this->namespace) {
-            // if no alias exists prepend current namespace
-            $name->prepend($this->namespace);
+
+            // resolve unqualified aliases
+            return new FullyQualified($this->aliases[$type][$aliasName], $name->getAttributes());
         }
 
-        return new Name\FullyQualified($name->parts, $name->getAttributes());
-    }
-
-    protected function addNamespacedName(Node $node) {
         if (null !== $this->namespace) {
-            $node->namespacedName = clone $this->namespace;
-            $node->namespacedName->append($node->name);
-        } else {
-            $node->namespacedName = new Name($node->name, $node->getAttributes());
+            // if no alias exists prepend current namespace
+            return FullyQualified::concat($this->namespace, $name, $name->getAttributes());
         }
+
+        return new FullyQualified($name->parts, $name->getAttributes());
     }
 }

@@ -26,7 +26,7 @@ class Color extends Base
         'DeepSkyBlue', 'DimGray', 'DimGrey', 'DodgerBlue', 'FireBrick',
         'FloralWhite', 'ForestGreen', 'Fuchsia', 'Gainsboro', 'GhostWhite',
         'Gold', 'GoldenRod', 'Gray', 'Green', 'GreenYellow', 'HoneyDew',
-        'HotPink', 'IndianRed ', 'Indigo ', 'Ivory', 'Khaki', 'Lavender',
+        'HotPink', 'IndianRed', 'Indigo', 'Ivory', 'Khaki', 'Lavender',
         'LavenderBlush', 'LawnGreen', 'LemonChiffon', 'LightBlue', 'LightCoral',
         'LightCyan', 'LightGoldenRodYellow', 'LightGray', 'LightGreen', 'LightPink',
         'LightSalmon', 'LightSeaGreen', 'LightSkyBlue', 'LightSlateGray', 'LightSteelBlue',
@@ -43,14 +43,6 @@ class Color extends Base
     );
 
     /**
-     * @example '#fa3cc2'
-     */
-    public static function hexColor()
-    {
-        return '#' . str_pad(dechex(mt_rand(1, 16777215)), 6, '0', STR_PAD_LEFT);
-    }
-
-    /**
      * @example '#ff0044'
      */
     public static function safeHexColor()
@@ -58,6 +50,22 @@ class Color extends Base
         $color = str_pad(dechex(mt_rand(0, 255)), 3, '0', STR_PAD_LEFT);
 
         return '#' . $color[0] . $color[0] . $color[1] . $color[1] . $color[2] . $color[2];
+    }
+
+    /**
+     * @example 'rgb(0,255,122)'
+     */
+    public static function rgbCssColor()
+    {
+        return 'rgb(' . static::rgbColor() . ')';
+    }
+
+    /**
+     * @example '0,255,122'
+     */
+    public static function rgbColor()
+    {
+        return implode(',', static::rgbColorAsArray());
     }
 
     /**
@@ -75,19 +83,19 @@ class Color extends Base
     }
 
     /**
-     * @example '0,255,122'
+     * @example '#fa3cc2'
      */
-    public static function rgbColor()
+    public static function hexColor()
     {
-        return implode(',', static::rgbColorAsArray());
+        return '#' . str_pad(dechex(mt_rand(1, 16777215)), 6, '0', STR_PAD_LEFT);
     }
 
     /**
-     * @example 'rgb(0,255,122)'
+     * @example 'rgba(0,255,122,0.8)'
      */
-    public static function rgbCssColor()
+    public static function rgbaCssColor()
     {
-        return 'rgb(' . static::rgbColor() . ')';
+        return 'rgba(' . static::rgbColor() . ',' . static::randomFloat(1, 0, 1) . ')';
     }
 
     /**

@@ -26,28 +26,6 @@ use SebastianBergmann\RecursionContext\Context;
 class Exporter
 {
     /**
-     * Exports a value as a string
-     *
-     * The output of this method is similar to the output of print_r(), but
-     * improved in various aspects:
-     *
-     *  - NULL is rendered as "null" (instead of "")
-     *  - TRUE is rendered as "true" (instead of "1")
-     *  - FALSE is rendered as "false" (instead of "")
-     *  - Strings are always quoted with single quotes
-     *  - Carriage returns and newlines are normalized to \n
-     *  - Recursion and repeated rendering is treated properly
-     *
-     * @param  mixed  $value
-     * @param  int    $indentation The indentation level of the 2nd+ line
-     * @return string
-     */
-    public function export($value, $indentation = 0)
-    {
-        return $this->recursiveExport($value, $indentation);
-    }
-
-    /**
      * @param  mixed   $data
      * @param  Context $context
      * @return string
@@ -89,11 +67,10 @@ class Exporter
      * Exports a value into a single-line string
      *
      * The output of this method is similar to the output of
-     * SebastianBergmann\Exporter\Exporter::export. This method guarantees
-     * thought that the result contains now newlines.
+     * SebastianBergmann\Exporter\Exporter::export().
      *
-     * Newlines are replaced by the visible string '\n'. Contents of arrays
-     * and objects (if any) are replaced by '...'.
+     * Newlines are replaced by the visible string '\n'.
+     * Contents of arrays and objects (if any) are replaced by '...'.
      *
      * @param  mixed  $value
      * @return string
@@ -104,8 +81,14 @@ class Exporter
         if (is_string($value)) {
             $string = $this->export($value);
 
-            if (strlen($string) > 40) {
-                $string = substr($string, 0, 30) . '...' . substr($string, -7);
+            if (function_exists('mb_strlen')) {
+                if (mb_strlen($string) > 40) {
+                    $string = mb_substr($string, 0, 30) . '...' . mb_substr($string, -7);
+                }
+            } else {
+                if (strlen($string) > 40) {
+                    $string = substr($string, 0, 30) . '...' . substr($string, -7);
+                }
             }
 
             return str_replace("\n", '\n', $string);
@@ -130,62 +113,25 @@ class Exporter
     }
 
     /**
-     * Converts an object to an array containing all of its private, protected
-     * and public properties.
+     * Exports a value as a string
+     *
+     * The output of this method is similar to the output of print_r(), but
+     * improved in various aspects:
+     *
+     *  - NULL is rendered as "null" (instead of "")
+     *  - TRUE is rendered as "true" (instead of "1")
+     *  - FALSE is rendered as "false" (instead of "")
+     *  - Strings are always quoted with single quotes
+     *  - Carriage returns and newlines are normalized to \n
+     *  - Recursion and repeated rendering is treated properly
      *
      * @param  mixed $value
-     * @return array
+     * @param  int $indentation The indentation level of the 2nd+ line
+     * @return string
      */
-    public function toArray($value)
+    public function export($value, $indentation = 0)
     {
-        if (!is_object($value)) {
-            return (array) $value;
-        }
-
-        $array = array();
-
-        foreach ((array) $value as $key => $val) {
-            // properties are transformed to keys in the following way:
-            // private   $property => "\0Classname\0property"
-            // protected $property => "\0*\0property"
-            // public    $property => "property"
-            if (preg_match('/^\0.+\0(.+)$/', $key, $matches)) {
-                $key = $matches[1];
-            }
-
-            // See https://github.com/php/php-src/commit/5721132
-            if ($key === "\0gcdata") {
-                continue;
-            }
-
-            $array[$key] = $val;
-        }
-
-        // Some internal classes like SplObjectStorage don't work with the
-        // above (fast) mechanism nor with reflection in Zend.
-        // Format the output similarly to print_r() in this case
-        if ($value instanceof \SplObjectStorage) {
-            // However, the fast method does work in HHVM, and exposes the
-            // internal implementation. Hide it again.
-            if (property_exists('\SplObjectStorage', '__storage')) {
-                unset($array['__storage']);
-            } elseif (property_exists('\SplObjectStorage', 'storage')) {
-                unset($array['storage']);
-            }
-
-            if (property_exists('\SplObjectStorage', '__key')) {
-                unset($array['__key']);
-            }
-
-            foreach ($value as $key => $val) {
-                $array[spl_object_hash($val)] = array(
-                    'obj' => $val,
-                    'inf' => $value->getInfo(),
-                );
-            }
-        }
-
-        return $array;
+        return $this->recursiveExport($value, $indentation);
     }
 
     /**
@@ -292,5 +238,64 @@ class Exporter
         }
 
         return var_export($value, true);
+    }
+
+    /**
+     * Converts an object to an array containing all of its private, protected
+     * and public properties.
+     *
+     * @param  mixed $value
+     * @return array
+     */
+    public function toArray($value)
+    {
+        if (!is_object($value)) {
+            return (array)$value;
+        }
+
+        $array = array();
+
+        foreach ((array)$value as $key => $val) {
+            // properties are transformed to keys in the following way:
+            // private   $property => "\0Classname\0property"
+            // protected $property => "\0*\0property"
+            // public    $property => "property"
+            if (preg_match('/^\0.+\0(.+)$/', $key, $matches)) {
+                $key = $matches[1];
+            }
+
+            // See https://github.com/php/php-src/commit/5721132
+            if ($key === "\0gcdata") {
+                continue;
+            }
+
+            $array[$key] = $val;
+        }
+
+        // Some internal classes like SplObjectStorage don't work with the
+        // above (fast) mechanism nor with reflection in Zend.
+        // Format the output similarly to print_r() in this case
+        if ($value instanceof \SplObjectStorage) {
+            // However, the fast method does work in HHVM, and exposes the
+            // internal implementation. Hide it again.
+            if (property_exists('\SplObjectStorage', '__storage')) {
+                unset($array['__storage']);
+            } elseif (property_exists('\SplObjectStorage', 'storage')) {
+                unset($array['storage']);
+            }
+
+            if (property_exists('\SplObjectStorage', '__key')) {
+                unset($array['__key']);
+            }
+
+            foreach ($value as $key => $val) {
+                $array[spl_object_hash($val)] = array(
+                    'obj' => $val,
+                    'inf' => $value->getInfo(),
+                );
+            }
+        }
+
+        return $array;
     }
 }

@@ -12,25 +12,14 @@
 namespace Symfony\Component\Console\Tests\Helper;
 
 use Symfony\Component\Console\Helper\Table;
-use Symfony\Component\Console\Helper\TableStyle;
-use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Helper\TableCell;
+use Symfony\Component\Console\Helper\TableSeparator;
+use Symfony\Component\Console\Helper\TableStyle;
 use Symfony\Component\Console\Output\StreamOutput;
 
 class TableTest extends \PHPUnit_Framework_TestCase
 {
     protected $stream;
-
-    protected function setUp()
-    {
-        $this->stream = fopen('php://memory', 'r+');
-    }
-
-    protected function tearDown()
-    {
-        fclose($this->stream);
-        $this->stream = null;
-    }
 
     /**
      * @dataProvider testRenderProvider
@@ -46,6 +35,18 @@ class TableTest extends \PHPUnit_Framework_TestCase
         $table->render();
 
         $this->assertEquals($expected, $this->getOutputContent($output));
+    }
+
+    protected function getOutputStream()
+    {
+        return new StreamOutput($this->stream, StreamOutput::VERBOSITY_NORMAL, false);
+    }
+
+    protected function getOutputContent(StreamOutput $output)
+    {
+        rewind($output->getStream());
+
+        return str_replace(PHP_EOL, "\n", stream_get_contents($output->getStream()));
     }
 
     /**
@@ -461,6 +462,24 @@ TABLE
 
 TABLE
             ),
+            'Row with multiple cells' => array(
+                array(),
+                array(
+                    array(
+                        new TableCell('1', array('colspan' => 3)),
+                        new TableCell('2', array('colspan' => 2)),
+                        new TableCell('3', array('colspan' => 2)),
+                        new TableCell('4', array('colspan' => 2)),
+                    ),
+                ),
+                'default',
+                <<<TABLE
+                +--+--+--+--+--+--+--+--+--+
+| 1      | 2   | 3   | 4   |
++--+--+--+--+--+--+--+--+--+
+
+TABLE
+            ),
         );
     }
 
@@ -553,15 +572,14 @@ TABLE;
         $this->assertEquals($table, $table->addRow(new TableSeparator()), 'fluent interface on addRow() with a single TableSeparator() works');
     }
 
-    protected function getOutputStream()
+    protected function setUp()
     {
-        return new StreamOutput($this->stream, StreamOutput::VERBOSITY_NORMAL, false);
+        $this->stream = fopen('php://memory', 'r+');
     }
 
-    protected function getOutputContent(StreamOutput $output)
+    protected function tearDown()
     {
-        rewind($output->getStream());
-
-        return str_replace(PHP_EOL, "\n", stream_get_contents($output->getStream()));
+        fclose($this->stream);
+        $this->stream = null;
     }
 }

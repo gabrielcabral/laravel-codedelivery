@@ -89,6 +89,19 @@ trait AssertionsTrait
     }
 
     /**
+     * Assert whether the client was redirected to a given route.
+     *
+     * @param  string $name
+     * @param  array $parameters
+     * @param  array $with
+     * @return void
+     */
+    public function assertRedirectedToRoute($name, $parameters = [], $with = [])
+    {
+        $this->assertRedirectedTo($this->app['url']->route($name, $parameters), $with);
+    }
+
+    /**
      * Assert whether the client was redirected to a given URI.
      *
      * @param  string  $uri
@@ -105,33 +118,24 @@ trait AssertionsTrait
     }
 
     /**
-     * Assert whether the client was redirected to a given route.
-     *
-     * @param  string  $name
-     * @param  array   $parameters
-     * @param  array   $with
-     * @return void
-     */
-    public function assertRedirectedToRoute($name, $parameters = [], $with = [])
-    {
-        $this->assertRedirectedTo($this->app['url']->route($name, $parameters), $with);
-    }
-
-    /**
-     * Assert whether the client was redirected to a given action.
-     *
-     * @param  string  $name
-     * @param  array   $parameters
-     * @param  array   $with
-     * @return void
-     */
-    public function assertRedirectedToAction($name, $parameters = [], $with = [])
-    {
-        $this->assertRedirectedTo($this->app['url']->action($name, $parameters), $with);
-    }
-
-    /**
      * Assert that the session has a given list of values.
+     *
+     * @param  array $bindings
+     * @return void
+     */
+    public function assertSessionHasAll(array $bindings)
+    {
+        foreach ($bindings as $key => $value) {
+            if (is_int($key)) {
+                $this->assertSessionHas($value);
+            } else {
+                $this->assertSessionHas($key, $value);
+            }
+        }
+    }
+
+    /**
+     * Assert that the session has a given value.
      *
      * @param  string|array  $key
      * @param  mixed  $value
@@ -151,20 +155,16 @@ trait AssertionsTrait
     }
 
     /**
-     * Assert that the session has a given list of values.
+     * Assert whether the client was redirected to a given action.
      *
-     * @param  array  $bindings
+     * @param  string $name
+     * @param  array $parameters
+     * @param  array $with
      * @return void
      */
-    public function assertSessionHasAll(array $bindings)
+    public function assertRedirectedToAction($name, $parameters = [], $with = [])
     {
-        foreach ($bindings as $key => $value) {
-            if (is_int($key)) {
-                $this->assertSessionHas($value);
-            } else {
-                $this->assertSessionHas($key, $value);
-            }
-        }
+        $this->assertRedirectedTo($this->app['url']->action($name, $parameters), $with);
     }
 
     /**

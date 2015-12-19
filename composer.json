@@ -8,6 +8,7 @@
     "require": {
         "php": ">=5.5.9",
         "laravel/framework": "5.1.*",
+        "filp/whoops": "~1.0",
         "prettus/l5-repository": "^2.1",
         "bestmomo/scafold": "dev-master",
         "illuminate/html": "^5.0@dev",

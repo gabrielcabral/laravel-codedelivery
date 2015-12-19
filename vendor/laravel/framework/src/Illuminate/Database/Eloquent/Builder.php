@@ -3,13 +3,13 @@
 namespace Illuminate\Database\Eloquent;
 
 use Closure;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Database\Query\Expression;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\Expression;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class Builder
 {
@@ -70,6 +70,30 @@ class Builder
     }
 
     /**
+     * Find a model by its primary key or throw an exception.
+     *
+     * @param  mixed $id
+     * @param  array $columns
+     * @return \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Collection
+     *
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function findOrFail($id, $columns = ['*'])
+    {
+        $result = $this->find($id, $columns);
+
+        if (is_array($id)) {
+            if (count($result) == count(array_unique($id))) {
+                return $result;
+            }
+        } elseif (!is_null($result)) {
+            return $result;
+        }
+
+        throw (new ModelNotFoundException)->setModel(get_class($this->model));
+    }
+
+    /**
      * Find a model by its primary key.
      *
      * @param  mixed  $id
@@ -106,27 +130,175 @@ class Builder
     }
 
     /**
-     * Find a model by its primary key or throw an exception.
+     * Execute the query as a "select" statement.
      *
-     * @param  mixed  $id
      * @param  array  $columns
-     * @return \Illuminate\Database\Eloquent\Model|\Illuminate\Database\Eloquent\Collection
-     *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @return \Illuminate\Database\Eloquent\Collection|static[]
      */
-    public function findOrFail($id, $columns = ['*'])
+    public function get($columns = ['*'])
     {
-        $result = $this->find($id, $columns);
+        $models = $this->getModels($columns);
 
-        if (is_array($id)) {
-            if (count($result) == count(array_unique($id))) {
-                return $result;
-            }
-        } elseif (! is_null($result)) {
-            return $result;
+        // If we actually found models we will also eager load any relationships that
+        // have been specified as needing to be eager loaded, which will solve the
+        // n+1 query issue for the developers to avoid running a lot of queries.
+        if (count($models) > 0) {
+            $models = $this->eagerLoadRelations($models);
         }
 
-        throw (new ModelNotFoundException)->setModel(get_class($this->model));
+        return $this->model->newCollection($models);
+    }
+
+    /**
+     * Get the hydrated models without eager loading.
+     *
+     * @param  array $columns
+     * @return \Illuminate\Database\Eloquent\Model[]
+     */
+    public function getModels($columns = ['*'])
+    {
+        $results = $this->query->get($columns);
+
+        $connection = $this->model->getConnectionName();
+
+        return $this->model->hydrate($results, $connection)->all();
+    }
+
+    /**
+     * Eager load the relationships for the models.
+     *
+     * @param  array $models
+     * @return array
+     */
+    public function eagerLoadRelations(array $models)
+    {
+        foreach ($this->eagerLoad as $name => $constraints) {
+            // For nested eager loads we'll skip loading them here and they will be set as an
+            // eager load on the query to retrieve the relation so that they will be eager
+            // loaded on that query, because that is where they get hydrated as models.
+            if (strpos($name, '.') === false) {
+                $models = $this->loadRelation($models, $name, $constraints);
+            }
+        }
+
+        return $models;
+    }
+
+    /**
+     * Eagerly load the relationship on a set of models.
+     *
+     * @param  array $models
+     * @param  string $name
+     * @param  \Closure $constraints
+     * @return array
+     */
+    protected function loadRelation(array $models, $name, Closure $constraints)
+    {
+        // First we will "back up" the existing where conditions on the query so we can
+        // add our eager constraints. Then we will merge the wheres that were on the
+        // query back to it in order that any where conditions might be specified.
+        $relation = $this->getRelation($name);
+
+        $relation->addEagerConstraints($models);
+
+        call_user_func($constraints, $relation);
+
+        $models = $relation->initRelation($models, $name);
+
+        // Once we have the results, we just match those back up to their parent models
+        // using the relationship instance. Then we just return the finished arrays
+        // of models which have been eagerly hydrated and are readied for return.
+        $results = $relation->getEager();
+
+        return $relation->match($models, $results, $name);
+    }
+
+    /**
+     * Get the relation instance for the given relation name.
+     *
+     * @param  string $name
+     * @return \Illuminate\Database\Eloquent\Relations\Relation
+     */
+    public function getRelation($name)
+    {
+        // We want to run a relationship query without any constrains so that we will
+        // not have to remove these where clauses manually which gets really hacky
+        // and is error prone while we remove the developer's own where clauses.
+        $relation = Relation::noConstraints(function () use ($name) {
+            return $this->getModel()->$name();
+        });
+
+        $nested = $this->nestedRelations($name);
+
+        // If there are nested relationships set on the query, we will put those onto
+        // the query instances so that they can be handled after this relationship
+        // is loaded. In this way they will all trickle down as they are loaded.
+        if (count($nested) > 0) {
+            $relation->getQuery()->with($nested);
+        }
+
+        return $relation;
+    }
+
+    /**
+     * Get the model instance being queried.
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function getModel()
+    {
+        return $this->model;
+    }
+
+    /**
+     * Set a model instance for the model being queried.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model $model
+     * @return $this
+     */
+    public function setModel(Model $model)
+    {
+        $this->model = $model;
+
+        $this->query->from($model->getTable());
+
+        return $this;
+    }
+
+    /**
+     * Get the deeply nested relations for a given top-level relation.
+     *
+     * @param  string $relation
+     * @return array
+     */
+    protected function nestedRelations($relation)
+    {
+        $nested = [];
+
+        // We are basically looking for any relationships that are nested deeper than
+        // the given top-level relationship. We will just check for any relations
+        // that start with the given top relations and adds them to our arrays.
+        foreach ($this->eagerLoad as $name => $constraints) {
+            if ($this->isNested($name, $relation)) {
+                $nested[substr($name, strlen($relation . '.'))] = $constraints;
+            }
+        }
+
+        return $nested;
+    }
+
+    /**
+     * Determine if the relationship is nested.
+     *
+     * @param  string $name
+     * @param  string $relation
+     * @return bool
+     */
+    protected function isNested($name, $relation)
+    {
+        $dots = Str::contains($name, '.');
+
+        return $dots && Str::startsWith($name, $relation . '.');
     }
 
     /**
@@ -158,23 +330,18 @@ class Builder
     }
 
     /**
-     * Execute the query as a "select" statement.
+     * Get a single column's value from the first result of a query.
      *
-     * @param  array  $columns
-     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     * This is an alias for the "value" method.
+     *
+     * @param  string $column
+     * @return mixed
+     *
+     * @deprecated since version 5.1.
      */
-    public function get($columns = ['*'])
+    public function pluck($column)
     {
-        $models = $this->getModels($columns);
-
-        // If we actually found models we will also eager load any relationships that
-        // have been specified as needing to be eager loaded, which will solve the
-        // n+1 query issue for the developers to avoid running a lot of queries.
-        if (count($models) > 0) {
-            $models = $this->eagerLoadRelations($models);
-        }
-
-        return $this->model->newCollection($models);
+        return $this->value($column);
     }
 
     /**
@@ -190,21 +357,6 @@ class Builder
         if ($result) {
             return $result->{$column};
         }
-    }
-
-    /**
-     * Get a single column's value from the first result of a query.
-     *
-     * This is an alias for the "value" method.
-     *
-     * @param  string  $column
-     * @return mixed
-     *
-     * @deprecated since version 5.1.
-     */
-    public function pluck($column)
-    {
-        return $this->value($column);
     }
 
     /**
@@ -236,7 +388,7 @@ class Builder
      * Get an array with the values of a given column.
      *
      * @param  string  $column
-     * @param  string  $key
+     * @param  string|null $key
      * @return \Illuminate\Support\Collection
      */
     public function lists($column, $key = null)
@@ -317,6 +469,23 @@ class Builder
     }
 
     /**
+     * Add the "updated at" column to an array of values.
+     *
+     * @param  array $values
+     * @return array
+     */
+    protected function addUpdatedAtColumn(array $values)
+    {
+        if (!$this->model->usesTimestamps()) {
+            return $values;
+        }
+
+        $column = $this->model->getUpdatedAtColumn();
+
+        return Arr::add($values, $column, $this->model->freshTimestampString());
+    }
+
+    /**
      * Increment a column's value by a given amount.
      *
      * @param  string  $column
@@ -344,23 +513,6 @@ class Builder
         $extra = $this->addUpdatedAtColumn($extra);
 
         return $this->query->decrement($column, $amount, $extra);
-    }
-
-    /**
-     * Add the "updated at" column to an array of values.
-     *
-     * @param  array  $values
-     * @return array
-     */
-    protected function addUpdatedAtColumn(array $values)
-    {
-        if (! $this->model->usesTimestamps()) {
-            return $values;
-        }
-
-        $column = $this->model->getUpdatedAtColumn();
-
-        return Arr::add($values, $column, $this->model->freshTimestampString());
     }
 
     /**
@@ -399,139 +551,25 @@ class Builder
     }
 
     /**
-     * Get the hydrated models without eager loading.
+     * Add an "or where" clause to the query.
      *
-     * @param  array  $columns
-     * @return \Illuminate\Database\Eloquent\Model[]
+     * @param  string $column
+     * @param  string $operator
+     * @param  mixed $value
+     * @return \Illuminate\Database\Eloquent\Builder|static
      */
-    public function getModels($columns = ['*'])
+    public function orWhere($column, $operator = null, $value = null)
     {
-        $results = $this->query->get($columns);
-
-        $connection = $this->model->getConnectionName();
-
-        return $this->model->hydrate($results, $connection)->all();
-    }
-
-    /**
-     * Eager load the relationships for the models.
-     *
-     * @param  array  $models
-     * @return array
-     */
-    public function eagerLoadRelations(array $models)
-    {
-        foreach ($this->eagerLoad as $name => $constraints) {
-            // For nested eager loads we'll skip loading them here and they will be set as an
-            // eager load on the query to retrieve the relation so that they will be eager
-            // loaded on that query, because that is where they get hydrated as models.
-            if (strpos($name, '.') === false) {
-                $models = $this->loadRelation($models, $name, $constraints);
-            }
-        }
-
-        return $models;
-    }
-
-    /**
-     * Eagerly load the relationship on a set of models.
-     *
-     * @param  array     $models
-     * @param  string    $name
-     * @param  \Closure  $constraints
-     * @return array
-     */
-    protected function loadRelation(array $models, $name, Closure $constraints)
-    {
-        // First we will "back up" the existing where conditions on the query so we can
-        // add our eager constraints. Then we will merge the wheres that were on the
-        // query back to it in order that any where conditions might be specified.
-        $relation = $this->getRelation($name);
-
-        $relation->addEagerConstraints($models);
-
-        call_user_func($constraints, $relation);
-
-        $models = $relation->initRelation($models, $name);
-
-        // Once we have the results, we just match those back up to their parent models
-        // using the relationship instance. Then we just return the finished arrays
-        // of models which have been eagerly hydrated and are readied for return.
-        $results = $relation->getEager();
-
-        return $relation->match($models, $results, $name);
-    }
-
-    /**
-     * Get the relation instance for the given relation name.
-     *
-     * @param  string  $relation
-     * @return \Illuminate\Database\Eloquent\Relations\Relation
-     */
-    public function getRelation($relation)
-    {
-        // We want to run a relationship query without any constrains so that we will
-        // not have to remove these where clauses manually which gets really hacky
-        // and is error prone while we remove the developer's own where clauses.
-        $query = Relation::noConstraints(function () use ($relation) {
-            return $this->getModel()->$relation();
-        });
-
-        $nested = $this->nestedRelations($relation);
-
-        // If there are nested relationships set on the query, we will put those onto
-        // the query instances so that they can be handled after this relationship
-        // is loaded. In this way they will all trickle down as they are loaded.
-        if (count($nested) > 0) {
-            $query->getQuery()->with($nested);
-        }
-
-        return $query;
-    }
-
-    /**
-     * Get the deeply nested relations for a given top-level relation.
-     *
-     * @param  string  $relation
-     * @return array
-     */
-    protected function nestedRelations($relation)
-    {
-        $nested = [];
-
-        // We are basically looking for any relationships that are nested deeper than
-        // the given top-level relationship. We will just check for any relations
-        // that start with the given top relations and adds them to our arrays.
-        foreach ($this->eagerLoad as $name => $constraints) {
-            if ($this->isNested($name, $relation)) {
-                $nested[substr($name, strlen($relation.'.'))] = $constraints;
-            }
-        }
-
-        return $nested;
-    }
-
-    /**
-     * Determine if the relationship is nested.
-     *
-     * @param  string  $name
-     * @param  string  $relation
-     * @return bool
-     */
-    protected function isNested($name, $relation)
-    {
-        $dots = Str::contains($name, '.');
-
-        return $dots && Str::startsWith($name, $relation.'.');
+        return $this->where($column, $operator, $value, 'or');
     }
 
     /**
      * Add a basic where clause to the query.
      *
-     * @param  string  $column
-     * @param  string  $operator
-     * @param  mixed   $value
-     * @param  string  $boolean
+     * @param  string $column
+     * @param  string $operator
+     * @param  mixed $value
+     * @param  string $boolean
      * @return $this
      */
     public function where($column, $operator = null, $value = null, $boolean = 'and')
@@ -550,16 +588,40 @@ class Builder
     }
 
     /**
-     * Add an "or where" clause to the query.
+     * Get the underlying query builder instance.
      *
-     * @param  string  $column
-     * @param  string  $operator
-     * @param  mixed   $value
+     * @return \Illuminate\Database\Query\Builder|static
+     */
+    public function getQuery()
+    {
+        return $this->query;
+    }
+
+    /**
+     * Set the underlying query builder instance.
+     *
+     * @param  \Illuminate\Database\Query\Builder $query
+     * @return $this
+     */
+    public function setQuery($query)
+    {
+        $this->query = $query;
+
+        return $this;
+    }
+
+    /**
+     * Add a relationship count condition to the query with where clauses.
+     *
+     * @param  string $relation
+     * @param  \Closure $callback
+     * @param  string $operator
+     * @param  int $count
      * @return \Illuminate\Database\Eloquent\Builder|static
      */
-    public function orWhere($column, $operator = null, $value = null)
+    public function whereHas($relation, Closure $callback, $operator = '>=', $count = 1)
     {
-        return $this->where($column, $operator, $value, 'or');
+        return $this->has($relation, $operator, $count, 'and', $callback);
     }
 
     /**
@@ -618,69 +680,16 @@ class Builder
     }
 
     /**
-     * Add a relationship count condition to the query.
+     * Get the "has relation" base query instance.
      *
      * @param  string  $relation
-     * @param  string  $boolean
-     * @param  \Closure|null  $callback
-     * @return \Illuminate\Database\Eloquent\Builder|static
+     * @return \Illuminate\Database\Eloquent\Relations\Relation
      */
-    public function doesntHave($relation, $boolean = 'and', Closure $callback = null)
+    protected function getHasRelationQuery($relation)
     {
-        return $this->has($relation, '<', 1, $boolean, $callback);
-    }
-
-    /**
-     * Add a relationship count condition to the query with where clauses.
-     *
-     * @param  string    $relation
-     * @param  \Closure  $callback
-     * @param  string    $operator
-     * @param  int       $count
-     * @return \Illuminate\Database\Eloquent\Builder|static
-     */
-    public function whereHas($relation, Closure $callback, $operator = '>=', $count = 1)
-    {
-        return $this->has($relation, $operator, $count, 'and', $callback);
-    }
-
-    /**
-     * Add a relationship count condition to the query with where clauses.
-     *
-     * @param  string  $relation
-     * @param  \Closure|null  $callback
-     * @return \Illuminate\Database\Eloquent\Builder|static
-     */
-    public function whereDoesntHave($relation, Closure $callback = null)
-    {
-        return $this->doesntHave($relation, 'and', $callback);
-    }
-
-    /**
-     * Add a relationship count condition to the query with an "or".
-     *
-     * @param  string  $relation
-     * @param  string  $operator
-     * @param  int     $count
-     * @return \Illuminate\Database\Eloquent\Builder|static
-     */
-    public function orHas($relation, $operator = '>=', $count = 1)
-    {
-        return $this->has($relation, $operator, $count, 'or');
-    }
-
-    /**
-     * Add a relationship count condition to the query with where clauses and an "or".
-     *
-     * @param  string    $relation
-     * @param  \Closure  $callback
-     * @param  string    $operator
-     * @param  int       $count
-     * @return \Illuminate\Database\Eloquent\Builder|static
-     */
-    public function orWhereHas($relation, Closure $callback, $operator = '>=', $count = 1)
-    {
-        return $this->has($relation, $operator, $count, 'or', $callback);
+        return Relation::noConstraints(function () use ($relation) {
+            return $this->getModel()->$relation();
+        });
     }
 
     /**
@@ -728,16 +737,55 @@ class Builder
     }
 
     /**
-     * Get the "has relation" base query instance.
+     * Add a relationship count condition to the query with where clauses.
      *
      * @param  string  $relation
-     * @return \Illuminate\Database\Eloquent\Relations\Relation
+     * @param  \Closure|null $callback
+     * @return \Illuminate\Database\Eloquent\Builder|static
      */
-    protected function getHasRelationQuery($relation)
+    public function whereDoesntHave($relation, Closure $callback = null)
     {
-        return Relation::noConstraints(function () use ($relation) {
-            return $this->getModel()->$relation();
-        });
+        return $this->doesntHave($relation, 'and', $callback);
+    }
+
+    /**
+     * Add a relationship count condition to the query.
+     *
+     * @param  string $relation
+     * @param  string $boolean
+     * @param  \Closure|null $callback
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    public function doesntHave($relation, $boolean = 'and', Closure $callback = null)
+    {
+        return $this->has($relation, '<', 1, $boolean, $callback);
+    }
+
+    /**
+     * Add a relationship count condition to the query with an "or".
+     *
+     * @param  string $relation
+     * @param  string $operator
+     * @param  int $count
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    public function orHas($relation, $operator = '>=', $count = 1)
+    {
+        return $this->has($relation, $operator, $count, 'or');
+    }
+
+    /**
+     * Add a relationship count condition to the query with where clauses and an "or".
+     *
+     * @param  string $relation
+     * @param  \Closure $callback
+     * @param  string $operator
+     * @param  int $count
+     * @return \Illuminate\Database\Eloquent\Builder|static
+     */
+    public function orWhereHas($relation, Closure $callback, $operator = '>=', $count = 1)
+    {
+        return $this->has($relation, $operator, $count, 'or', $callback);
     }
 
     /**
@@ -816,43 +864,6 @@ class Builder
     }
 
     /**
-     * Call the given model scope on the underlying model.
-     *
-     * @param  string  $scope
-     * @param  array   $parameters
-     * @return \Illuminate\Database\Query\Builder
-     */
-    protected function callScope($scope, $parameters)
-    {
-        array_unshift($parameters, $this);
-
-        return call_user_func_array([$this->model, $scope], $parameters) ?: $this;
-    }
-
-    /**
-     * Get the underlying query builder instance.
-     *
-     * @return \Illuminate\Database\Query\Builder|static
-     */
-    public function getQuery()
-    {
-        return $this->query;
-    }
-
-    /**
-     * Set the underlying query builder instance.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @return $this
-     */
-    public function setQuery($query)
-    {
-        $this->query = $query;
-
-        return $this;
-    }
-
-    /**
      * Get the relationships being eagerly loaded.
      *
      * @return array
@@ -871,31 +882,6 @@ class Builder
     public function setEagerLoads(array $eagerLoad)
     {
         $this->eagerLoad = $eagerLoad;
-
-        return $this;
-    }
-
-    /**
-     * Get the model instance being queried.
-     *
-     * @return \Illuminate\Database\Eloquent\Model
-     */
-    public function getModel()
-    {
-        return $this->model;
-    }
-
-    /**
-     * Set a model instance for the model being queried.
-     *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @return $this
-     */
-    public function setModel(Model $model)
-    {
-        $this->model = $model;
-
-        $this->query->from($model->getTable());
 
         return $this;
     }
@@ -943,6 +929,20 @@ class Builder
         $result = call_user_func_array([$this->query, $method], $parameters);
 
         return in_array($method, $this->passthru) ? $result : $this;
+    }
+
+    /**
+     * Call the given model scope on the underlying model.
+     *
+     * @param  string $scope
+     * @param  array $parameters
+     * @return \Illuminate\Database\Query\Builder
+     */
+    protected function callScope($scope, $parameters)
+    {
+        array_unshift($parameters, $this);
+
+        return call_user_func_array([$this->model, $scope], $parameters) ?: $this;
     }
 
     /**

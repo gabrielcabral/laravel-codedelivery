@@ -1,15 +1,16 @@
 <?php namespace SuperClosure\Analyzer;
 
-use SuperClosure\Analyzer\Visitor\ThisDetectorVisitor;
-use SuperClosure\Exception\ClosureAnalysisException;
-use SuperClosure\Analyzer\Visitor\ClosureLocatorVisitor;
-use SuperClosure\Analyzer\Visitor\MagicConstantVisitor;
-use PhpParser\NodeTraverser;
-use PhpParser\PrettyPrinter\Standard as NodePrinter;
 use PhpParser\Error as ParserError;
+use PhpParser\Lexer\Emulative as EmulativeLexer;
+use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser as CodeParser;
-use PhpParser\Lexer\Emulative as EmulativeLexer;
+use PhpParser\ParserFactory;
+use PhpParser\PrettyPrinter\Standard as NodePrinter;
+use SuperClosure\Analyzer\Visitor\ClosureLocatorVisitor;
+use SuperClosure\Analyzer\Visitor\MagicConstantVisitor;
+use SuperClosure\Analyzer\Visitor\ThisDetectorVisitor;
+use SuperClosure\Exception\ClosureAnalysisException;
 
 /**
  * This is the AST based analyzer.
@@ -77,6 +78,38 @@ class AstAnalyzer extends ClosureAnalyzer
     }
 
     /**
+     * @param \ReflectionFunction $reflection
+     *
+     * @throws ClosureAnalysisException
+     *
+     * @return \PhpParser\Node[]
+     */
+    private function getFileAst(\ReflectionFunction $reflection)
+    {
+        $fileName = $reflection->getFileName();
+        if (!file_exists($fileName)) {
+            throw new ClosureAnalysisException(
+                "The file containing the closure, \"{$fileName}\" did not exist."
+            );
+        }
+
+
+        return $this->getParser()->parse(file_get_contents($fileName));
+    }
+
+    /**
+     * @return CodeParser
+     */
+    private function getParser()
+    {
+        if (class_exists('PhpParser\ParserFactory')) {
+            return (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+        }
+
+        return new CodeParser(new EmulativeLexer);
+    }
+
+    /**
      * Returns the variables that in the "use" clause of the closure definition.
      * These are referred to as the "used variables", "static variables", or
      * "closed upon variables", "context" of the closure.
@@ -104,26 +137,5 @@ class AstAnalyzer extends ClosureAnalyzer
                 $data['context'][$name] = $values[$name];
             }
         }
-    }
-
-    /**
-     * @param \ReflectionFunction $reflection
-     *
-     * @throws ClosureAnalysisException
-     *
-     * @return \PhpParser\Node[]
-     */
-    private function getFileAst(\ReflectionFunction $reflection)
-    {
-        $fileName = $reflection->getFileName();
-        if (!file_exists($fileName)) {
-            throw new ClosureAnalysisException(
-                "The file containing the closure, \"{$fileName}\" did not exist."
-            );
-        }
-
-        $parser = new CodeParser(new EmulativeLexer);
-
-        return $parser->parse(file_get_contents($fileName));
     }
 }

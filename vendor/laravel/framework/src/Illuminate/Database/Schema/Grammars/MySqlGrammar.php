@@ -2,9 +2,9 @@
 
 namespace Illuminate\Database\Schema\Grammars;
 
-use Illuminate\Support\Fluent;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Fluent;
 
 class MySqlGrammar extends Grammar
 {
@@ -126,6 +126,23 @@ class MySqlGrammar extends Grammar
     }
 
     /**
+     * Compile an index creation command.
+     *
+     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
+     * @param  \Illuminate\Support\Fluent  $command
+     * @param  string $type
+     * @return string
+     */
+    protected function compileKey(Blueprint $blueprint, Fluent $command, $type)
+    {
+        $columns = $this->columnize($command->columns);
+
+        $table = $this->wrapTable($blueprint);
+
+        return "alter table {$table} add {$type} `{$command->index}`($columns)";
+    }
+
+    /**
      * Compile a unique key command.
      *
      * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
@@ -147,23 +164,6 @@ class MySqlGrammar extends Grammar
     public function compileIndex(Blueprint $blueprint, Fluent $command)
     {
         return $this->compileKey($blueprint, $command, 'index');
-    }
-
-    /**
-     * Compile an index creation command.
-     *
-     * @param  \Illuminate\Database\Schema\Blueprint  $blueprint
-     * @param  \Illuminate\Support\Fluent  $command
-     * @param  string  $type
-     * @return string
-     */
-    protected function compileKey(Blueprint $blueprint, Fluent $command, $type)
-    {
-        $columns = $this->columnize($command->columns);
-
-        $table = $this->wrapTable($blueprint);
-
-        return "alter table {$table} add {$type} {$command->index}($columns)";
     }
 
     /**
@@ -229,7 +229,7 @@ class MySqlGrammar extends Grammar
     {
         $table = $this->wrapTable($blueprint);
 
-        return "alter table {$table} drop index {$command->index}";
+        return "alter table {$table} drop index `{$command->index}`";
     }
 
     /**
@@ -243,7 +243,7 @@ class MySqlGrammar extends Grammar
     {
         $table = $this->wrapTable($blueprint);
 
-        return "alter table {$table} drop index {$command->index}";
+        return "alter table {$table} drop index `{$command->index}`";
     }
 
     /**
@@ -257,7 +257,7 @@ class MySqlGrammar extends Grammar
     {
         $table = $this->wrapTable($blueprint);
 
-        return "alter table {$table} drop foreign key {$command->index}";
+        return "alter table {$table} drop foreign key `{$command->index}`";
     }
 
     /**
@@ -528,6 +528,10 @@ class MySqlGrammar extends Grammar
      */
     protected function typeTimestamp(Fluent $column)
     {
+        if ($column->useCurrent) {
+            return 'timestamp default CURRENT_TIMESTAMP';
+        }
+
         if (! $column->nullable && $column->default === null) {
             return 'timestamp default 0';
         }
@@ -543,6 +547,10 @@ class MySqlGrammar extends Grammar
      */
     protected function typeTimestampTz(Fluent $column)
     {
+        if ($column->useCurrent) {
+            return 'timestamp default CURRENT_TIMESTAMP';
+        }
+
         if (! $column->nullable && $column->default === null) {
             return 'timestamp default 0';
         }

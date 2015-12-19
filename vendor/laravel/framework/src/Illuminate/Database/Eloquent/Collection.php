@@ -48,19 +48,6 @@ class Collection extends BaseCollection
     }
 
     /**
-     * Add an item to the collection.
-     *
-     * @param  mixed  $item
-     * @return $this
-     */
-    public function add($item)
-    {
-        $this->items[] = $item;
-
-        return $this;
-    }
-
-    /**
      * Determine if a key exists in the collection.
      *
      * @param  mixed  $key
@@ -104,7 +91,9 @@ class Collection extends BaseCollection
      */
     public function modelKeys()
     {
-        return array_map(function ($m) { return $m->getKey(); }, $this->items);
+        return array_map(function ($m) {
+            return $m->getKey();
+        }, $this->items);
     }
 
     /**
@@ -122,6 +111,25 @@ class Collection extends BaseCollection
         }
 
         return new static(array_values($dictionary));
+    }
+
+    /**
+     * Get a dictionary keyed by primary keys.
+     *
+     * @param  \ArrayAccess|array $items
+     * @return array
+     */
+    public function getDictionary($items = null)
+    {
+        $items = is_null($items) ? $this->items : $items;
+
+        $dictionary = [];
+
+        foreach ($items as $value) {
+            $dictionary[$value->getKey()] = $value;
+        }
+
+        return $dictionary;
     }
 
     /**
@@ -143,6 +151,19 @@ class Collection extends BaseCollection
         }
 
         return $diff;
+    }
+
+    /**
+     * Add an item to the collection.
+     *
+     * @param  mixed $item
+     * @return $this
+     */
+    public function add($item)
+    {
+        $this->items[] = $item;
+
+        return $this;
     }
 
     /**
@@ -202,7 +223,7 @@ class Collection extends BaseCollection
      */
     public function except($keys)
     {
-        $dictionary = array_except($this->getDictionary(), $keys);
+        $dictionary = Arr::except($this->getDictionary(), $keys);
 
         return new static(array_values($dictionary));
     }
@@ -220,25 +241,6 @@ class Collection extends BaseCollection
         });
 
         return $this;
-    }
-
-    /**
-     * Get a dictionary keyed by primary keys.
-     *
-     * @param  \ArrayAccess|array  $items
-     * @return array
-     */
-    public function getDictionary($items = null)
-    {
-        $items = is_null($items) ? $this->items : $items;
-
-        $dictionary = [];
-
-        foreach ($items as $value) {
-            $dictionary[$value->getKey()] = $value;
-        }
-
-        return $dictionary;
     }
 
     /**

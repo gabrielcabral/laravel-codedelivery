@@ -2,8 +2,8 @@
 
 namespace Illuminate\Queue\Console;
 
-use Illuminate\Support\Arr;
 use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 
 class ListFailedCommand extends Command
 {
@@ -68,7 +68,7 @@ class ListFailedCommand extends Command
      */
     protected function parseFailedJob(array $failed)
     {
-        $row = array_values(array_except($failed, ['payload']));
+        $row = array_values(Arr::except($failed, ['payload']));
 
         array_splice($row, 3, 0, $this->extractJobName($failed['payload']));
 

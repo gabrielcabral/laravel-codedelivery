@@ -20,11 +20,6 @@ class ExporterTest extends \PHPUnit_Framework_TestCase
      */
     private $exporter;
 
-    protected function setUp()
-    {
-        $this->exporter = new Exporter;
-    }
-
     public function exportProvider()
     {
         $obj2 = new \stdClass;
@@ -180,6 +175,11 @@ EOF
         );
     }
 
+    private function trimNewline($string)
+    {
+        return preg_replace('/[ ]*\n/', "\n", $string);
+    }
+
     public function testExport2()
     {
         if (PHP_VERSION === '5.3.3') {
@@ -300,6 +300,31 @@ EOF;
         );
     }
 
+    /**
+     * @requires extension mbstring
+     */
+    public function testShortenedExportForMultibyteCharacters()
+    {
+        $oldMbLanguage = mb_language();
+        mb_language('Japanese');
+        $oldMbInternalEncoding = mb_internal_encoding();
+        mb_internal_encoding('UTF-8');
+
+        try {
+            $this->assertSame(
+                "'いろはにほへとちりぬるをわかよたれそつねならむうゐのおくや...しゑひもせす'",
+                $this->trimNewline($this->exporter->shortenedExport('いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせす'))
+            );
+        } catch (\Exception $e) {
+            mb_internal_encoding($oldMbInternalEncoding);
+            mb_language($oldMbLanguage);
+            throw $e;
+        }
+
+        mb_internal_encoding($oldMbInternalEncoding);
+        mb_language($oldMbLanguage);
+    }
+
     public function provideNonBinaryMultibyteStrings()
     {
         return array(
@@ -326,8 +351,8 @@ EOF;
         $this->assertEquals(array(true), $this->exporter->toArray(true));
     }
 
-    private function trimNewline($string)
+    protected function setUp()
     {
-        return preg_replace('/[ ]*\n/', "\n", $string);
+        $this->exporter = new Exporter;
     }
 }

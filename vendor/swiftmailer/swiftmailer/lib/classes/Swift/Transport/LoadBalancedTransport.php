@@ -16,6 +16,18 @@
 class Swift_Transport_LoadBalancedTransport implements Swift_Transport
 {
     /**
+     * The Transports which are used in rotation.
+     *
+     * @var Swift_Transport[]
+     */
+    protected $_transports = array();
+    /**
+     * The Transport used in the last successful send operation.
+     *
+     * @var Swift_Transport
+     */
+    protected $_lastUsedTransport = null;
+    /**
      * Transports which are deemed useless.
      *
      * @var Swift_Transport[]
@@ -23,17 +35,13 @@ class Swift_Transport_LoadBalancedTransport implements Swift_Transport
     private $_deadTransports = array();
 
     /**
-     * The Transports which are used in rotation.
+     * Get $transports to delegate to.
      *
-     * @var Swift_Transport[]
+     * @return Swift_Transport[]
      */
-    protected $_transports = array();
-
-    /**
-     * Creates a new LoadBalancedTransport.
-     */
-    public function __construct()
+    public function getTransports()
     {
+        return array_merge($this->_transports, $this->_deadTransports);
     }
 
     /**
@@ -48,13 +56,13 @@ class Swift_Transport_LoadBalancedTransport implements Swift_Transport
     }
 
     /**
-     * Get $transports to delegate to.
+     * Get the Transport used in the last successful send operation.
      *
-     * @return Swift_Transport[]
+     * @return Swift_Transport
      */
-    public function getTransports()
+    public function getLastUsedTransport()
     {
-        return array_merge($this->_transports, $this->_deadTransports);
+        return $this->_lastUsedTransport;
     }
 
     /**
@@ -100,6 +108,7 @@ class Swift_Transport_LoadBalancedTransport implements Swift_Transport
     {
         $maxTransports = count($this->_transports);
         $sent = 0;
+        $this->_lastUsedTransport = null;
 
         for ($i = 0; $i < $maxTransports
             && $transport = $this->_getNextTransport(); ++$i) {
@@ -108,6 +117,7 @@ class Swift_Transport_LoadBalancedTransport implements Swift_Transport
                     $transport->start();
                 }
                 if ($sent = $transport->send($message, $failedRecipients)) {
+                    $this->_lastUsedTransport = $transport;
                     break;
                 }
             } catch (Swift_TransportException $e) {
@@ -122,18 +132,6 @@ class Swift_Transport_LoadBalancedTransport implements Swift_Transport
         }
 
         return $sent;
-    }
-
-    /**
-     * Register a plugin.
-     *
-     * @param Swift_Events_EventListener $plugin
-     */
-    public function registerPlugin(Swift_Events_EventListener $plugin)
-    {
-        foreach ($this->_transports as $transport) {
-            $transport->registerPlugin($plugin);
-        }
     }
 
     /**
@@ -161,6 +159,18 @@ class Swift_Transport_LoadBalancedTransport implements Swift_Transport
             } catch (Exception $e) {
             }
             $this->_deadTransports[] = $transport;
+        }
+    }
+
+    /**
+     * Register a plugin.
+     *
+     * @param Swift_Events_EventListener $plugin
+     */
+    public function registerPlugin(Swift_Events_EventListener $plugin)
+    {
+        foreach ($this->_transports as $transport) {
+            $transport->registerPlugin($plugin);
         }
     }
 }

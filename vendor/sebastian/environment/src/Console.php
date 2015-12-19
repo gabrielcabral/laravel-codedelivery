@@ -29,7 +29,7 @@ class Console
     public function hasColorSupport()
     {
         if (DIRECTORY_SEPARATOR == '\\') {
-            return false !== getenv('ANSICON') || 'ON' === getenv('ConEmuANSI');
+            return false !== getenv('ANSICON') || 'ON' === getenv('ConEmuANSI') || 'xterm' === getenv('TERM');
         }
 
         if (!defined('STDOUT')) {
@@ -37,6 +37,18 @@ class Console
         }
 
         return $this->isInteractive(STDOUT);
+    }
+
+    /**
+     * Returns if the file descriptor is an interactive terminal or not.
+     *
+     * @param int|resource $fileDescriptor
+     *
+     * @return bool
+     */
+    public function isInteractive($fileDescriptor = self::STDOUT)
+    {
+        return function_exists('posix_isatty') && @posix_isatty($fileDescriptor);
     }
 
     /**
@@ -65,17 +77,5 @@ class Console
         }
 
         return 80;
-    }
-
-    /**
-     * Returns if the file descriptor is an interactive terminal or not.
-     *
-     * @param int|resource $fileDescriptor
-     *
-     * @return bool
-     */
-    public function isInteractive($fileDescriptor = self::STDOUT)
-    {
-        return function_exists('posix_isatty') && @posix_isatty($fileDescriptor);
     }
 }

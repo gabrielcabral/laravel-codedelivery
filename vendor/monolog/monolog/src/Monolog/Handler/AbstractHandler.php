@@ -11,9 +11,9 @@
 
 namespace Monolog\Handler;
 
-use Monolog\Logger;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\LineFormatter;
+use Monolog\Logger;
 
 /**
  * Base Handler class providing the Handler structure
@@ -32,7 +32,7 @@ abstract class AbstractHandler implements HandlerInterface
     protected $processors = array();
 
     /**
-     * @param integer $level  The minimum logging level at which this handler will be triggered
+     * @param int $level The minimum logging level at which this handler will be triggered
      * @param Boolean $bubble Whether the messages that are handled can bubble up the stack or not
      */
     public function __construct($level = Logger::DEBUG, $bubble = true)
@@ -57,15 +57,6 @@ abstract class AbstractHandler implements HandlerInterface
         foreach ($records as $record) {
             $this->handle($record);
         }
-    }
-
-    /**
-     * Closes the handler.
-     *
-     * This will be called automatically when the object is destroyed
-     */
-    public function close()
-    {
     }
 
     /**
@@ -96,16 +87,6 @@ abstract class AbstractHandler implements HandlerInterface
     /**
      * {@inheritdoc}
      */
-    public function setFormatter(FormatterInterface $formatter)
-    {
-        $this->formatter = $formatter;
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getFormatter()
     {
         if (!$this->formatter) {
@@ -116,9 +97,39 @@ abstract class AbstractHandler implements HandlerInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function setFormatter(FormatterInterface $formatter)
+    {
+        $this->formatter = $formatter;
+
+        return $this;
+    }
+
+    /**
+     * Gets the default formatter.
+     *
+     * @return FormatterInterface
+     */
+    protected function getDefaultFormatter()
+    {
+        return new LineFormatter();
+    }
+
+    /**
+     * Gets minimum logging level at which this handler will be triggered.
+     *
+     * @return int
+     */
+    public function getLevel()
+    {
+        return $this->level;
+    }
+
+    /**
      * Sets minimum logging level at which this handler will be triggered.
      *
-     * @param  integer $level
+     * @param  int|string $level Level or level name
      * @return self
      */
     public function setLevel($level)
@@ -129,13 +140,14 @@ abstract class AbstractHandler implements HandlerInterface
     }
 
     /**
-     * Gets minimum logging level at which this handler will be triggered.
+     * Gets the bubbling behavior.
      *
-     * @return integer
+     * @return Boolean true means that this handler allows bubbling.
+     *                 false means that bubbling is not permitted.
      */
-    public function getLevel()
+    public function getBubble()
     {
-        return $this->level;
+        return $this->bubble;
     }
 
     /**
@@ -152,17 +164,6 @@ abstract class AbstractHandler implements HandlerInterface
         return $this;
     }
 
-    /**
-     * Gets the bubbling behavior.
-     *
-     * @return Boolean true means that this handler allows bubbling.
-     *                 false means that bubbling is not permitted.
-     */
-    public function getBubble()
-    {
-        return $this->bubble;
-    }
-
     public function __destruct()
     {
         try {
@@ -173,12 +174,11 @@ abstract class AbstractHandler implements HandlerInterface
     }
 
     /**
-     * Gets the default formatter.
+     * Closes the handler.
      *
-     * @return FormatterInterface
+     * This will be called automatically when the object is destroyed
      */
-    protected function getDefaultFormatter()
+    public function close()
     {
-        return new LineFormatter();
     }
 }

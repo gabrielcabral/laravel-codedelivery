@@ -2,14 +2,14 @@
 
 namespace Illuminate\Broadcasting;
 
-use Pusher;
 use Closure;
+use Illuminate\Broadcasting\Broadcasters\LogBroadcaster;
+use Illuminate\Broadcasting\Broadcasters\PusherBroadcaster;
+use Illuminate\Broadcasting\Broadcasters\RedisBroadcaster;
+use Illuminate\Contracts\Broadcasting\Factory as FactoryContract;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use Illuminate\Broadcasting\Broadcasters\LogBroadcaster;
-use Illuminate\Broadcasting\Broadcasters\RedisBroadcaster;
-use Illuminate\Broadcasting\Broadcasters\PusherBroadcaster;
-use Illuminate\Contracts\Broadcasting\Factory as FactoryContract;
+use Pusher;
 
 class BroadcastManager implements FactoryContract
 {
@@ -70,6 +70,16 @@ class BroadcastManager implements FactoryContract
     }
 
     /**
+     * Get the default driver name.
+     *
+     * @return string
+     */
+    public function getDefaultDriver()
+    {
+        return $this->app['config']['broadcasting.default'];
+    }
+
+    /**
      * Attempt to get the connection from the local cache.
      *
      * @param  string  $name
@@ -85,6 +95,8 @@ class BroadcastManager implements FactoryContract
      *
      * @param  string  $name
      * @return \Illuminate\Contracts\Broadcasting\Broadcaster
+     *
+     * @throws \InvalidArgumentException
      */
     protected function resolve($name)
     {
@@ -102,56 +114,6 @@ class BroadcastManager implements FactoryContract
     }
 
     /**
-     * Call a custom driver creator.
-     *
-     * @param  array  $config
-     * @return mixed
-     */
-    protected function callCustomCreator(array $config)
-    {
-        return $this->customCreators[$config['driver']]($this->app, $config);
-    }
-
-    /**
-     * Create an instance of the driver.
-     *
-     * @param  array  $config
-     * @return \Illuminate\Contracts\Broadcasting\Broadcaster
-     */
-    protected function createPusherDriver(array $config)
-    {
-        return new PusherBroadcaster(
-            new Pusher($config['key'], $config['secret'], $config['app_id'], Arr::get($config, 'options', []))
-        );
-    }
-
-    /**
-     * Create an instance of the driver.
-     *
-     * @param  array  $config
-     * @return \Illuminate\Contracts\Broadcasting\Broadcaster
-     */
-    protected function createRedisDriver(array $config)
-    {
-        return new RedisBroadcaster(
-            $this->app->make('redis'), Arr::get($config, 'connection')
-        );
-    }
-
-    /**
-     * Create an instance of the driver.
-     *
-     * @param  array  $config
-     * @return \Illuminate\Contracts\Broadcasting\Broadcaster
-     */
-    protected function createLogDriver(array $config)
-    {
-        return new LogBroadcaster(
-            $this->app->make('Psr\Log\LoggerInterface')
-        );
-    }
-
-    /**
      * Get the connection configuration.
      *
      * @param  string  $name
@@ -163,13 +125,14 @@ class BroadcastManager implements FactoryContract
     }
 
     /**
-     * Get the default driver name.
+     * Call a custom driver creator.
      *
-     * @return string
+     * @param  array $config
+     * @return mixed
      */
-    public function getDefaultDriver()
+    protected function callCustomCreator(array $config)
     {
-        return $this->app['config']['broadcasting.default'];
+        return $this->customCreators[$config['driver']]($this->app, $config);
     }
 
     /**
@@ -207,5 +170,44 @@ class BroadcastManager implements FactoryContract
     public function __call($method, $parameters)
     {
         return call_user_func_array([$this->driver(), $method], $parameters);
+    }
+
+    /**
+     * Create an instance of the driver.
+     *
+     * @param  array $config
+     * @return \Illuminate\Contracts\Broadcasting\Broadcaster
+     */
+    protected function createPusherDriver(array $config)
+    {
+        return new PusherBroadcaster(
+            new Pusher($config['key'], $config['secret'], $config['app_id'], Arr::get($config, 'options', []))
+        );
+    }
+
+    /**
+     * Create an instance of the driver.
+     *
+     * @param  array $config
+     * @return \Illuminate\Contracts\Broadcasting\Broadcaster
+     */
+    protected function createRedisDriver(array $config)
+    {
+        return new RedisBroadcaster(
+            $this->app->make('redis'), Arr::get($config, 'connection')
+        );
+    }
+
+    /**
+     * Create an instance of the driver.
+     *
+     * @param  array $config
+     * @return \Illuminate\Contracts\Broadcasting\Broadcaster
+     */
+    protected function createLogDriver(array $config)
+    {
+        return new LogBroadcaster(
+            $this->app->make('Psr\Log\LoggerInterface')
+        );
     }
 }

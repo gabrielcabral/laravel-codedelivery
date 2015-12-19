@@ -11,8 +11,8 @@
 
 namespace Monolog\Handler;
 
-use Monolog\TestCase;
 use Monolog\Logger;
+use Monolog\TestCase;
 
 /**
  * @author Pablo de Leon Belloc <pablolb@gmail.com>
@@ -36,6 +36,17 @@ class SocketHandlerTest extends TestCase
     {
         $this->createHandler('garbage://here');
         $this->writeRecord('data');
+    }
+
+    private function createHandler($connectionString)
+    {
+        $this->handler = new SocketHandler($connectionString);
+        $this->handler->setFormatter($this->getIdentityFormatter());
+    }
+
+    private function writeRecord($string)
+    {
+        $this->handler->handle($this->getRecord(Logger::WARNING, $string));
     }
 
     /**
@@ -70,6 +81,13 @@ class SocketHandlerTest extends TestCase
         $this->assertEquals(10.25, $this->handler->getTimeout());
     }
 
+    public function testSetWritingTimeout()
+    {
+        $this->createHandler('localhost:1234');
+        $this->handler->setWritingTimeout(10.25);
+        $this->assertEquals(10.25, $this->handler->getWritingTimeout());
+    }
+
     public function testSetConnectionString()
     {
         $this->createHandler('tcp://localhost:9090');
@@ -86,6 +104,40 @@ class SocketHandlerTest extends TestCase
             ->method('fsockopen')
             ->will($this->returnValue(false));
         $this->writeRecord('Hello world');
+    }
+
+    private function setMockHandler(array $methods = array())
+    {
+        $this->res = fopen('php://memory', 'a');
+
+        $defaultMethods = array('fsockopen', 'pfsockopen', 'streamSetTimeout');
+        $newMethods = array_diff($methods, $defaultMethods);
+
+        $finalMethods = array_merge($defaultMethods, $newMethods);
+
+        $this->handler = $this->getMock(
+            '\Monolog\Handler\SocketHandler', $finalMethods, array('localhost:1234')
+        );
+
+        if (!in_array('fsockopen', $methods)) {
+            $this->handler->expects($this->any())
+                ->method('fsockopen')
+                ->will($this->returnValue($this->res));
+        }
+
+        if (!in_array('pfsockopen', $methods)) {
+            $this->handler->expects($this->any())
+                ->method('pfsockopen')
+                ->will($this->returnValue($this->res));
+        }
+
+        if (!in_array('streamSetTimeout', $methods)) {
+            $this->handler->expects($this->any())
+                ->method('streamSetTimeout')
+                ->will($this->returnValue(true));
+        }
+
+        $this->handler->setFormatter($this->getIdentityFormatter());
     }
 
     /**
@@ -235,48 +287,23 @@ class SocketHandlerTest extends TestCase
         $this->assertTrue(is_resource($this->res));
     }
 
-    private function createHandler($connectionString)
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testAvoidInfiniteLoopWhenNoDataIsWrittenForAWritingTimeoutSeconds()
     {
-        $this->handler = new SocketHandler($connectionString);
-        $this->handler->setFormatter($this->getIdentityFormatter());
-    }
+        $this->setMockHandler(array('fwrite', 'streamGetMetadata'));
 
-    private function writeRecord($string)
-    {
-        $this->handler->handle($this->getRecord(Logger::WARNING, $string));
-    }
+        $this->handler->expects($this->any())
+            ->method('fwrite')
+            ->will($this->returnValue(0));
 
-    private function setMockHandler(array $methods = array())
-    {
-        $this->res = fopen('php://memory', 'a');
+        $this->handler->expects($this->any())
+            ->method('streamGetMetadata')
+            ->will($this->returnValue(array('timed_out' => false)));
 
-        $defaultMethods = array('fsockopen', 'pfsockopen', 'streamSetTimeout');
-        $newMethods = array_diff($methods, $defaultMethods);
+        $this->handler->setWritingTimeout(1);
 
-        $finalMethods = array_merge($defaultMethods, $newMethods);
-
-        $this->handler = $this->getMock(
-            '\Monolog\Handler\SocketHandler', $finalMethods, array('localhost:1234')
-        );
-
-        if (!in_array('fsockopen', $methods)) {
-            $this->handler->expects($this->any())
-                ->method('fsockopen')
-                ->will($this->returnValue($this->res));
-        }
-
-        if (!in_array('pfsockopen', $methods)) {
-            $this->handler->expects($this->any())
-                ->method('pfsockopen')
-                ->will($this->returnValue($this->res));
-        }
-
-        if (!in_array('streamSetTimeout', $methods)) {
-            $this->handler->expects($this->any())
-                ->method('streamSetTimeout')
-                ->will($this->returnValue(true));
-        }
-
-        $this->handler->setFormatter($this->getIdentityFormatter());
+        $this->writeRecord('Hello world');
     }
 }

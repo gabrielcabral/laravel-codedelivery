@@ -21,19 +21,6 @@ class TimeEfficientImplementationTest extends PHPUnit_Framework_TestCase
     private $memory_limit;
     private $stress_sizes = array(1, 2, 3, 100, 500, 1000, 2000);
 
-    protected function setUp()
-    {
-        $this->memory_limit = ini_get('memory_limit');
-        ini_set('memory_limit', '256M');
-
-        $this->implementation = new TimeEfficientImplementation;
-    }
-
-    protected function tearDown()
-    {
-        ini_set('memory_limit', $this->memory_limit);
-    }
-
     public function testBothEmpty()
     {
         $from   = array();
@@ -81,19 +68,19 @@ class TimeEfficientImplementationTest extends PHPUnit_Framework_TestCase
 
     public function testDistinctSequences()
     {
-        $from  = array('A');
-        $to    = array('B');
+        $from = array('A');
+        $to = array('B');
         $common = $this->implementation->calculate($from, $to);
         $this->assertEquals(array(), $common);
 
-        $from  = array('A', 'B', 'C');
-        $to    = array('D', 'E', 'F');
+        $from = array('A', 'B', 'C');
+        $to = array('D', 'E', 'F');
         $common = $this->implementation->calculate($from, $to);
         $this->assertEquals(array(), $common);
 
         foreach ($this->stress_sizes as $size) {
-            $from  = range(1, $size);
-            $to    = range($size + 1, $size * 2);
+            $from = range(1, $size);
+            $to = range($size + 1, $size * 2);
             $common = $this->implementation->calculate($from, $to);
             $this->assertEquals(array(), $common);
         }
@@ -101,15 +88,15 @@ class TimeEfficientImplementationTest extends PHPUnit_Framework_TestCase
 
     public function testCommonSubsequence()
     {
-        $from     = array('A',      'C',      'E', 'F', 'G'     );
+        $from = array('A', 'C', 'E', 'F', 'G');
         $to       = array('A', 'B',      'D', 'E',           'H');
-        $expected = array('A',                'E'               );
+        $expected = array('A', 'E');
         $common   = $this->implementation->calculate($from, $to);
         $this->assertEquals($expected, $common);
 
-        $from     = array('A',      'C',      'E', 'F', 'G'     );
-        $to       = array(     'B', 'C', 'D', 'E', 'F',      'H');
-        $expected = array('C',                'E', 'F'          );
+        $from = array('A', 'C', 'E', 'F', 'G');
+        $to = array('B', 'C', 'D', 'E', 'F', 'H');
+        $expected = array('C', 'E', 'F');
         $common   = $this->implementation->calculate($from, $to);
         $this->assertEquals($expected, $common);
 
@@ -171,5 +158,18 @@ class TimeEfficientImplementationTest extends PHPUnit_Framework_TestCase
 
             $this->assertEquals(array(1), $common);
         }
+    }
+
+    protected function setUp()
+    {
+        $this->memory_limit = ini_get('memory_limit');
+        ini_set('memory_limit', '256M');
+
+        $this->implementation = new TimeEfficientImplementation;
+    }
+
+    protected function tearDown()
+    {
+        ini_set('memory_limit', $this->memory_limit);
     }
 }

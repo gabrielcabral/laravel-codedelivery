@@ -2,8 +2,8 @@
 
 namespace Illuminate\Mail\Transport;
 
-use Swift_Mime_Message;
 use GuzzleHttp\ClientInterface;
+use Swift_Mime_Message;
 
 class MandrillTransport extends Transport
 {
@@ -44,7 +44,7 @@ class MandrillTransport extends Transport
         $data = [
             'key' => $this->key,
             'to' => $this->getToAddresses($message),
-            'raw_message' => (string) $message,
+            'raw_message' => $message->toString(),
             'async' => false,
         ];
 

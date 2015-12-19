@@ -3,10 +3,10 @@
 namespace Illuminate\Routing;
 
 use Closure;
-use Illuminate\Support\Arr;
+use Illuminate\Container\Container;
 use Illuminate\Http\Request;
 use Illuminate\Pipeline\Pipeline;
-use Illuminate\Container\Container;
+use Illuminate\Support\Arr;
 
 class ControllerDispatcher
 {
@@ -86,7 +86,7 @@ class ControllerDispatcher
     }
 
     /**
-     * Call the given controller instance method.
+     * Apply the applicable after filters to the route.
      *
      * @param  \Illuminate\Routing\Controller  $instance
      * @param  \Illuminate\Routing\Route  $route
@@ -94,74 +94,50 @@ class ControllerDispatcher
      * @param  string  $method
      * @return mixed
      */
-    protected function callWithinStack($instance, $route, $request, $method)
+    protected function assignAfter($instance, $route, $request, $method)
     {
-        $middleware = $this->getMiddleware($instance, $method);
-
-        $shouldSkipMiddleware = $this->container->bound('middleware.disable') &&
-                                $this->container->make('middleware.disable') === true;
-
-        // Here we will make a stack onion instance to execute this request in, which gives
-        // us the ability to define middlewares on controllers. We will return the given
-        // response back out so that "after" filters can be run after the middlewares.
-        return (new Pipeline($this->container))
-                    ->send($request)
-                    ->through($shouldSkipMiddleware ? [] : $middleware)
-                    ->then(function ($request) use ($instance, $route, $method) {
-                        return $this->router->prepareResponse(
-                            $request, $this->call($instance, $route, $method)
-                        );
-                    });
+        foreach ($instance->getAfterFilters() as $filter) {
+            // If the filter applies, we will add it to the route, since it has already been
+            // registered with the router by the controller, and will just let the normal
+            // router take care of calling these filters so we do not duplicate logics.
+            if ($this->filterApplies($filter, $request, $method)) {
+                $route->after($this->getAssignableAfter($filter));
+            }
+        }
     }
 
     /**
-     * Get the middleware for the controller instance.
+     * Determine if the given filter applies to the request.
      *
-     * @param  \Illuminate\Routing\Controller  $instance
+     * @param  array $filter
+     * @param  \Illuminate\Http\Request $request
      * @param  string  $method
-     * @return array
+     * @return bool
      */
-    protected function getMiddleware($instance, $method)
+    protected function filterApplies($filter, $request, $method)
     {
-        $results = [];
-
-        foreach ($instance->getMiddleware() as $name => $options) {
-            if (! $this->methodExcludedByOptions($method, $options)) {
-                $results[] = $this->router->resolveMiddlewareClassName($name);
+        foreach (['Method', 'On'] as $type) {
+            if ($this->{"filterFails{$type}"}($filter, $request, $method)) {
+                return false;
             }
         }
 
-        return $results;
+        return true;
     }
 
     /**
-     * Determine if the given options exclude a particular method.
+     * Get the assignable after filter for the route.
      *
-     * @param  string  $method
-     * @param  array  $options
-     * @return bool
+     * @param  \Closure|string $filter
+     * @return string
      */
-    public function methodExcludedByOptions($method, array $options)
+    protected function getAssignableAfter($filter)
     {
-        return (! empty($options['only']) && ! in_array($method, (array) $options['only'])) ||
-            (! empty($options['except']) && in_array($method, (array) $options['except']));
-    }
+        if ($filter['original'] instanceof Closure) {
+            return $filter['filter'];
+        }
 
-    /**
-     * Call the given controller instance method.
-     *
-     * @param  \Illuminate\Routing\Controller  $instance
-     * @param  \Illuminate\Routing\Route  $route
-     * @param  string  $method
-     * @return mixed
-     */
-    protected function call($instance, $route, $method)
-    {
-        $parameters = $this->resolveClassMethodDependencies(
-            $route->parametersWithoutNulls(), $instance, $method
-        );
-
-        return $instance->callAction($method, $parameters);
+        return $filter['original'];
     }
 
     /**
@@ -190,7 +166,22 @@ class ControllerDispatcher
     }
 
     /**
-     * Apply the applicable after filters to the route.
+     * Call the given controller filter method.
+     *
+     * @param  array $filter
+     * @param  \Illuminate\Routing\Route $route
+     * @param  \Illuminate\Http\Request $request
+     * @return mixed
+     */
+    protected function callFilter($filter, $route, $request)
+    {
+        return $this->router->callRouteFilter(
+            $filter['filter'], $filter['parameters'], $route, $request
+        );
+    }
+
+    /**
+     * Call the given controller instance method.
      *
      * @param  \Illuminate\Routing\Controller  $instance
      * @param  \Illuminate\Routing\Route  $route
@@ -198,50 +189,74 @@ class ControllerDispatcher
      * @param  string  $method
      * @return mixed
      */
-    protected function assignAfter($instance, $route, $request, $method)
+    protected function callWithinStack($instance, $route, $request, $method)
     {
-        foreach ($instance->getAfterFilters() as $filter) {
-            // If the filter applies, we will add it to the route, since it has already been
-            // registered with the router by the controller, and will just let the normal
-            // router take care of calling these filters so we do not duplicate logics.
-            if ($this->filterApplies($filter, $request, $method)) {
-                $route->after($this->getAssignableAfter($filter));
+        $shouldSkipMiddleware = $this->container->bound('middleware.disable') &&
+            $this->container->make('middleware.disable') === true;
+
+        $middleware = $shouldSkipMiddleware ? [] : $this->getMiddleware($instance, $method);
+
+        // Here we will make a stack onion instance to execute this request in, which gives
+        // us the ability to define middlewares on controllers. We will return the given
+        // response back out so that "after" filters can be run after the middlewares.
+        return (new Pipeline($this->container))
+            ->send($request)
+            ->through($middleware)
+            ->then(function ($request) use ($instance, $route, $method) {
+                return $this->router->prepareResponse(
+                    $request, $this->call($instance, $route, $method)
+                );
+            });
+    }
+
+    /**
+     * Get the middleware for the controller instance.
+     *
+     * @param  \Illuminate\Routing\Controller $instance
+     * @param  string $method
+     * @return array
+     */
+    protected function getMiddleware($instance, $method)
+    {
+        $results = [];
+
+        foreach ($instance->getMiddleware() as $name => $options) {
+            if (!$this->methodExcludedByOptions($method, $options)) {
+                $results[] = $this->router->resolveMiddlewareClassName($name);
             }
         }
+
+        return $results;
     }
 
     /**
-     * Get the assignable after filter for the route.
+     * Determine if the given options exclude a particular method.
      *
-     * @param  \Closure|string  $filter
-     * @return string
-     */
-    protected function getAssignableAfter($filter)
-    {
-        if ($filter['original'] instanceof Closure) {
-            return $filter['filter'];
-        }
-
-        return $filter['original'];
-    }
-
-    /**
-     * Determine if the given filter applies to the request.
-     *
-     * @param  array  $filter
-     * @param  \Illuminate\Http\Request  $request
      * @param  string  $method
+     * @param  array $options
      * @return bool
      */
-    protected function filterApplies($filter, $request, $method)
+    public function methodExcludedByOptions($method, array $options)
     {
-        foreach (['Method', 'On'] as $type) {
-            if ($this->{"filterFails{$type}"}($filter, $request, $method)) {
-                return false;
-            }
-        }
+        return (isset($options['only']) && !in_array($method, (array)$options['only'])) ||
+        (!empty($options['except']) && in_array($method, (array)$options['except']));
+    }
 
-        return true;
+    /**
+     * Call the given controller instance method.
+     *
+     * @param  \Illuminate\Routing\Controller $instance
+     * @param  \Illuminate\Routing\Route $route
+     * @param  string $method
+     * @return mixed
+     */
+    protected function call($instance, $route, $method)
+    {
+        $parameters = $this->resolveClassMethodDependencies(
+            $route->parametersWithoutNulls(), $instance, $method
+        );
+
+        return $instance->callAction($method, $parameters);
     }
 
     /**
@@ -281,20 +296,5 @@ class ControllerDispatcher
         }
 
         return ! in_array(strtolower($request->getMethod()), $on);
-    }
-
-    /**
-     * Call the given controller filter method.
-     *
-     * @param  array  $filter
-     * @param  \Illuminate\Routing\Route  $route
-     * @param  \Illuminate\Http\Request  $request
-     * @return mixed
-     */
-    protected function callFilter($filter, $route, $request)
-    {
-        return $this->router->callRouteFilter(
-            $filter['filter'], $filter['parameters'], $route, $request
-        );
     }
 }

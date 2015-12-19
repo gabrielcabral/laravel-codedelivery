@@ -19,7 +19,8 @@ class NodeTraverser implements NodeTraverserInterface
      *
      * @param bool $cloneNodes Should the traverser clone the nodes when traversing the AST
      */
-    public function __construct($cloneNodes = true) {
+    public function __construct($cloneNodes = false)
+    {
         $this->visitors = array();
         $this->cloneNodes = $cloneNodes;
     }
@@ -72,42 +73,6 @@ class NodeTraverser implements NodeTraverserInterface
         return $nodes;
     }
 
-    protected function traverseNode(Node $node) {
-        if ($this->cloneNodes) {
-            $node = clone $node;
-        }
-
-        foreach ($node->getSubNodeNames() as $name) {
-            $subNode =& $node->$name;
-
-            if (is_array($subNode)) {
-                $subNode = $this->traverseArray($subNode);
-            } elseif ($subNode instanceof Node) {
-                $traverseChildren = true;
-                foreach ($this->visitors as $visitor) {
-                    $return = $visitor->enterNode($subNode);
-                    if (self::DONT_TRAVERSE_CHILDREN === $return) {
-                        $traverseChildren = false;
-                    } else if (null !== $return) {
-                        $subNode = $return;
-                    }
-                }
-
-                if ($traverseChildren) {
-                    $subNode = $this->traverseNode($subNode);
-                }
-
-                foreach ($this->visitors as $visitor) {
-                    if (null !== $return = $visitor->leaveNode($subNode)) {
-                        $subNode = $return;
-                    }
-                }
-            }
-        }
-
-        return $node;
-    }
-
     protected function traverseArray(array $nodes) {
         $doNodes = array();
 
@@ -152,5 +117,42 @@ class NodeTraverser implements NodeTraverserInterface
         }
 
         return $nodes;
+    }
+
+    protected function traverseNode(Node $node)
+    {
+        if ($this->cloneNodes) {
+            $node = clone $node;
+        }
+
+        foreach ($node->getSubNodeNames() as $name) {
+            $subNode =& $node->$name;
+
+            if (is_array($subNode)) {
+                $subNode = $this->traverseArray($subNode);
+            } elseif ($subNode instanceof Node) {
+                $traverseChildren = true;
+                foreach ($this->visitors as $visitor) {
+                    $return = $visitor->enterNode($subNode);
+                    if (self::DONT_TRAVERSE_CHILDREN === $return) {
+                        $traverseChildren = false;
+                    } else if (null !== $return) {
+                        $subNode = $return;
+                    }
+                }
+
+                if ($traverseChildren) {
+                    $subNode = $this->traverseNode($subNode);
+                }
+
+                foreach ($this->visitors as $visitor) {
+                    if (null !== $return = $visitor->leaveNode($subNode)) {
+                        $subNode = $return;
+                    }
+                }
+            }
+        }
+
+        return $node;
     }
 }

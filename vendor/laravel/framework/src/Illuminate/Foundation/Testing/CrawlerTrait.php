@@ -2,8 +2,9 @@
 
 namespace Illuminate\Foundation\Testing;
 
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 trait CrawlerTrait
 {
@@ -54,6 +55,79 @@ trait CrawlerTrait
         );
 
         return $this;
+    }
+
+    /**
+     * Call the given URI and return the Response.
+     *
+     * @param  string $method
+     * @param  string $uri
+     * @param  array $parameters
+     * @param  array $cookies
+     * @param  array $files
+     * @param  array $server
+     * @param  string $content
+     * @return \Illuminate\Http\Response
+     */
+    public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+    {
+        $kernel = $this->app->make('Illuminate\Contracts\Http\Kernel');
+
+        $this->currentUri = $this->prepareUrlForRequest($uri);
+
+        $request = Request::create(
+            $this->currentUri, $method, $parameters,
+            $cookies, $files, array_replace($this->serverVariables, $server), $content
+        );
+
+        $response = $kernel->handle($request);
+
+        $kernel->terminate($request, $response);
+
+        return $this->response = $response;
+    }
+
+    /**
+     * Turn the given URI into a fully qualified URL.
+     *
+     * @param  string $uri
+     * @return string
+     */
+    protected function prepareUrlForRequest($uri)
+    {
+        if (Str::startsWith($uri, '/')) {
+            $uri = substr($uri, 1);
+        }
+
+        if (!Str::startsWith($uri, 'http')) {
+            $uri = $this->baseUrl . '/' . $uri;
+        }
+
+        return trim($uri, '/');
+    }
+
+    /**
+     * Transform headers array to array of $_SERVER vars with HTTP_* format.
+     *
+     * @param  array $headers
+     * @return array
+     */
+    protected function transformHeadersToServerVars(array $headers)
+    {
+        $server = [];
+        $prefix = 'HTTP_';
+
+        foreach ($headers as $name => $value) {
+            $name = strtr(strtoupper($name), '-', '_');
+
+            if (!starts_with($name, $prefix) && $name != 'CONTENT_TYPE') {
+                $name = $prefix . $name;
+            }
+
+            $server[$name] = $value;
+        }
+
+        return $server;
     }
 
     /**
@@ -158,6 +232,111 @@ trait CrawlerTrait
     }
 
     /**
+     * Assert that the response contains an exact JSON array.
+     *
+     * @param  array $data
+     * @return $this
+     */
+    public function seeJsonEquals(array $data)
+    {
+        $actual = json_encode(Arr::sortRecursive(
+            json_decode($this->response->getContent(), true)
+        ));
+
+        $this->assertEquals(json_encode(Arr::sortRecursive($data)), $actual);
+
+        return $this;
+    }
+
+    /**
+     * Assert that the response doesn't contain JSON.
+     *
+     * @param  array|null $data
+     * @return $this
+     */
+    public function dontSeeJson(array $data = null)
+    {
+        return $this->seeJson($data, true);
+    }
+
+    /**
+     * Call the given HTTPS URI and return the Response.
+     *
+     * @param  string $method
+     * @param  string $uri
+     * @param  array $parameters
+     * @param  array $cookies
+     * @param  array $files
+     * @param  array $server
+     * @param  string $content
+     * @return \Illuminate\Http\Response
+     */
+    public function callSecure($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+    {
+        $uri = $this->app['url']->secure(ltrim($uri, '/'));
+
+        return $this->response = $this->call($method, $uri, $parameters, $cookies, $files, $server, $content);
+    }
+
+    /**
+     * Call a controller action and return the Response.
+     *
+     * @param  string $method
+     * @param  string $action
+     * @param  array $wildcards
+     * @param  array $parameters
+     * @param  array $cookies
+     * @param  array $files
+     * @param  array $server
+     * @param  string $content
+     * @return \Illuminate\Http\Response
+     */
+    public function action($method, $action, $wildcards = [], $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+    {
+        $uri = $this->app['url']->action($action, $wildcards, true);
+
+        return $this->response = $this->call($method, $uri, $parameters, $cookies, $files, $server, $content);
+    }
+
+    /**
+     * Call a named route and return the Response.
+     *
+     * @param  string $method
+     * @param  string $name
+     * @param  array $routeParameters
+     * @param  array $parameters
+     * @param  array $cookies
+     * @param  array $files
+     * @param  array $server
+     * @param  string $content
+     * @return \Illuminate\Http\Response
+     */
+    public function route($method, $name, $routeParameters = [], $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
+    {
+        $uri = $this->app['url']->route($name, $routeParameters);
+
+        return $this->response = $this->call($method, $uri, $parameters, $cookies, $files, $server, $content);
+    }
+
+    /**
+     * Dump the content from the last response.
+     *
+     * @return void
+     */
+    public function dump()
+    {
+        $content = $this->response->getContent();
+
+        $json = json_decode($content);
+
+        if (json_last_error() === JSON_ERROR_NONE) {
+            $content = $json;
+        }
+
+        dd($content);
+    }
+
+    /**
      * Assert that the response contains JSON.
      *
      * @param  array|null  $data
@@ -184,23 +363,6 @@ trait CrawlerTrait
     }
 
     /**
-     * Assert that the response contains an exact JSON array.
-     *
-     * @param  array  $data
-     * @return $this
-     */
-    public function seeJsonEquals(array $data)
-    {
-        $actual = json_encode(array_sort_recursive(
-            json_decode($this->response->getContent(), true)
-        ));
-
-        $this->assertEquals(json_encode(array_sort_recursive($data)), $actual);
-
-        return $this;
-    }
-
-    /**
      * Assert that the response contains JSON.
      *
      * @param  array|null  $data
@@ -221,17 +383,6 @@ trait CrawlerTrait
     }
 
     /**
-     * Assert that the response doesn't contain JSON.
-     *
-     * @param  array|null  $data
-     * @return $this
-     */
-    public function dontSeeJson(array $data = null)
-    {
-        return $this->seeJson($data, true);
-    }
-
-    /**
      * Assert that the response contains the given JSON.
      *
      * @param  array  $data
@@ -248,11 +399,11 @@ trait CrawlerTrait
             return $this->fail('Invalid JSON was returned from the route. Perhaps an exception was thrown?');
         }
 
-        $actual = json_encode(array_sort_recursive(
+        $actual = json_encode(Arr::sortRecursive(
             (array) $actual
         ));
 
-        foreach (array_sort_recursive($data) as $key => $value) {
+        foreach (Arr::sortRecursive($data) as $key => $value) {
             $expected = $this->formatToExpectedJson($key, $value);
 
             $this->{$method}(
@@ -365,155 +516,5 @@ trait CrawlerTrait
         $this->serverVariables = $server;
 
         return $this;
-    }
-
-    /**
-     * Call the given URI and return the Response.
-     *
-     * @param  string  $method
-     * @param  string  $uri
-     * @param  array   $parameters
-     * @param  array   $cookies
-     * @param  array   $files
-     * @param  array   $server
-     * @param  string  $content
-     * @return \Illuminate\Http\Response
-     */
-    public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
-    {
-        $kernel = $this->app->make('Illuminate\Contracts\Http\Kernel');
-
-        $this->currentUri = $this->prepareUrlForRequest($uri);
-
-        $request = Request::create(
-            $this->currentUri, $method, $parameters,
-            $cookies, $files, array_replace($this->serverVariables, $server), $content
-        );
-
-        $response = $kernel->handle($request);
-
-        $kernel->terminate($request, $response);
-
-        return $this->response = $response;
-    }
-
-    /**
-     * Call the given HTTPS URI and return the Response.
-     *
-     * @param  string  $method
-     * @param  string  $uri
-     * @param  array   $parameters
-     * @param  array   $cookies
-     * @param  array   $files
-     * @param  array   $server
-     * @param  string  $content
-     * @return \Illuminate\Http\Response
-     */
-    public function callSecure($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
-    {
-        $uri = $this->app['url']->secure(ltrim($uri, '/'));
-
-        return $this->response = $this->call($method, $uri, $parameters, $cookies, $files, $server, $content);
-    }
-
-    /**
-     * Call a controller action and return the Response.
-     *
-     * @param  string  $method
-     * @param  string  $action
-     * @param  array   $wildcards
-     * @param  array   $parameters
-     * @param  array   $cookies
-     * @param  array   $files
-     * @param  array   $server
-     * @param  string  $content
-     * @return \Illuminate\Http\Response
-     */
-    public function action($method, $action, $wildcards = [], $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
-    {
-        $uri = $this->app['url']->action($action, $wildcards, true);
-
-        return $this->response = $this->call($method, $uri, $parameters, $cookies, $files, $server, $content);
-    }
-
-    /**
-     * Call a named route and return the Response.
-     *
-     * @param  string  $method
-     * @param  string  $name
-     * @param  array   $routeParameters
-     * @param  array   $parameters
-     * @param  array   $cookies
-     * @param  array   $files
-     * @param  array   $server
-     * @param  string  $content
-     * @return \Illuminate\Http\Response
-     */
-    public function route($method, $name, $routeParameters = [], $parameters = [], $cookies = [], $files = [], $server = [], $content = null)
-    {
-        $uri = $this->app['url']->route($name, $routeParameters);
-
-        return $this->response = $this->call($method, $uri, $parameters, $cookies, $files, $server, $content);
-    }
-
-    /**
-     * Turn the given URI into a fully qualified URL.
-     *
-     * @param  string  $uri
-     * @return string
-     */
-    protected function prepareUrlForRequest($uri)
-    {
-        if (Str::startsWith($uri, '/')) {
-            $uri = substr($uri, 1);
-        }
-
-        if (! Str::startsWith($uri, 'http')) {
-            $uri = $this->baseUrl.'/'.$uri;
-        }
-
-        return trim($uri, '/');
-    }
-
-    /**
-     * Transform headers array to array of $_SERVER vars with HTTP_* format.
-     *
-     * @param  array  $headers
-     * @return array
-     */
-    protected function transformHeadersToServerVars(array $headers)
-    {
-        $server = [];
-        $prefix = 'HTTP_';
-
-        foreach ($headers as $name => $value) {
-            $name = strtr(strtoupper($name), '-', '_');
-
-            if (! starts_with($name, $prefix) && $name != 'CONTENT_TYPE') {
-                $name = $prefix.$name;
-            }
-
-            $server[$name] = $value;
-        }
-
-        return $server;
-    }
-
-    /**
-     * Dump the content from the last response.
-     *
-     * @return void
-     */
-    public function dump()
-    {
-        $content = $this->response->getContent();
-
-        $json = json_decode($content);
-
-        if (json_last_error() === JSON_ERROR_NONE) {
-            $content = $json;
-        }
-
-        dd($content);
     }
 }

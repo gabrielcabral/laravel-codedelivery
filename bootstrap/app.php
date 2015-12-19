@@ -38,6 +38,7 @@ $app->singleton(
 
 $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,
+    CodeDelivery\Exceptions\WhoopsHandler::class,
     CodeDelivery\Exceptions\Handler::class
 );
 

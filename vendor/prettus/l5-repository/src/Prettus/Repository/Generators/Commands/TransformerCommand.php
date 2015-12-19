@@ -2,10 +2,8 @@
 namespace Prettus\Repository\Generators\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
 use Prettus\Repository\Generators\TransformerGenerator;
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 
 class TransformerCommand extends Command
 {
@@ -32,8 +30,7 @@ class TransformerCommand extends Command
     public function fire()
     {
         (new TransformerGenerator([
-            'name'  => $this->argument('name'),
-            'force' => $this->option('force'),
+            'name' => $this->argument('name')
         ]))->run();
         $this->info("Transformer created successfully.");
     }
@@ -48,18 +45,6 @@ class TransformerCommand extends Command
     {
         return [
             ['name', InputArgument::REQUIRED, 'The name of model for which the transformer is being generated.', null],
-        ];
-    }
-
-    /**
-     * The array of command options.
-     *
-     * @return array
-     */
-    public function getOptions()
-    {
-        return [
-            ['force', 'f', InputOption::VALUE_NONE, 'Force the creation if file already exists.', null]
         ];
     }
 }

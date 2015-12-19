@@ -2,21 +2,20 @@
 
 namespace PhpParser\Node\Stmt;
 
-use PhpParser\Node;
 use PhpParser\Error;
+use PhpParser\Node;
 
 class Namespace_ extends Node\Stmt
 {
-    /** @var null|Node\Name Name */
-    public $name;
-    /** @var Node[] Statements */
-    public $stmts;
-
     protected static $specialNames = array(
         'self'   => true,
         'parent' => true,
         'static' => true,
     );
+    /** @var null|Node\Name Name */
+    public $name;
+    /** @var Node[] Statements */
+    public $stmts;
 
     /**
      * Constructs a namespace node.
@@ -26,7 +25,7 @@ class Namespace_ extends Node\Stmt
      * @param array          $attributes Additional attributes
      */
     public function __construct(Node\Name $name = null, $stmts = array(), array $attributes = array()) {
-        parent::__construct(null, $attributes);
+        parent::__construct($attributes);
         $this->name = $name;
         $this->stmts = $stmts;
 

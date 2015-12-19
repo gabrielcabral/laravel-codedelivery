@@ -53,6 +53,16 @@ class Swift_Transport_SendmailTransport extends Swift_Transport_AbstractSmtpTran
     }
 
     /**
+     * Get the sendmail command which will be invoked.
+     *
+     * @return string
+     */
+    public function getCommand()
+    {
+        return $this->_params['command'];
+    }
+
+    /**
      * Set the command to invoke.
      *
      * If using -t mode you are strongly advised to include -oi or -i in the flags.
@@ -74,16 +84,6 @@ class Swift_Transport_SendmailTransport extends Swift_Transport_AbstractSmtpTran
     }
 
     /**
-     * Get the sendmail command which will be invoked.
-     *
-     * @return string
-     */
-    public function getCommand()
-    {
-        return $this->_params['command'];
-    }
-
-    /**
      * Send the given Message.
      *
      * Recipient/sender data will be retrieved from the Message API.
@@ -102,6 +102,7 @@ class Swift_Transport_SendmailTransport extends Swift_Transport_AbstractSmtpTran
         $failedRecipients = (array) $failedRecipients;
         $command = $this->getCommand();
         $buffer = $this->getBuffer();
+        $count = 0;
 
         if (false !== strpos($command, ' -t')) {
             if ($evt = $this->_eventDispatcher->createSendEvent($this, $message)) {
