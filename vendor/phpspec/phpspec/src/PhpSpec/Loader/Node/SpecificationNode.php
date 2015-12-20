@@ -94,19 +94,19 @@ class SpecificationNode implements \Countable
     }
 
     /**
-     * @param Suite $suite
-     */
-    public function setSuite(Suite $suite)
-    {
-        $this->suite = $suite;
-    }
-
-    /**
      * @return Suite|null
      */
     public function getSuite()
     {
         return $this->suite;
+    }
+
+    /**
+     * @param Suite $suite
+     */
+    public function setSuite(Suite $suite)
+    {
+        $this->suite = $suite;
     }
 
     /**

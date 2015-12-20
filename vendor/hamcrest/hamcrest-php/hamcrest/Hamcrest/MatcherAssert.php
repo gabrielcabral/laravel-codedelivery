@@ -70,24 +70,6 @@ class MatcherAssert
     }
 
     /**
-     * Returns the number of assertions performed.
-     *
-     * @return int
-     */
-    public static function getCount()
-    {
-        return self::$_count;
-    }
-
-    /**
-     * Resets the number of assertions performed to zero.
-     */
-    public static function resetCount()
-    {
-        self::$_count = 0;
-    }
-
-    /**
      * Performs the actual assertion logic.
      *
      * If <code>$matcher</code> doesn't match <code>$actual</code>,
@@ -114,5 +96,23 @@ class MatcherAssert
 
             throw new AssertionError((string) $description);
         }
+    }
+
+    /**
+     * Returns the number of assertions performed.
+     *
+     * @return int
+     */
+    public static function getCount()
+    {
+        return self::$_count;
+    }
+
+    /**
+     * Resets the number of assertions performed to zero.
+     */
+    public static function resetCount()
+    {
+        self::$_count = 0;
     }
 }

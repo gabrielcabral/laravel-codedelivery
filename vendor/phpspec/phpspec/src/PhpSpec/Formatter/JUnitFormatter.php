@@ -13,12 +13,12 @@
 
 namespace PhpSpec\Formatter;
 
-use PhpSpec\IO\IOInterface as IO;
-use PhpSpec\Formatter\Presenter\PresenterInterface;
-use PhpSpec\Listener\StatisticsCollector;
 use PhpSpec\Event\ExampleEvent;
-use PhpSpec\Event\SuiteEvent;
 use PhpSpec\Event\SpecificationEvent;
+use PhpSpec\Event\SuiteEvent;
+use PhpSpec\Formatter\Presenter\PresenterInterface;
+use PhpSpec\IO\IOInterface as IO;
+use PhpSpec\Listener\StatisticsCollector;
 
 /**
  * The JUnit Formatter
@@ -60,13 +60,18 @@ class JUnitFormatter extends BasicFormatter
     }
 
     /**
-     * Set testcase nodes
-     *
-     * @param array $testCaseNodes
+     * Initialize test case nodes and example status counts
      */
-    public function setTestCaseNodes(array $testCaseNodes)
+    protected function initTestCaseNodes()
     {
-        $this->testCaseNodes = $testCaseNodes;
+        $this->testCaseNodes = array();
+        $this->exampleStatusCounts = array(
+            ExampleEvent::PASSED => 0,
+            ExampleEvent::PENDING => 0,
+            ExampleEvent::SKIPPED => 0,
+            ExampleEvent::FAILED => 0,
+            ExampleEvent::BROKEN => 0,
+        );
     }
 
     /**
@@ -80,13 +85,13 @@ class JUnitFormatter extends BasicFormatter
     }
 
     /**
-     * Set testsuite nodes
+     * Set testcase nodes
      *
-     * @param array $testSuiteNodes
+     * @param array $testCaseNodes
      */
-    public function setTestSuiteNodes(array $testSuiteNodes)
+    public function setTestCaseNodes(array $testCaseNodes)
     {
-        $this->testSuiteNodes = $testSuiteNodes;
+        $this->testCaseNodes = $testCaseNodes;
     }
 
     /**
@@ -100,13 +105,13 @@ class JUnitFormatter extends BasicFormatter
     }
 
     /**
-     * Set example status counts
+     * Set testsuite nodes
      *
-     * @param array $exampleStatusCounts
+     * @param array $testSuiteNodes
      */
-    public function setExampleStatusCounts(array $exampleStatusCounts)
+    public function setTestSuiteNodes(array $testSuiteNodes)
     {
-        $this->exampleStatusCounts = $exampleStatusCounts;
+        $this->testSuiteNodes = $testSuiteNodes;
     }
 
     /**
@@ -117,6 +122,16 @@ class JUnitFormatter extends BasicFormatter
     public function getExampleStatusCounts()
     {
         return $this->exampleStatusCounts;
+    }
+
+    /**
+     * Set example status counts
+     *
+     * @param array $exampleStatusCounts
+     */
+    public function setExampleStatusCounts(array $exampleStatusCounts)
+    {
+        $this->exampleStatusCounts = $exampleStatusCounts;
     }
 
     /**
@@ -205,20 +220,5 @@ class JUnitFormatter extends BasicFormatter
         );
 
         $this->getIo()->write($output);
-    }
-
-    /**
-     * Initialize test case nodes and example status counts
-     */
-    protected function initTestCaseNodes()
-    {
-        $this->testCaseNodes       = array();
-        $this->exampleStatusCounts = array(
-            ExampleEvent::PASSED  => 0,
-            ExampleEvent::PENDING => 0,
-            ExampleEvent::SKIPPED => 0,
-            ExampleEvent::FAILED  => 0,
-            ExampleEvent::BROKEN  => 0,
-        );
     }
 }

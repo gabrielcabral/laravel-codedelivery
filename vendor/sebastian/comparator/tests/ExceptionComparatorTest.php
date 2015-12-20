@@ -10,8 +10,8 @@
 
 namespace SebastianBergmann\Comparator;
 
-use \Exception;
-use \RuntimeException;
+use Exception;
+use RuntimeException;
 
 /**
  * @coversDefaultClass SebastianBergmann\Comparator\ExceptionComparator
@@ -20,12 +20,6 @@ use \RuntimeException;
 class ExceptionComparatorTest extends \PHPUnit_Framework_TestCase
 {
     private $comparator;
-
-    protected function setUp()
-    {
-        $this->comparator = new ExceptionComparator;
-        $this->comparator->setFactory(new Factory);
-    }
 
     public function acceptsSucceedsProvider()
     {
@@ -132,5 +126,11 @@ class ExceptionComparatorTest extends \PHPUnit_Framework_TestCase
           'SebastianBergmann\\Comparator\\ComparisonFailure', $message
         );
         $this->comparator->assertEquals($expected, $actual);
+    }
+
+    protected function setUp()
+    {
+        $this->comparator = new ExceptionComparator;
+        $this->comparator->setFactory(new Factory);
     }
 }

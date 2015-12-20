@@ -19,8 +19,53 @@ use PhpParser\Node\Stmt\Use_;
 class BuilderFactory
 {
     /**
+     * Creates a method builder.
+     *
+     * @param string $name Name of the method
+     *
+     * @return Builder\Method The created method builder
+     */
+    public function method($name)
+    {
+        return new Builder\Method($name);
+    }
+
+    /**
+     * Creates a parameter builder.
+     *
+     * @param string $name Name of the parameter
+     *
+     * @return Builder\Param The created parameter builder
+     */
+    public function param($name)
+    {
+        return new Builder\Param($name);
+    }
+
+    /**
+     * Creates a property builder.
+     *
+     * @param string $name Name of the property
+     *
+     * @return Builder\Property The created property builder
+     */
+    public function property($name)
+    {
+        return new Builder\Property($name);
+    }
+
+    public function __call($name, array $args)
+    {
+        if (method_exists($this, '_' . $name)) {
+            return call_user_func_array(array($this, '_' . $name), $args);
+        }
+
+        throw new \LogicException(sprintf('Method "%s" does not exist', $name));
+    }
+
+    /**
      * Creates a namespace builder.
-     * 
+     *
      * @param null|string|Node\Name $name Name of the namespace
      *
      * @return Builder\Namespace_ The created namespace builder
@@ -63,39 +108,6 @@ class BuilderFactory
     }
 
     /**
-     * Creates a method builder.
-     *
-     * @param string $name Name of the method
-     *
-     * @return Builder\Method The created method builder
-     */
-    public function method($name) {
-        return new Builder\Method($name);
-    }
-
-    /**
-     * Creates a parameter builder.
-     *
-     * @param string $name Name of the parameter
-     *
-     * @return Builder\Param The created parameter builder
-     */
-    public function param($name) {
-        return new Builder\Param($name);
-    }
-
-    /**
-     * Creates a property builder.
-     *
-     * @param string $name Name of the property
-     *
-     * @return Builder\Property The created property builder
-     */
-    public function property($name) {
-        return new Builder\Property($name);
-    }
-
-    /**
      * Creates a function builder.
      *
      * @param string $name Name of the function
@@ -115,13 +127,5 @@ class BuilderFactory
      */
     protected function _use($name) {
         return new Builder\Use_($name, Use_::TYPE_NORMAL);
-    }
-
-    public function __call($name, array $args) {
-        if (method_exists($this, '_' . $name)) {
-            return call_user_func_array(array($this, '_' . $name), $args);
-        }
-
-        throw new \LogicException(sprintf('Method "%s" does not exist', $name));
     }
 }

@@ -117,28 +117,6 @@ class CodeCleaner
     }
 
     /**
-     * Set the current local namespace.
-     *
-     * @param null|array $namespace (default: null)
-     *
-     * @return null|array
-     */
-    public function setNamespace(array $namespace = null)
-    {
-        $this->namespace = $namespace;
-    }
-
-    /**
-     * Get the current local namespace.
-     *
-     * @return null|array
-     */
-    public function getNamespace()
-    {
-        return $this->namespace;
-    }
-
-    /**
      * Lex and parse a block of code.
      *
      * @see Parser::parse
@@ -174,13 +152,6 @@ class CodeCleaner
         }
     }
 
-    private function parseErrorIsEOF(\PhpParser\Error $e)
-    {
-        $msg = $e->getRawMessage();
-
-        return ($msg === 'Unexpected token EOF') || (strpos($msg, 'Syntax error, unexpected EOF') !== false);
-    }
-
     /**
      * A special test for unclosed single-quoted strings.
      *
@@ -206,5 +177,34 @@ class CodeCleaner
         }
 
         return true;
+    }
+
+    private function parseErrorIsEOF(\PhpParser\Error $e)
+    {
+        $msg = $e->getRawMessage();
+
+        return ($msg === 'Unexpected token EOF') || (strpos($msg, 'Syntax error, unexpected EOF') !== false);
+    }
+
+    /**
+     * Get the current local namespace.
+     *
+     * @return null|array
+     */
+    public function getNamespace()
+    {
+        return $this->namespace;
+    }
+
+    /**
+     * Set the current local namespace.
+     *
+     * @param null|array $namespace (default: null)
+     *
+     * @return null|array
+     */
+    public function setNamespace(array $namespace = null)
+    {
+        $this->namespace = $namespace;
     }
 }

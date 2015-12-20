@@ -83,6 +83,16 @@ abstract class AbstractTokenEntity
     }
 
     /**
+     * Return token expire time
+     *
+     * @return int
+     */
+    public function getExpireTime()
+    {
+        return $this->expireTime;
+    }
+
+    /**
      * Set the expire time of the token
      *
      * @param integer $expireTime Unix time stamp
@@ -97,16 +107,6 @@ abstract class AbstractTokenEntity
     }
 
     /**
-     * Return token expire time
-     *
-     * @return int
-     */
-    public function getExpireTime()
-    {
-        return $this->expireTime;
-    }
-
-    /**
      * Is the token expired?
      *
      * @return bool
@@ -114,6 +114,16 @@ abstract class AbstractTokenEntity
     public function isExpired()
     {
         return ((time() - $this->expireTime) > 0);
+    }
+
+    /**
+     * Get the token ID
+     *
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
@@ -131,16 +141,6 @@ abstract class AbstractTokenEntity
     }
 
     /**
-     * Get the token ID
-     *
-     * @return string
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
      * Associate a scope
      *
      * @param \League\OAuth2\Server\Entity\ScopeEntity $scope
@@ -154,29 +154,6 @@ abstract class AbstractTokenEntity
         }
 
         return $this;
-    }
-
-    /**
-     * Format the local scopes array
-     *
-     * @param  \League\OAuth2\Server\Entity\ScopeEntity[]
-     *
-     * @return array
-     */
-    protected function formatScopes($unformatted = [])
-    {
-        if (is_null($unformatted)) {
-            return [];
-        }
-
-        $scopes = [];
-        foreach ($unformatted as $scope) {
-            if ($scope instanceof ScopeEntity) {
-                $scopes[$scope->getId()] = $scope;
-            }
-        }
-
-        return $scopes;
     }
 
     /**
@@ -206,4 +183,27 @@ abstract class AbstractTokenEntity
      * @return void
      */
     abstract public function save();
+
+    /**
+     * Format the local scopes array
+     *
+     * @param  \League\OAuth2\Server\Entity\ScopeEntity[]
+     *
+     * @return array
+     */
+    protected function formatScopes($unformatted = [])
+    {
+        if (is_null($unformatted)) {
+            return [];
+        }
+
+        $scopes = [];
+        foreach ($unformatted as $scope) {
+            if ($scope instanceof ScopeEntity) {
+                $scopes[$scope->getId()] = $scope;
+            }
+        }
+
+        return $scopes;
+    }
 }

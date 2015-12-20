@@ -2,17 +2,17 @@
 
 namespace Illuminate\Database;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Migrations\Migrator;
-use Illuminate\Database\Migrations\MigrationCreator;
-use Illuminate\Database\Console\Migrations\ResetCommand;
-use Illuminate\Database\Console\Migrations\RefreshCommand;
 use Illuminate\Database\Console\Migrations\InstallCommand;
 use Illuminate\Database\Console\Migrations\MigrateCommand;
-use Illuminate\Database\Console\Migrations\RollbackCommand;
 use Illuminate\Database\Console\Migrations\MigrateMakeCommand;
+use Illuminate\Database\Console\Migrations\RefreshCommand;
+use Illuminate\Database\Console\Migrations\ResetCommand;
+use Illuminate\Database\Console\Migrations\RollbackCommand;
 use Illuminate\Database\Console\Migrations\StatusCommand;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
+use Illuminate\Database\Migrations\MigrationCreator;
+use Illuminate\Database\Migrations\Migrator;
+use Illuminate\Support\ServiceProvider;
 
 class MigrationServiceProvider extends ServiceProvider
 {
@@ -96,6 +96,22 @@ class MigrationServiceProvider extends ServiceProvider
             'command.migrate.reset', 'command.migrate.refresh',
             'command.migrate.status'
         );
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return [
+            'migrator', 'migration.repository', 'command.migrate',
+            'command.migrate.rollback', 'command.migrate.reset',
+            'command.migrate.refresh', 'command.migrate.install',
+            'command.migrate.status', 'migration.creator',
+            'command.migrate.make',
+        ];
     }
 
     /**
@@ -201,21 +217,5 @@ class MigrationServiceProvider extends ServiceProvider
         $this->app->singleton('migration.creator', function ($app) {
             return new MigrationCreator($app['files']);
         });
-    }
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return [
-            'migrator', 'migration.repository', 'command.migrate',
-            'command.migrate.rollback', 'command.migrate.reset',
-            'command.migrate.refresh', 'command.migrate.install',
-            'command.migrate.status', 'migration.creator',
-            'command.migrate.make',
-        ];
     }
 }

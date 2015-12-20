@@ -53,29 +53,6 @@ class MethodEnumerator extends Enumerator
     }
 
     /**
-     * Get defined methods for the given class or object Reflector.
-     *
-     * @param bool       $showAll   Include private and protected methods.
-     * @param \Reflector $reflector
-     *
-     * @return array
-     */
-    protected function getMethods($showAll, \Reflector $reflector)
-    {
-        $methods = array();
-        foreach ($reflector->getMethods() as $name => $method) {
-            if ($showAll || $method->isPublic()) {
-                $methods[$method->getName()] = $method;
-            }
-        }
-
-        // TODO: this should be natcasesort
-        ksort($methods);
-
-        return $methods;
-    }
-
-    /**
      * Prepare formatted method array.
      *
      * @param array $methods
@@ -101,24 +78,6 @@ class MethodEnumerator extends Enumerator
     }
 
     /**
-     * Get a label for the particular kind of "class" represented.
-     *
-     * @param \ReflectionClass $reflector
-     *
-     * @return string
-     */
-    protected function getKindLabel(\ReflectionClass $reflector)
-    {
-        if ($reflector->isInterface()) {
-            return 'Interface Methods';
-        } elseif (method_exists($reflector, 'isTrait') && $reflector->isTrait()) {
-            return 'Trait Methods';
-        } else {
-            return 'Class Methods';
-        }
-    }
-
-    /**
      * Get output style for the given method's visibility.
      *
      * @param \ReflectionMethod $method
@@ -133,6 +92,47 @@ class MethodEnumerator extends Enumerator
             return self::IS_PROTECTED;
         } else {
             return self::IS_PRIVATE;
+        }
+    }
+
+    /**
+     * Get defined methods for the given class or object Reflector.
+     *
+     * @param bool $showAll Include private and protected methods.
+     * @param \Reflector $reflector
+     *
+     * @return array
+     */
+    protected function getMethods($showAll, \Reflector $reflector)
+    {
+        $methods = array();
+        foreach ($reflector->getMethods() as $name => $method) {
+            if ($showAll || $method->isPublic()) {
+                $methods[$method->getName()] = $method;
+            }
+        }
+
+        // TODO: this should be natcasesort
+        ksort($methods);
+
+        return $methods;
+    }
+
+    /**
+     * Get a label for the particular kind of "class" represented.
+     *
+     * @param \ReflectionClass $reflector
+     *
+     * @return string
+     */
+    protected function getKindLabel(\ReflectionClass $reflector)
+    {
+        if ($reflector->isInterface()) {
+            return 'Interface Methods';
+        } elseif (method_exists($reflector, 'isTrait') && $reflector->isTrait()) {
+            return 'Trait Methods';
+        } else {
+            return 'Class Methods';
         }
     }
 }

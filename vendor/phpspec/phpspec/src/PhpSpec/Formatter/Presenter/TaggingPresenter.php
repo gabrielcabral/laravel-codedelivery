@@ -39,6 +39,15 @@ final class TaggingPresenter implements PresenterInterface
     }
 
     /**
+     * @param mixed $value
+     * @return string
+     */
+    public function presentValue($value)
+    {
+        return $this->presentString($this->presenter->presentValue($value));
+    }
+
+    /**
      * @param string $string
      *
      * @return string
@@ -46,14 +55,5 @@ final class TaggingPresenter implements PresenterInterface
     public function presentString($string)
     {
         return sprintf('<value>%s</value>', $string);
-    }
-
-    /**
-     * @param mixed $value
-     * @return string
-     */
-    public function presentValue($value)
-    {
-        return $this->presentString($this->presenter->presentValue($value));
     }
 }

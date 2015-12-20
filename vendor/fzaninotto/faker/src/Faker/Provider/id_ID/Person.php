@@ -202,6 +202,17 @@ class Person extends \Faker\Provider\Person
         'S.Sos', 'S.Farm', 'M.M.', 'M.Kom.', 'M.TI.', 'M.Pd', 'M.Farm', 'M.Ak', );
 
     /**
+     * For academic title
+     *
+     * @access public
+     * @return string suffix
+     */
+    public static function suffix()
+    {
+        return static::randomElement(static::$suffix);
+    }
+
+    /**
      * Return last name
      *
      * @param string|null $gender male or female or null for any
@@ -241,16 +252,5 @@ class Person extends \Faker\Provider\Person
     public static function lastNameFemale()
     {
         return static::randomElement(static::$lastNameFemale);
-    }
-
-    /**
-     * For academic title
-     *
-     * @access public
-     * @return string suffix
-     */
-    public static function suffix()
-    {
-        return static::randomElement(static::$suffix);
     }
 }

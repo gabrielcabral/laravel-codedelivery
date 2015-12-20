@@ -13,7 +13,6 @@
 namespace phpDocumentor\Reflection\DocBlock;
 
 use phpDocumentor\Reflection\DocBlock;
-use phpDocumentor\Reflection\DocBlock\Context;
 
 /**
  * Test class for \phpDocumentor\Reflection\DocBlock\Tag\VarTag

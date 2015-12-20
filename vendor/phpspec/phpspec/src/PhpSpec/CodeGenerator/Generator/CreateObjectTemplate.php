@@ -45,14 +45,6 @@ class CreateObjectTemplate
     }
 
     /**
-     * @return string
-     */
-    private function getTemplate()
-    {
-        return file_get_contents(__DIR__.'/templates/named_constructor_create_object.template');
-    }
-
-    /**
      * @return array
      */
     private function getValues()
@@ -69,5 +61,13 @@ class CreateObjectTemplate
             '%className%'            => $this->className,
             '%constructorArguments%' => ''
         );
+    }
+
+    /**
+     * @return string
+     */
+    private function getTemplate()
+    {
+        return file_get_contents(__DIR__ . '/templates/named_constructor_create_object.template');
     }
 }

@@ -13,12 +13,12 @@
 
 namespace PhpSpec\CodeGenerator\Generator;
 
-use PhpSpec\Console\IO;
 use PhpSpec\CodeGenerator\TemplateRenderer;
-use PhpSpec\Process\Context\JsonExecutionContext;
-use PhpSpec\Process\Context\ExecutionContextInterface;
-use PhpSpec\Util\Filesystem;
+use PhpSpec\Console\IO;
 use PhpSpec\Locator\ResourceInterface;
+use PhpSpec\Process\Context\ExecutionContextInterface;
+use PhpSpec\Process\Context\JsonExecutionContext;
+use PhpSpec\Util\Filesystem;
 
 /**
  * Base class with common behaviour for generating class and spec class
@@ -81,35 +81,11 @@ abstract class PromptingGenerator implements GeneratorInterface
     }
 
     /**
-     * @return TemplateRenderer
-     */
-    protected function getTemplateRenderer()
-    {
-        return $this->templates;
-    }
-
-    /**
      * @param ResourceInterface $resource
      *
      * @return string
      */
     abstract protected function getFilePath(ResourceInterface $resource);
-
-    /**
-     * @param ResourceInterface $resource
-     * @param string            $filepath
-     *
-     * @return string
-     */
-    abstract protected function renderTemplate(ResourceInterface $resource, $filepath);
-
-    /**
-     * @param ResourceInterface $resource
-     * @param string            $filepath
-     *
-     * @return string
-     */
-    abstract protected function getGeneratedMessage(ResourceInterface $resource, $filepath);
 
     /**
      * @param string $filepath
@@ -154,5 +130,29 @@ abstract class PromptingGenerator implements GeneratorInterface
 
         $this->filesystem->putFileContents($filepath, $content);
         $this->io->writeln($this->getGeneratedMessage($resource, $filepath));
+    }
+
+    /**
+     * @param ResourceInterface $resource
+     * @param string $filepath
+     *
+     * @return string
+     */
+    abstract protected function renderTemplate(ResourceInterface $resource, $filepath);
+
+    /**
+     * @param ResourceInterface $resource
+     * @param string $filepath
+     *
+     * @return string
+     */
+    abstract protected function getGeneratedMessage(ResourceInterface $resource, $filepath);
+
+    /**
+     * @return TemplateRenderer
+     */
+    protected function getTemplateRenderer()
+    {
+        return $this->templates;
     }
 }

@@ -32,11 +32,6 @@ class PHP_CodeCoverageTest extends PHP_CodeCoverage_TestCase
      */
     private $coverage;
 
-    protected function setUp()
-    {
-        $this->coverage = new PHP_CodeCoverage;
-    }
-
     /**
      * @covers PHP_CodeCoverage::__construct
      * @covers PHP_CodeCoverage::filter
@@ -369,6 +364,21 @@ class PHP_CodeCoverageTest extends PHP_CodeCoverage_TestCase
     }
 
     /**
+     * @return ReflectionMethod
+     */
+    private function getLinesToBeIgnored()
+    {
+        $getLinesToBeIgnored = new ReflectionMethod(
+            'PHP_CodeCoverage',
+            'getLinesToBeIgnored'
+        );
+
+        $getLinesToBeIgnored->setAccessible(true);
+
+        return $getLinesToBeIgnored;
+    }
+
+    /**
      * @covers PHP_CodeCoverage::getLinesToBeIgnored
      */
     public function testGetLinesToBeIgnored2()
@@ -455,21 +465,6 @@ class PHP_CodeCoverageTest extends PHP_CodeCoverage_TestCase
     }
 
     /**
-     * @return ReflectionMethod
-     */
-    private function getLinesToBeIgnored()
-    {
-        $getLinesToBeIgnored = new ReflectionMethod(
-            'PHP_CodeCoverage',
-            'getLinesToBeIgnored'
-        );
-
-        $getLinesToBeIgnored->setAccessible(true);
-
-        return $getLinesToBeIgnored;
-    }
-
-    /**
      * @covers PHP_CodeCoverage::getLinesToBeIgnored
      */
     public function testGetLinesToBeIgnoredWhenIgnoreIsDisabled()
@@ -483,5 +478,10 @@ class PHP_CodeCoverageTest extends PHP_CodeCoverage_TestCase
                 TEST_FILES_PATH . 'source_with_ignore.php'
             )
         );
+    }
+
+    protected function setUp()
+    {
+        $this->coverage = new PHP_CodeCoverage;
     }
 }

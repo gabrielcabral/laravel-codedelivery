@@ -4,14 +4,13 @@ namespace spec\PhpSpec\Wrapper;
 
 use Phpspec\CodeAnalysis\AccessInspectorInterface;
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
-
-use PhpSpec\Wrapper\Wrapper;
-use PhpSpec\Wrapper\Subject\WrappedObject;
 use PhpSpec\Wrapper\Subject\Caller;
-use PhpSpec\Wrapper\Subject\SubjectWithArrayAccess;
-use PhpSpec\Wrapper\Subject\ExpectationFactory;
 use PhpSpec\Wrapper\Subject\Expectation\ExpectationInterface;
+use PhpSpec\Wrapper\Subject\ExpectationFactory;
+use PhpSpec\Wrapper\Subject\SubjectWithArrayAccess;
+use PhpSpec\Wrapper\Subject\WrappedObject;
+use PhpSpec\Wrapper\Wrapper;
+use Prophecy\Argument;
 
 class SubjectSpec extends ObjectBehavior
 {

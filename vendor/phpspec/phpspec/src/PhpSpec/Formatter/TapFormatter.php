@@ -13,9 +13,9 @@
 
 namespace PhpSpec\Formatter;
 
-use PhpSpec\Event\SuiteEvent;
-use PhpSpec\Event\SpecificationEvent;
 use PhpSpec\Event\ExampleEvent;
+use PhpSpec\Event\SpecificationEvent;
+use PhpSpec\Event\SuiteEvent;
 use Symfony\Component\Yaml\Yaml;
 
 class TapFormatter extends ConsoleFormatter
@@ -105,17 +105,6 @@ class TapFormatter extends ConsoleFormatter
     }
 
     /**
-     * @param SuiteEvent $event
-     */
-    public function afterSuite(SuiteEvent $event)
-    {
-        $this->getIO()->writeln(sprintf(
-            self::PLAN,
-            $this->getStatisticsCollector()->getEventsCount()
-        ));
-    }
-
-    /**
      * Format message as two-space indented YAML when needed outside of a
      * SKIP or TODO directive.
      *
@@ -175,5 +164,16 @@ class TapFormatter extends ConsoleFormatter
             array("  \\1", "\\1  ", ""),
             $string
         );
+    }
+
+    /**
+     * @param SuiteEvent $event
+     */
+    public function afterSuite(SuiteEvent $event)
+    {
+        $this->getIO()->writeln(sprintf(
+            self::PLAN,
+            $this->getStatisticsCollector()->getEventsCount()
+        ));
     }
 }

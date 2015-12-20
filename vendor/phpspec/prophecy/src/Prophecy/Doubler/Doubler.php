@@ -13,8 +13,8 @@ namespace Prophecy\Doubler;
 
 use Doctrine\Instantiator\Instantiator;
 use Prophecy\Doubler\ClassPatch\ClassPatchInterface;
-use Prophecy\Doubler\Generator\ClassMirror;
 use Prophecy\Doubler\Generator\ClassCreator;
+use Prophecy\Doubler\Generator\ClassMirror;
 use Prophecy\Exception\InvalidArgumentException;
 use ReflectionClass;
 

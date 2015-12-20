@@ -27,11 +27,6 @@ class PHP_CodeCoverage_Report_FactoryTest extends PHP_CodeCoverage_TestCase
 {
     protected $factory;
 
-    protected function setUp()
-    {
-        $this->factory = new PHP_CodeCoverage_Report_Factory;
-    }
-
     public function testSomething()
     {
         $root = $this->getCoverageForBankAccount()->getReport();
@@ -218,5 +213,10 @@ class PHP_CodeCoverage_Report_FactoryTest extends PHP_CodeCoverage_TestCase
                 ),
             ),
         );
+    }
+
+    protected function setUp()
+    {
+        $this->factory = new PHP_CodeCoverage_Report_Factory;
     }
 }

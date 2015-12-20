@@ -56,6 +56,19 @@ class ScopeEntity implements \JsonSerializable
     }
 
     /**
+     * Returns a JSON object when entity is passed into json_encode
+     *
+     * @return array
+     */
+    public function jsonSerialize()
+    {
+        return [
+            'id' => $this->getId(),
+            'description' => $this->getDescription()
+        ];
+    }
+
+    /**
      * Return the scope identifer
      *
      * @return string
@@ -73,18 +86,5 @@ class ScopeEntity implements \JsonSerializable
     public function getDescription()
     {
         return $this->description;
-    }
-
-    /**
-     * Returns a JSON object when entity is passed into json_encode
-     *
-     * @return array
-     */
-    public function jsonSerialize()
-    {
-        return [
-            'id'    =>  $this->getId(),
-            'description'   =>  $this->getDescription()
-        ];
     }
 }

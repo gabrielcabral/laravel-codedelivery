@@ -1,7 +1,7 @@
 <?php
 
-use Behat\Behat\Tester\Exception\PendingException;
 use Behat\Behat\Context\Context;
+use Behat\Behat\Tester\Exception\PendingException;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Fake\Prompter;
@@ -59,17 +59,17 @@ class ApplicationContext implements Context, MatchersProviderInterface
         $this->setupPrompter();
     }
 
+    private function setupReRunner()
+    {
+        $this->reRunner = new ReRunner;
+        $this->application->getContainer()->set('process.rerunner.platformspecific', $this->reRunner);
+    }
+
     private function setupPrompter()
     {
         $this->prompter = new Prompter();
 
         $this->application->getContainer()->set('console.prompter', $this->prompter);
-    }
-
-    private function setupReRunner()
-    {
-        $this->reRunner = new ReRunner;
-        $this->application->getContainer()->set('process.rerunner.platformspecific', $this->reRunner);
     }
 
     /**
@@ -112,6 +112,21 @@ class ApplicationContext implements Context, MatchersProviderInterface
     }
 
     /**
+     * @param string $option
+     * @param array $arguments
+     */
+    private function addOptionToArguments($option, array &$arguments)
+    {
+        if ($option) {
+            if (preg_match('/(?P<option>[a-z-]+)=(?P<value>[a-z.]+)/', $option, $matches)) {
+                $arguments[$matches['option']] = $matches['value'];
+            } else {
+                $arguments['--' . trim($option, '"')] = true;
+            }
+        }
+    }
+
+    /**
      * @When I run phpspec and answer :answer when asked if I want to generate the code
      * @When I run phpspec with the option :option and (I) answer :answer when asked if I want to generate the code
      */
@@ -141,21 +156,6 @@ class ApplicationContext implements Context, MatchersProviderInterface
         $this->prompter->setAnswer($answer=='y');
 
         $this->lastExitCode = $this->tester->run($arguments, array('interactive' => true));
-    }
-
-    /**
-     * @param string $option
-     * @param array $arguments
-     */
-    private function addOptionToArguments($option, array &$arguments)
-    {
-        if ($option) {
-            if (preg_match('/(?P<option>[a-z-]+)=(?P<value>[a-z.]+)/', $option, $matches)) {
-                $arguments[$matches['option']] = $matches['value'];
-            } else {
-                $arguments['--' . trim($option, '"')] = true;
-            }
-        }
     }
 
     /**

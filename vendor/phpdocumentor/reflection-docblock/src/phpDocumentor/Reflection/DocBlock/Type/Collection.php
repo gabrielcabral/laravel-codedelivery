@@ -70,16 +70,6 @@ class Collection extends \ArrayObject
     }
 
     /**
-     * Returns the current invoking location.
-     *
-     * @return Context
-     */
-    public function getContext()
-    {
-        return $this->context;
-    }
-
-    /**
      * Adds a new type to the collection and expands it if it contains a
      * relative namespace.
      *
@@ -113,17 +103,6 @@ class Collection extends \ArrayObject
                 $this[] = $expanded_type;
             }
         }
-    }
-    
-    /**
-     * Returns a string representation of the collection.
-     * 
-     * @return string The resolved types across the collection, separated with
-     *     {@link self::OPERATOR_OR}.
-     */
-    public function __toString()
-    {
-        return implode(self::OPERATOR_OR, $this->getArrayCopy());
     }
 
     /**
@@ -190,19 +169,6 @@ class Collection extends \ArrayObject
     }
 
     /**
-     * Detects whether the given type represents a PHPDoc keyword.
-     *
-     * @param string $type A relative or absolute type as defined in the
-     *     phpDocumentor documentation.
-     *
-     * @return bool
-     */
-    protected function isTypeAKeyword($type)
-    {
-        return in_array(strtolower($type), static::$keywords, true);
-    }
-
-    /**
      * Detects whether the given type represents a relative or absolute path.
      *
      * This method will detect keywords as being absolute; even though they are
@@ -216,6 +182,40 @@ class Collection extends \ArrayObject
     protected function isRelativeType($type)
     {
         return ($type[0] !== self::OPERATOR_NAMESPACE)
-            || $this->isTypeAKeyword($type);
+        || $this->isTypeAKeyword($type);
+    }
+
+    /**
+     * Detects whether the given type represents a PHPDoc keyword.
+     *
+     * @param string $type A relative or absolute type as defined in the
+     *     phpDocumentor documentation.
+     *
+     * @return bool
+     */
+    protected function isTypeAKeyword($type)
+    {
+        return in_array(strtolower($type), static::$keywords, true);
+    }
+
+    /**
+     * Returns the current invoking location.
+     *
+     * @return Context
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    /**
+     * Returns a string representation of the collection.
+     *
+     * @return string The resolved types across the collection, separated with
+     *     {@link self::OPERATOR_OR}.
+     */
+    public function __toString()
+    {
+        return implode(self::OPERATOR_OR, $this->getArrayCopy());
     }
 }

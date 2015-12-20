@@ -43,6 +43,29 @@ class Name extends NodeAbstract
         );
     }
 
+    /**
+     * Prepares a (string, array or Name node) name for use in name changing methods by converting
+     * it to an array.
+     *
+     * @param string|array|self $name Name to prepare
+     *
+     * @return array Prepared name
+     */
+    private static function prepareName($name)
+    {
+        if (is_string($name)) {
+            return explode('\\', $name);
+        } elseif (is_array($name)) {
+            return $name;
+        } elseif ($name instanceof self) {
+            return $name->parts;
+        }
+
+        throw new \InvalidArgumentException(
+            'When changing a name you need to pass either a string, an array or a Name node'
+        );
+    }
+
     public function getSubNodeNames() {
         return array('parts');
     }
@@ -131,29 +154,6 @@ class Name extends NodeAbstract
      */
     public function set($name) {
         $this->parts = self::prepareName($name);
-    }
-
-    /**
-     * Prepares a (string, array or Name node) name for use in name changing methods by converting
-     * it to an array.
-     *
-     * @param string|array|self $name Name to prepare
-     *
-     * @return array Prepared name
-     */
-    private static function prepareName($name)
-    {
-        if (is_string($name)) {
-            return explode('\\', $name);
-        } elseif (is_array($name)) {
-            return $name;
-        } elseif ($name instanceof self) {
-            return $name->parts;
-        }
-
-        throw new \InvalidArgumentException(
-            'When changing a name you need to pass either a string, an array or a Name node'
-        );
     }
 
     /**

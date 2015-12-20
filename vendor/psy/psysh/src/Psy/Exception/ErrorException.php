@@ -58,16 +58,6 @@ class ErrorException extends \ErrorException implements Exception
     }
 
     /**
-     * Get the raw (unformatted) message for this error.
-     *
-     * @return string
-     */
-    public function getRawMessage()
-    {
-        return $this->rawMessage;
-    }
-
-    /**
      * Helper for throwing an ErrorException.
      *
      * This allows us to:
@@ -84,5 +74,15 @@ class ErrorException extends \ErrorException implements Exception
     public static function throwException($errno, $errstr, $errfile, $errline)
     {
         throw new self($errstr, 0, $errno, $errfile, $errline);
+    }
+
+    /**
+     * Get the raw (unformatted) message for this error.
+     *
+     * @return string
+     */
+    public function getRawMessage()
+    {
+        return $this->rawMessage;
     }
 }

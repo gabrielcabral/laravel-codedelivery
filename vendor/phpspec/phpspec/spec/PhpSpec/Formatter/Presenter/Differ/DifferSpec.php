@@ -2,8 +2,8 @@
 
 namespace spec\PhpSpec\Formatter\Presenter\Differ;
 
-use PhpSpec\ObjectBehavior;
 use PhpSpec\Formatter\Presenter\Differ\EngineInterface;
+use PhpSpec\ObjectBehavior;
 
 class DifferSpec extends ObjectBehavior
 {

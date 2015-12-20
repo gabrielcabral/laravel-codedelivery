@@ -120,21 +120,6 @@ class MethodTag extends ReturnTag
     }
 
     /**
-     * Sets the name of this method.
-     *
-     * @param string $method_name The name of the method.
-     *
-     * @return $this
-     */
-    public function setMethodName($method_name)
-    {
-        $this->method_name = $method_name;
-
-        $this->content = null;
-        return $this;
-    }
-
-    /**
      * Retrieves the method name.
      *
      * @return string
@@ -145,15 +130,15 @@ class MethodTag extends ReturnTag
     }
 
     /**
-     * Sets the arguments for this method.
+     * Sets the name of this method.
      *
-     * @param string $arguments A comma-separated arguments line.
+     * @param string $method_name The name of the method.
      *
-     * @return void
+     * @return $this
      */
-    public function setArguments($arguments)
+    public function setMethodName($method_name)
     {
-        $this->arguments = $arguments;
+        $this->method_name = $method_name;
 
         $this->content = null;
         return $this;
@@ -179,6 +164,21 @@ class MethodTag extends ReturnTag
         }
 
         return $arguments;
+    }
+
+    /**
+     * Sets the arguments for this method.
+     *
+     * @param string $arguments A comma-separated arguments line.
+     *
+     * @return void
+     */
+    public function setArguments($arguments)
+    {
+        $this->arguments = $arguments;
+
+        $this->content = null;
+        return $this;
     }
     
     /**

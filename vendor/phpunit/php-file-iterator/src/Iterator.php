@@ -121,16 +121,6 @@ class File_Iterator extends FilterIterator
 
     /**
      * @param  string $filename
-     * @return bool
-     * @since  Method available since Release 1.1.0
-     */
-    protected function acceptSuffix($filename)
-    {
-        return $this->acceptSubString($filename, $this->suffixes, self::SUFFIX);
-    }
-
-    /**
-     * @param  string $filename
      * @param  array  $subString
      * @param  int    $type
      * @return bool
@@ -154,5 +144,15 @@ class File_Iterator extends FilterIterator
         }
 
         return $matched;
+    }
+
+    /**
+     * @param  string $filename
+     * @return bool
+     * @since  Method available since Release 1.1.0
+     */
+    protected function acceptSuffix($filename)
+    {
+        return $this->acceptSubString($filename, $this->suffixes, self::SUFFIX);
     }
 }

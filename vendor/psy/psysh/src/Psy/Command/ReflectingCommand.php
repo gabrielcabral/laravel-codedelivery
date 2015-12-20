@@ -46,6 +46,21 @@ abstract class ReflectingCommand extends Command implements ContextAware
     }
 
     /**
+     * Get a Reflector and documentation for a function, class or instance, constant, method or property.
+     *
+     * @param string $valueName Function, class, variable, constant, method or property name.
+     * @param bool $classOnly True if the name should only refer to a class, function or instance
+     *
+     * @return array (value, Reflector)
+     */
+    protected function getTargetAndReflector($valueName, $classOnly = false)
+    {
+        list($value, $member, $kind) = $this->getTarget($valueName, $classOnly);
+
+        return array($value, Mirror::get($value, $member, $kind));
+    }
+
+    /**
      * Get the target for a value.
      *
      * @throws \InvalidArgumentException when the value specified can't be resolved.
@@ -112,21 +127,6 @@ abstract class ReflectingCommand extends Command implements ContextAware
         }
 
         return $name;
-    }
-
-    /**
-     * Get a Reflector and documentation for a function, class or instance, constant, method or property.
-     *
-     * @param string $valueName Function, class, variable, constant, method or property name.
-     * @param bool   $classOnly True if the name should only refer to a class, function or instance
-     *
-     * @return array (value, Reflector)
-     */
-    protected function getTargetAndReflector($valueName, $classOnly = false)
-    {
-        list($value, $member, $kind) = $this->getTarget($valueName, $classOnly);
-
-        return array($value, Mirror::get($value, $member, $kind));
     }
 
     /**

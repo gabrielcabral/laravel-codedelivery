@@ -95,14 +95,6 @@ class ElasticSearchHandler extends AbstractProcessingHandler
     }
 
     /**
-     * {@inheritDoc}
-     */
-    protected function write(array $record)
-    {
-        $this->bulkSend(array($record['formatted']));
-    }
-
-    /**
      * Use Elasticsearch bulk API to send list of documents
      * @param  array             $documents
      * @throws \RuntimeException
@@ -116,6 +108,14 @@ class ElasticSearchHandler extends AbstractProcessingHandler
                 throw new \RuntimeException("Error sending messages to Elasticsearch", 0, $e);
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function write(array $record)
+    {
+        $this->bulkSend(array($record['formatted']));
     }
 
     /**

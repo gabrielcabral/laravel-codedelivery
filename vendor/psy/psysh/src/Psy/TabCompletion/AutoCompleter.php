@@ -42,6 +42,21 @@ class AutoCompleter
     }
 
     /**
+     * The readline_completion_function callback handler.
+     *
+     * @see processCallback
+     *
+     * @param $input
+     * @param $index
+     *
+     * @return array
+     */
+    public function callback($input, $index)
+    {
+        return $this->processCallback($input, $index, readline_info());
+    }
+
+    /**
      * Handle readline completion.
      *
      * @param string $input Readline current word
@@ -69,21 +84,6 @@ class AutoCompleter
         $matches = array_unique($matches);
 
         return !empty($matches) ? $matches : array('');
-    }
-
-    /**
-     * The readline_completion_function callback handler.
-     *
-     * @see processCallback
-     *
-     * @param $input
-     * @param $index
-     *
-     * @return array
-     */
-    public function callback($input, $index)
-    {
-        return $this->processCallback($input, $index, readline_info());
     }
 
     /**

@@ -137,6 +137,19 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Returns the types and their expected values to test the retrieval of
+     * types when no namespace is available.
+     *
+     * @param string $method Name of the method consuming this data provider.
+     *
+     * @return string[]
+     */
+    public function provideTypesToExpandWithoutNamespace($method)
+    {
+        return $this->provideTypesToExpand($method, '\\');
+    }
+
+    /**
+     * Returns the types and their expected values to test the retrieval of
      * types.
      *
      * @param string $method    Name of the method consuming this data provider.
@@ -178,18 +191,5 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
                 array($namespace.'DocBlock[]', 'int[]')
             ),
         );
-    }
-
-    /**
-     * Returns the types and their expected values to test the retrieval of
-     * types when no namespace is available.
-     *
-     * @param string $method Name of the method consuming this data provider.
-     *
-     * @return string[]
-     */
-    public function provideTypesToExpandWithoutNamespace($method)
-    {
-        return $this->provideTypesToExpand($method, '\\');
     }
 }

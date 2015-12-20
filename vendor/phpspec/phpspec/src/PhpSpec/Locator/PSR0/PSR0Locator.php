@@ -13,10 +13,10 @@
 
 namespace PhpSpec\Locator\PSR0;
 
+use InvalidArgumentException;
 use PhpSpec\Locator\ResourceInterface;
 use PhpSpec\Locator\ResourceLocatorInterface;
 use PhpSpec\Util\Filesystem;
-use InvalidArgumentException;
 
 class PSR0Locator implements ResourceLocatorInterface
 {
@@ -133,19 +133,107 @@ class PSR0Locator implements ResourceLocatorInterface
     }
 
     /**
-     * @return string
-     */
-    public function getSpecNamespace()
-    {
-        return $this->specNamespace;
-    }
-
-    /**
      * @return ResourceInterface[]
      */
     public function getAllResources()
     {
         return $this->findSpecResources($this->fullSpecPath);
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return PSR0Resource[]
+     */
+    protected function findSpecResources($path)
+    {
+        if (!$this->filesystem->pathExists($path)) {
+            return array();
+        }
+
+        if ('.php' === substr($path, -4)) {
+            return array($this->createResourceFromSpecFile(realpath($path)));
+        }
+
+        $resources = array();
+        foreach ($this->filesystem->findSpecFilesIn($path) as $file) {
+            $resources[] = $this->createResourceFromSpecFile($file->getRealPath());
+        }
+
+        return $resources;
+    }
+
+    /**
+     * @param string $path
+     *
+     * @return PSR0Resource
+     */
+    private function createResourceFromSpecFile($path)
+    {
+        $classname = $this->findSpecClassname($path);
+
+        if (null === $classname) {
+            throw new \RuntimeException('Spec file does not contains any class definition.');
+        }
+
+        // Remove spec namespace from the begining of the classname.
+        $specNamespace = trim($this->getSpecNamespace(), '\\') . '\\';
+
+        if (0 !== strpos($classname, $specNamespace)) {
+            throw new \RuntimeException(sprintf(
+                'Spec class `%s` must be in the base spec namespace `%s`.',
+                $classname,
+                $this->getSpecNamespace()
+            ));
+        }
+
+        $classname = substr($classname, strlen($specNamespace));
+
+        // cut "Spec" from the end
+        $classname = preg_replace('/Spec$/', '', $classname);
+
+        // Create the resource
+        return new PSR0Resource(explode('\\', $classname), $this);
+    }
+
+    private function findSpecClassname($path)
+    {
+        // Find namespace and class name
+        $namespace = '';
+        $content = $this->filesystem->getFileContents($path);
+        $tokens = token_get_all($content);
+        $count = count($tokens);
+
+        for ($i = 0; $i < $count; $i++) {
+            if ($tokens[$i][0] === T_NAMESPACE) {
+                for ($j = $i + 1; $j < $count; $j++) {
+                    if ($tokens[$j][0] === T_STRING) {
+                        $namespace .= $tokens[$j][1] . '\\';
+                    } elseif ($tokens[$j] === '{' || $tokens[$j] === ';') {
+                        break;
+                    }
+                }
+            }
+
+            if ($tokens[$i][0] === T_CLASS) {
+                for ($j = $i + 1; $j < $count; $j++) {
+                    if ($tokens[$j] === '{') {
+                        return $namespace . $tokens[$i + 2][1];
+                    }
+                }
+            }
+        }
+
+        // No class found
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSpecNamespace()
+    {
+        return $this->specNamespace;
     }
 
     /**
@@ -164,6 +252,29 @@ class PSR0Locator implements ResourceLocatorInterface
         return 0 === strpos($path, $this->srcPath)
             || 0 === strpos($path, $this->specPath)
         ;
+    }
+
+    /**
+     * @param $query
+     * @return string
+     */
+    private function getQueryPath($query)
+    {
+        $sepr = DIRECTORY_SEPARATOR;
+        $replacedQuery = str_replace(array('\\', '/'), $sepr, $query);
+
+        if (false !== strpos($query, '\\')) {
+            $namespacedQuery = null === $this->psr4Prefix ?
+                $replacedQuery :
+                substr($replacedQuery, strlen($this->srcNamespace));
+
+            $path = $this->fullSpecPath . $namespacedQuery . 'Spec.php';
+            if ($this->filesystem->pathExists($path)) {
+                return $path;
+            }
+        }
+
+        return rtrim(realpath($replacedQuery), $sepr);
     }
 
     /**
@@ -241,102 +352,6 @@ class PSR0Locator implements ResourceLocatorInterface
         return null;
     }
 
-    /**
-     * @return int
-     */
-    public function getPriority()
-    {
-        return 0;
-    }
-
-    /**
-     * @param string $path
-     *
-     * @return PSR0Resource[]
-     */
-    protected function findSpecResources($path)
-    {
-        if (!$this->filesystem->pathExists($path)) {
-            return array();
-        }
-
-        if ('.php' === substr($path, -4)) {
-            return array($this->createResourceFromSpecFile(realpath($path)));
-        }
-
-        $resources = array();
-        foreach ($this->filesystem->findSpecFilesIn($path) as $file) {
-            $resources[] = $this->createResourceFromSpecFile($file->getRealPath());
-        }
-
-        return $resources;
-    }
-
-    private function findSpecClassname($path)
-    {
-        // Find namespace and class name
-        $namespace = '';
-        $content   = $this->filesystem->getFileContents($path);
-        $tokens    = token_get_all($content);
-        $count     = count($tokens);
-
-        for ($i = 0; $i < $count; $i++) {
-            if ($tokens[$i][0] === T_NAMESPACE) {
-                for ($j = $i + 1; $j < $count; $j++) {
-                    if ($tokens[$j][0] === T_STRING) {
-                        $namespace .= $tokens[$j][1].'\\';
-                    } elseif ($tokens[$j] === '{' || $tokens[$j] === ';') {
-                        break;
-                    }
-                }
-            }
-
-            if ($tokens[$i][0] === T_CLASS) {
-                for ($j = $i+1; $j < $count; $j++) {
-                    if ($tokens[$j] === '{') {
-                        return $namespace.$tokens[$i+2][1];
-                    }
-                }
-            }
-        }
-
-        // No class found
-        return null;
-    }
-
-    /**
-     * @param string $path
-     *
-     * @return PSR0Resource
-     */
-    private function createResourceFromSpecFile($path)
-    {
-        $classname = $this->findSpecClassname($path);
-
-        if (null === $classname) {
-            throw new \RuntimeException('Spec file does not contains any class definition.');
-        }
-
-        // Remove spec namespace from the begining of the classname.
-        $specNamespace = trim($this->getSpecNamespace(), '\\').'\\';
-
-        if (0 !== strpos($classname, $specNamespace)) {
-            throw new \RuntimeException(sprintf(
-                'Spec class `%s` must be in the base spec namespace `%s`.',
-                $classname,
-                $this->getSpecNamespace()
-            ));
-        }
-
-        $classname = substr($classname, strlen($specNamespace));
-
-        // cut "Spec" from the end
-        $classname = preg_replace('/Spec$/', '', $classname);
-
-        // Create the resource
-        return new PSR0Resource(explode('\\', $classname), $this);
-    }
-
     private function validatePsr0Classname($classname)
     {
         $pattern = '/^([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*[\/\\\\]?)*[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*$/';
@@ -351,25 +366,10 @@ class PSR0Locator implements ResourceLocatorInterface
     }
 
     /**
-     * @param $query
-     * @return string
+     * @return int
      */
-    private function getQueryPath($query)
+    public function getPriority()
     {
-        $sepr = DIRECTORY_SEPARATOR;
-        $replacedQuery = str_replace(array('\\', '/'), $sepr, $query);
-
-        if (false !== strpos($query, '\\')) {
-            $namespacedQuery = null === $this->psr4Prefix ?
-                $replacedQuery :
-                substr($replacedQuery, strlen($this->srcNamespace));
-
-            $path = $this->fullSpecPath . $namespacedQuery . 'Spec.php';
-            if ($this->filesystem->pathExists($path)) {
-                return $path;
-            }
-        }
-
-        return rtrim(realpath($replacedQuery), $sepr);
+        return 0;
     }
 }

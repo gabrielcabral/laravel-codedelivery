@@ -2,8 +2,8 @@
 
 namespace Doctrine\Tests\Common\Inflector;
 
-use Doctrine\Tests\DoctrineTestCase;
 use Doctrine\Common\Inflector\Inflector;
+use Doctrine\Tests\DoctrineTestCase;
 
 class InflectorTest extends DoctrineTestCase
 {

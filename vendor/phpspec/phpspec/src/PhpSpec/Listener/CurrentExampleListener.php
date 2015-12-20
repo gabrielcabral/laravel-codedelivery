@@ -25,6 +25,11 @@ final class CurrentExampleListener implements EventSubscriberInterface {
      */
     private $currentExample;
 
+    public function __construct(CurrentExampleTracker $currentExample)
+    {
+        $this->currentExample = $currentExample;
+    }
+
     public static function getSubscribedEvents()
     {
         return array(
@@ -32,11 +37,6 @@ final class CurrentExampleListener implements EventSubscriberInterface {
             'afterExample' => array('afterCurrentExample', -20),
             'afterSuite' => array('afterSuiteEvent', -20),
         );
-    }
-
-    public function __construct(CurrentExampleTracker $currentExample)
-    {
-        $this->currentExample = $currentExample;
     }
 
     public function beforeCurrentExample(ExampleEvent $event)

@@ -91,18 +91,18 @@ class ReturnConstantGenerator implements GeneratorInterface
     }
 
     /**
+     * @return string
+     */
+    protected function getTemplate()
+    {
+        return file_get_contents(__DIR__ . '/templates/returnconstant.template');
+    }
+
+    /**
      * @return int
      */
     public function getPriority()
     {
         return 0;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getTemplate()
-    {
-        return file_get_contents(__DIR__.'/templates/returnconstant.template');
     }
 }

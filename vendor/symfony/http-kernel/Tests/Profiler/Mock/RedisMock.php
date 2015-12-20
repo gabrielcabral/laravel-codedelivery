@@ -94,6 +94,13 @@ class RedisMock
         return true;
     }
 
+    private function storeData($key, $value)
+    {
+        $this->storage[$key] = serialize($value);
+
+        return true;
+    }
+
     /**
      * Sets an expiration time on an item.
      *
@@ -129,6 +136,15 @@ class RedisMock
         }
 
         return $this->getData($key);
+    }
+
+    private function getData($key)
+    {
+        if (isset($this->storage[$key])) {
+            return unserialize($this->storage[$key]);
+        }
+
+        return false;
     }
 
     /**
@@ -212,22 +228,6 @@ class RedisMock
     public function close()
     {
         $this->connected = false;
-
-        return true;
-    }
-
-    private function getData($key)
-    {
-        if (isset($this->storage[$key])) {
-            return unserialize($this->storage[$key]);
-        }
-
-        return false;
-    }
-
-    private function storeData($key, $value)
-    {
-        $this->storage[$key] = serialize($value);
 
         return true;
     }

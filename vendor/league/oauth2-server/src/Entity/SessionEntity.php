@@ -97,6 +97,16 @@ class SessionEntity
     }
 
     /**
+     * Return the session identifier
+     *
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
      * Set the session identifier
      *
      * @param string $id
@@ -108,16 +118,6 @@ class SessionEntity
         $this->id = $id;
 
         return $this;
-    }
-
-    /**
-     * Return the session identifier
-     *
-     * @return string
-     */
-    public function getId()
-    {
-        return $this->id;
     }
 
     /**
@@ -230,22 +230,6 @@ class SessionEntity
     }
 
     /**
-     * Return the session client
-     *
-     * @return \League\OAuth2\Server\Entity\ClientEntity
-     */
-    public function getClient()
-    {
-        if ($this->client instanceof ClientEntity) {
-            return $this->client;
-        }
-
-        $this->client = $this->server->getClientStorage()->getBySession($this);
-
-        return $this->client;
-    }
-
-    /**
      * Set the session owner
      *
      * @param string $type The type of the owner (e.g. user, app)
@@ -261,26 +245,6 @@ class SessionEntity
         $this->server->getEventEmitter()->emit(new SessionOwnerEvent($this));
 
         return $this;
-    }
-
-    /**
-     * Return session owner identifier
-     *
-     * @return string
-     */
-    public function getOwnerId()
-    {
-        return $this->ownerId;
-    }
-
-    /**
-     * Return session owner type
-     *
-     * @return string
-     */
-    public function getOwnerType()
-    {
-        return $this->ownerType;
     }
 
     /**
@@ -304,5 +268,41 @@ class SessionEntity
         foreach ($this->getScopes() as $scope) {
             $this->server->getSessionStorage()->associateScope($this, $scope);
         }
+    }
+
+    /**
+     * Return session owner type
+     *
+     * @return string
+     */
+    public function getOwnerType()
+    {
+        return $this->ownerType;
+    }
+
+    /**
+     * Return session owner identifier
+     *
+     * @return string
+     */
+    public function getOwnerId()
+    {
+        return $this->ownerId;
+    }
+
+    /**
+     * Return the session client
+     *
+     * @return \League\OAuth2\Server\Entity\ClientEntity
+     */
+    public function getClient()
+    {
+        if ($this->client instanceof ClientEntity) {
+            return $this->client;
+        }
+
+        $this->client = $this->server->getClientStorage()->getBySession($this);
+
+        return $this->client;
     }
 }

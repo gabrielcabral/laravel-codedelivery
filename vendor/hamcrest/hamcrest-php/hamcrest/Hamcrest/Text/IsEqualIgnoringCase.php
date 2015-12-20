@@ -22,14 +22,14 @@ class IsEqualIgnoringCase extends TypeSafeMatcher
         $this->_string = $string;
     }
 
-    protected function matchesSafely($item)
+    /**
+     * Matches if value is a string equal to $string, regardless of the case.
+     *
+     * @factory
+     */
+    public static function equalToIgnoringCase($string)
     {
-        return strtolower($this->_string) === strtolower($item);
-    }
-
-    protected function describeMismatchSafely($item, Description $mismatchDescription)
-    {
-        $mismatchDescription->appendText('was ')->appendText($item);
+        return new self($string);
     }
 
     public function describeTo(Description $description)
@@ -40,13 +40,13 @@ class IsEqualIgnoringCase extends TypeSafeMatcher
                                 ;
     }
 
-    /**
-     * Matches if value is a string equal to $string, regardless of the case.
-     *
-     * @factory
-     */
-    public static function equalToIgnoringCase($string)
+    protected function matchesSafely($item)
     {
-        return new self($string);
+        return strtolower($this->_string) === strtolower($item);
+    }
+
+    protected function describeMismatchSafely($item, Description $mismatchDescription)
+    {
+        $mismatchDescription->appendText('was ')->appendText($item);
     }
 }

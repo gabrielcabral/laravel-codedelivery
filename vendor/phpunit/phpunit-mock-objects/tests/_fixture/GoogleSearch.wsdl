@@ -7,13 +7,13 @@
 
 <!-- Revision 2002-08-16 -->
 
-<definitions name="GoogleSearch"
-             targetNamespace="urn:GoogleSearch"
-             xmlns:typens="urn:GoogleSearch"
+<definitions xmlns:typens="urn:GoogleSearch"
              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
              xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
              xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
              xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+             name="GoogleSearch"
+             targetNamespace="urn:GoogleSearch"
              xmlns="http://schemas.xmlsoap.org/wsdl/">
 
   <!-- Types for search - result elements, directory categories -->

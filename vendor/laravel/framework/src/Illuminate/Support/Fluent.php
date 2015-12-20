@@ -3,9 +3,9 @@
 namespace Illuminate\Support;
 
 use ArrayAccess;
-use JsonSerializable;
-use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
+use JsonSerializable;
 
 class Fluent implements ArrayAccess, Arrayable, Jsonable, JsonSerializable
 {
@@ -30,37 +30,11 @@ class Fluent implements ArrayAccess, Arrayable, Jsonable, JsonSerializable
     }
 
     /**
-     * Get an attribute from the container.
-     *
-     * @param  string  $key
-     * @param  mixed   $default
-     * @return mixed
-     */
-    public function get($key, $default = null)
-    {
-        if (array_key_exists($key, $this->attributes)) {
-            return $this->attributes[$key];
-        }
-
-        return value($default);
-    }
-
-    /**
      * Get the attributes from the container.
      *
      * @return array
      */
     public function getAttributes()
-    {
-        return $this->attributes;
-    }
-
-    /**
-     * Convert the Fluent instance to an array.
-     *
-     * @return array
-     */
-    public function toArray()
     {
         return $this->attributes;
     }
@@ -73,6 +47,16 @@ class Fluent implements ArrayAccess, Arrayable, Jsonable, JsonSerializable
     public function jsonSerialize()
     {
         return $this->toArray();
+    }
+
+    /**
+     * Convert the Fluent instance to an array.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        return $this->attributes;
     }
 
     /**
@@ -166,6 +150,22 @@ class Fluent implements ArrayAccess, Arrayable, Jsonable, JsonSerializable
     public function __set($key, $value)
     {
         $this->attributes[$key] = $value;
+    }
+
+    /**
+     * Get an attribute from the container.
+     *
+     * @param  string $key
+     * @param  mixed $default
+     * @return mixed
+     */
+    public function get($key, $default = null)
+    {
+        if (array_key_exists($key, $this->attributes)) {
+            return $this->attributes[$key];
+        }
+
+        return value($default);
     }
 
     /**

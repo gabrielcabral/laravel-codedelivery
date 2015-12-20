@@ -24,6 +24,11 @@ abstract class ShortcutCombination extends BaseMatcher
         $this->_matchers = $matchers;
     }
 
+    public function describeToWithOperator(Description $description, $operator)
+    {
+        $description->appendList('(', ' ' . $operator . ' ', ')', $this->_matchers);
+    }
+
     protected function matchesWithShortcut($item, $shortcut)
     {
         /** @var $matcher \Hamcrest\Matcher */
@@ -34,10 +39,5 @@ abstract class ShortcutCombination extends BaseMatcher
         }
 
         return !$shortcut;
-    }
-
-    public function describeToWithOperator(Description $description, $operator)
-    {
-        $description->appendList('(', ' ' . $operator . ' ', ')', $this->_matchers);
     }
 }

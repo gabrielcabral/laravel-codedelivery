@@ -13,10 +13,10 @@
 
 namespace PhpSpec\Wrapper\Subject;
 
-use PhpSpec\Wrapper\Unwrapper;
-use PhpSpec\Formatter\Presenter\PresenterInterface;
-use PhpSpec\Exception\Wrapper\SubjectException;
 use PhpSpec\Exception\Fracture\InterfaceNotImplementedException;
+use PhpSpec\Exception\Wrapper\SubjectException;
+use PhpSpec\Formatter\Presenter\PresenterInterface;
+use PhpSpec\Wrapper\Unwrapper;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class SubjectWithArrayAccess
@@ -66,6 +66,50 @@ class SubjectWithArrayAccess
     }
 
     /**
+     * @param mixed $subject
+     *
+     * @throws \PhpSpec\Exception\Wrapper\SubjectException
+     * @throws \PhpSpec\Exception\Fracture\InterfaceNotImplementedException
+     */
+    private function checkIfSubjectImplementsArrayAccess($subject)
+    {
+        if (is_object($subject) && !($subject instanceof \ArrayAccess)) {
+            throw $this->interfaceNotImplemented();
+        } elseif (!($subject instanceof \ArrayAccess) && !is_array($subject)) {
+            throw $this->cantUseAsArray($subject);
+        }
+    }
+
+    /**
+     * @return InterfaceNotImplementedException
+     */
+    private function interfaceNotImplemented()
+    {
+        return new InterfaceNotImplementedException(
+            sprintf(
+                '%s does not implement %s interface, but should.',
+                $this->presenter->presentValue($this->caller->getWrappedObject()),
+                $this->presenter->presentString('ArrayAccess')
+            ),
+            $this->caller->getWrappedObject(),
+            'ArrayAccess'
+        );
+    }
+
+    /**
+     * @param mixed $subject
+     *
+     * @return SubjectException
+     */
+    private function cantUseAsArray($subject)
+    {
+        return new SubjectException(sprintf(
+            'Can not use %s as array.',
+            $this->presenter->presentValue($subject)
+        ));
+    }
+
+    /**
      * @param string|integer $key
      *
      * @return mixed
@@ -109,49 +153,5 @@ class SubjectWithArrayAccess
         $this->checkIfSubjectImplementsArrayAccess($subject);
 
         unset($subject[$key]);
-    }
-
-    /**
-     * @param mixed $subject
-     *
-     * @throws \PhpSpec\Exception\Wrapper\SubjectException
-     * @throws \PhpSpec\Exception\Fracture\InterfaceNotImplementedException
-     */
-    private function checkIfSubjectImplementsArrayAccess($subject)
-    {
-        if (is_object($subject) && !($subject instanceof \ArrayAccess)) {
-            throw $this->interfaceNotImplemented();
-        } elseif (!($subject instanceof \ArrayAccess) && !is_array($subject)) {
-            throw $this->cantUseAsArray($subject);
-        }
-    }
-
-    /**
-     * @return InterfaceNotImplementedException
-     */
-    private function interfaceNotImplemented()
-    {
-        return new InterfaceNotImplementedException(
-            sprintf(
-                '%s does not implement %s interface, but should.',
-                $this->presenter->presentValue($this->caller->getWrappedObject()),
-                $this->presenter->presentString('ArrayAccess')
-            ),
-            $this->caller->getWrappedObject(),
-            'ArrayAccess'
-        );
-    }
-
-    /**
-     * @param mixed $subject
-     *
-     * @return SubjectException
-     */
-    private function cantUseAsArray($subject)
-    {
-        return new SubjectException(sprintf(
-            'Can not use %s as array.',
-            $this->presenter->presentValue($subject)
-        ));
     }
 }

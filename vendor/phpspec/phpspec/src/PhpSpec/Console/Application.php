@@ -14,16 +14,16 @@
 namespace PhpSpec\Console;
 
 use PhpSpec\Console\Prompter\Factory;
+use PhpSpec\Extension;
 use PhpSpec\Loader\StreamWrapper;
 use PhpSpec\Process\Context\JsonExecutionContext;
+use PhpSpec\ServiceContainer;
+use RuntimeException;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
-use PhpSpec\ServiceContainer;
-use PhpSpec\Extension;
-use RuntimeException;
 
 /**
  * The command line application entry point
@@ -95,39 +95,6 @@ class Application extends BaseApplication
         StreamWrapper::register();
 
         return parent::doRun($input, $output);
-    }
-
-    /**
-     * Fixes an issue with definitions of the no-interaction option not being
-     * completely shown in some cases
-     */
-    protected function getDefaultInputDefinition()
-    {
-        $description = 'Do not ask any interactive question (disables code generation).';
-
-        $definition = parent::getDefaultInputDefinition();
-        $options = $definition->getOptions();
-
-        if (array_key_exists('no-interaction', $options)) {
-            $option = $options['no-interaction'];
-            $options['no-interaction'] = new InputOption(
-                $option->getName(),
-                $option->getShortcut(),
-                InputOption::VALUE_NONE,
-                $description
-            );
-        }
-
-        $options['config'] = new InputOption(
-            'config',
-            'c',
-            InputOption::VALUE_REQUIRED,
-            'Specify a custom location for the configuration file'
-        );
-
-        $definition->setOptions($options);
-
-        return $definition;
     }
 
     /**
@@ -233,5 +200,38 @@ class Application extends BaseApplication
         }
 
         return $config;
+    }
+
+    /**
+     * Fixes an issue with definitions of the no-interaction option not being
+     * completely shown in some cases
+     */
+    protected function getDefaultInputDefinition()
+    {
+        $description = 'Do not ask any interactive question (disables code generation).';
+
+        $definition = parent::getDefaultInputDefinition();
+        $options = $definition->getOptions();
+
+        if (array_key_exists('no-interaction', $options)) {
+            $option = $options['no-interaction'];
+            $options['no-interaction'] = new InputOption(
+                $option->getName(),
+                $option->getShortcut(),
+                InputOption::VALUE_NONE,
+                $description
+            );
+        }
+
+        $options['config'] = new InputOption(
+            'config',
+            'c',
+            InputOption::VALUE_REQUIRED,
+            'Specify a custom location for the configuration file'
+        );
+
+        $definition->setOptions($options);
+
+        return $definition;
     }
 }

@@ -89,22 +89,6 @@ class Text_Template
     }
 
     /**
-     * Renders the template and returns the result.
-     *
-     * @return string
-     */
-    public function render()
-    {
-        $keys = array();
-
-        foreach ($this->values as $key => $value) {
-            $keys[] = $this->openDelimiter . $key . $this->closeDelimiter;
-        }
-
-        return str_replace($keys, $this->values, $this->template);
-    }
-
-    /**
      * Renders the template and writes the result to a file.
      *
      * @param string $target
@@ -130,6 +114,22 @@ class Text_Template
               )
             );
         }
+    }
+
+    /**
+     * Renders the template and returns the result.
+     *
+     * @return string
+     */
+    public function render()
+    {
+        $keys = array();
+
+        foreach ($this->values as $key => $value) {
+            $keys[] = $this->openDelimiter . $key . $this->closeDelimiter;
+        }
+
+        return str_replace($keys, $this->values, $this->template);
     }
 }
 

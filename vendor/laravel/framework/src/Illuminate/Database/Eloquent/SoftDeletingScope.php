@@ -26,24 +26,6 @@ class SoftDeletingScope implements ScopeInterface
     }
 
     /**
-     * Remove the scope from the given Eloquent query builder.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @return void
-     */
-    public function remove(Builder $builder, Model $model)
-    {
-        $column = $model->getQualifiedDeletedAtColumn();
-
-        $query = $builder->getQuery();
-
-        $query->wheres = collect($query->wheres)->reject(function ($where) use ($column) {
-            return $this->isSoftDeleteConstraint($where, $column);
-        })->values()->all();
-    }
-
-    /**
      * Extend the query builder with the needed functions.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
@@ -123,9 +105,39 @@ class SoftDeletingScope implements ScopeInterface
     }
 
     /**
-     * Add the only-trashed extension to the builder.
+     * Remove the scope from the given Eloquent query builder.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param  \Illuminate\Database\Eloquent\Model $model
+     * @return void
+     */
+    public function remove(Builder $builder, Model $model)
+    {
+        $column = $model->getQualifiedDeletedAtColumn();
+
+        $query = $builder->getQuery();
+
+        $query->wheres = collect($query->wheres)->reject(function ($where) use ($column) {
+            return $this->isSoftDeleteConstraint($where, $column);
+        })->values()->all();
+    }
+
+    /**
+     * Determine if the given where clause is a soft delete constraint.
+     *
+     * @param  array   $where
+     * @param  string  $column
+     * @return bool
+     */
+    protected function isSoftDeleteConstraint(array $where, $column)
+    {
+        return $where['type'] == 'Null' && $where['column'] == $column;
+    }
+
+    /**
+     * Add the only-trashed extension to the builder.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder $builder
      * @return void
      */
     protected function addOnlyTrashed(Builder $builder)
@@ -139,17 +151,5 @@ class SoftDeletingScope implements ScopeInterface
 
             return $builder;
         });
-    }
-
-    /**
-     * Determine if the given where clause is a soft delete constraint.
-     *
-     * @param  array   $where
-     * @param  string  $column
-     * @return bool
-     */
-    protected function isSoftDeleteConstraint(array $where, $column)
-    {
-        return $where['type'] == 'Null' && $where['column'] == $column;
     }
 }

@@ -13,13 +13,13 @@
 
 namespace PhpSpec\Runner\Maintainer;
 
-use PhpSpec\Loader\Node\ExampleNode;
-use PhpSpec\Matcher\MatcherInterface;
-use PhpSpec\SpecificationInterface;
-use PhpSpec\Runner\MatcherManager;
-use PhpSpec\Runner\CollaboratorManager;
 use PhpSpec\Formatter\Presenter\PresenterInterface;
+use PhpSpec\Loader\Node\ExampleNode;
 use PhpSpec\Matcher;
+use PhpSpec\Matcher\MatcherInterface;
+use PhpSpec\Runner\CollaboratorManager;
+use PhpSpec\Runner\MatcherManager;
+use PhpSpec\SpecificationInterface;
 
 class MatchersMaintainer implements MaintainerInterface
 {

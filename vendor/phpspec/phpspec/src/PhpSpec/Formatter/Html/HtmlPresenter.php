@@ -13,9 +13,9 @@
 
 namespace PhpSpec\Formatter\Html;
 
-use PhpSpec\Formatter\Presenter\StringPresenter;
 use Exception;
 use PhpSpec\Exception\Exception as PhpSpecException;
+use PhpSpec\Formatter\Presenter\StringPresenter;
 
 /**
  * @deprecated Use /PhpSpec/Formatter/Presenter/SimplePresenter with an HtmlPhpSpecExceptionPresenter instead

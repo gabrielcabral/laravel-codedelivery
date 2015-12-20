@@ -11,8 +11,8 @@
 
 namespace Prophecy\Doubler;
 
-use Prophecy\Exception\Doubler\DoubleException;
 use Prophecy\Exception\Doubler\ClassNotFoundException;
+use Prophecy\Exception\Doubler\DoubleException;
 use Prophecy\Exception\Doubler\InterfaceNotFoundException;
 use ReflectionClass;
 

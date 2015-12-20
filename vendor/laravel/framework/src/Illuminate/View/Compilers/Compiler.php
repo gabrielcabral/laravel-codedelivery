@@ -34,17 +34,6 @@ abstract class Compiler
     }
 
     /**
-     * Get the path to the compiled version of a view.
-     *
-     * @param  string  $path
-     * @return string
-     */
-    public function getCompiledPath($path)
-    {
-        return $this->cachePath.'/'.md5($path);
-    }
-
-    /**
      * Determine if the view at the given path is expired.
      *
      * @param  string  $path
@@ -64,5 +53,16 @@ abstract class Compiler
         $lastModified = $this->files->lastModified($path);
 
         return $lastModified >= $this->files->lastModified($compiled);
+    }
+
+    /**
+     * Get the path to the compiled version of a view.
+     *
+     * @param  string $path
+     * @return string
+     */
+    public function getCompiledPath($path)
+    {
+        return $this->cachePath . '/' . md5($path);
     }
 }

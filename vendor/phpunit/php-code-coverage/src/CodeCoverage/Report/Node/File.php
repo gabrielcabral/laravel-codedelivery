@@ -124,229 +124,6 @@ class PHP_CodeCoverage_Report_Node_File extends PHP_CodeCoverage_Report_Node
     }
 
     /**
-     * Returns the number of files in/under this node.
-     *
-     * @return int
-     */
-    public function count()
-    {
-        return 1;
-    }
-
-    /**
-     * Returns the code coverage data of this node.
-     *
-     * @return array
-     */
-    public function getCoverageData()
-    {
-        return $this->coverageData;
-    }
-
-    /**
-     * Returns the test data of this node.
-     *
-     * @return array
-     */
-    public function getTestData()
-    {
-        return $this->testData;
-    }
-
-    /**
-     * Returns the classes of this node.
-     *
-     * @return array
-     */
-    public function getClasses()
-    {
-        return $this->classes;
-    }
-
-    /**
-     * Returns the traits of this node.
-     *
-     * @return array
-     */
-    public function getTraits()
-    {
-        return $this->traits;
-    }
-
-    /**
-     * Returns the functions of this node.
-     *
-     * @return array
-     */
-    public function getFunctions()
-    {
-        return $this->functions;
-    }
-
-    /**
-     * Returns the LOC/CLOC/NCLOC of this node.
-     *
-     * @return array
-     */
-    public function getLinesOfCode()
-    {
-        return $this->linesOfCode;
-    }
-
-    /**
-     * Returns the number of executable lines.
-     *
-     * @return int
-     */
-    public function getNumExecutableLines()
-    {
-        return $this->numExecutableLines;
-    }
-
-    /**
-     * Returns the number of executed lines.
-     *
-     * @return int
-     */
-    public function getNumExecutedLines()
-    {
-        return $this->numExecutedLines;
-    }
-
-    /**
-     * Returns the number of classes.
-     *
-     * @return int
-     */
-    public function getNumClasses()
-    {
-        return count($this->classes);
-    }
-
-    /**
-     * Returns the number of tested classes.
-     *
-     * @return int
-     */
-    public function getNumTestedClasses()
-    {
-        return $this->numTestedClasses;
-    }
-
-    /**
-     * Returns the number of traits.
-     *
-     * @return int
-     */
-    public function getNumTraits()
-    {
-        return count($this->traits);
-    }
-
-    /**
-     * Returns the number of tested traits.
-     *
-     * @return int
-     */
-    public function getNumTestedTraits()
-    {
-        return $this->numTestedTraits;
-    }
-
-    /**
-     * Returns the number of methods.
-     *
-     * @return int
-     */
-    public function getNumMethods()
-    {
-        if ($this->numMethods === null) {
-            $this->numMethods = 0;
-
-            foreach ($this->classes as $class) {
-                foreach ($class['methods'] as $method) {
-                    if ($method['executableLines'] > 0) {
-                        $this->numMethods++;
-                    }
-                }
-            }
-
-            foreach ($this->traits as $trait) {
-                foreach ($trait['methods'] as $method) {
-                    if ($method['executableLines'] > 0) {
-                        $this->numMethods++;
-                    }
-                }
-            }
-        }
-
-        return $this->numMethods;
-    }
-
-    /**
-     * Returns the number of tested methods.
-     *
-     * @return int
-     */
-    public function getNumTestedMethods()
-    {
-        if ($this->numTestedMethods === null) {
-            $this->numTestedMethods = 0;
-
-            foreach ($this->classes as $class) {
-                foreach ($class['methods'] as $method) {
-                    if ($method['executableLines'] > 0 &&
-                        $method['coverage'] == 100) {
-                        $this->numTestedMethods++;
-                    }
-                }
-            }
-
-            foreach ($this->traits as $trait) {
-                foreach ($trait['methods'] as $method) {
-                    if ($method['executableLines'] > 0 &&
-                        $method['coverage'] == 100) {
-                        $this->numTestedMethods++;
-                    }
-                }
-            }
-        }
-
-        return $this->numTestedMethods;
-    }
-
-    /**
-     * Returns the number of functions.
-     *
-     * @return int
-     */
-    public function getNumFunctions()
-    {
-        return count($this->functions);
-    }
-
-    /**
-     * Returns the number of tested functions.
-     *
-     * @return int
-     */
-    public function getNumTestedFunctions()
-    {
-        if ($this->numTestedFunctions === null) {
-            $this->numTestedFunctions = 0;
-
-            foreach ($this->functions as $function) {
-                if ($function['executableLines'] > 0 &&
-                    $function['coverage'] == 100) {
-                    $this->numTestedFunctions++;
-                }
-            }
-        }
-
-        return $this->numTestedFunctions;
-    }
-
-    /**
      * Calculates coverage statistics for the file.
      */
     protected function calculateStatistics()
@@ -675,5 +452,231 @@ class PHP_CodeCoverage_Report_Node_File extends PHP_CodeCoverage_Report_Node
             '%01.2F',
             pow($ccn, 2) * pow(1 - $coverage/100, 3) + $ccn
         );
+    }
+
+    /**
+     * Returns the number of files in/under this node.
+     *
+     * @return int
+     */
+    public function count()
+    {
+        return 1;
+    }
+
+    /**
+     * Returns the code coverage data of this node.
+     *
+     * @return array
+     */
+    public function getCoverageData()
+    {
+        return $this->coverageData;
+    }
+
+    /**
+     * Returns the test data of this node.
+     *
+     * @return array
+     */
+    public function getTestData()
+    {
+        return $this->testData;
+    }
+
+    /**
+     * Returns the classes of this node.
+     *
+     * @return array
+     */
+    public function getClasses()
+    {
+        return $this->classes;
+    }
+
+    /**
+     * Returns the traits of this node.
+     *
+     * @return array
+     */
+    public function getTraits()
+    {
+        return $this->traits;
+    }
+
+    /**
+     * Returns the functions of this node.
+     *
+     * @return array
+     */
+    public function getFunctions()
+    {
+        return $this->functions;
+    }
+
+    /**
+     * Returns the LOC/CLOC/NCLOC of this node.
+     *
+     * @return array
+     */
+    public function getLinesOfCode()
+    {
+        return $this->linesOfCode;
+    }
+
+    /**
+     * Returns the number of executable lines.
+     *
+     * @return int
+     */
+    public function getNumExecutableLines()
+    {
+        return $this->numExecutableLines;
+    }
+
+    /**
+     * Returns the number of executed lines.
+     *
+     * @return int
+     */
+    public function getNumExecutedLines()
+    {
+        return $this->numExecutedLines;
+    }
+
+    /**
+     * Returns the number of classes.
+     *
+     * @return int
+     */
+    public function getNumClasses()
+    {
+        return count($this->classes);
+    }
+
+    /**
+     * Returns the number of tested classes.
+     *
+     * @return int
+     */
+    public function getNumTestedClasses()
+    {
+        return $this->numTestedClasses;
+    }
+
+    /**
+     * Returns the number of traits.
+     *
+     * @return int
+     */
+    public function getNumTraits()
+    {
+        return count($this->traits);
+    }
+
+    /**
+     * Returns the number of tested traits.
+     *
+     * @return int
+     */
+    public function getNumTestedTraits()
+    {
+        return $this->numTestedTraits;
+    }
+
+    /**
+     * Returns the number of methods.
+     *
+     * @return int
+     */
+    public function getNumMethods()
+    {
+        if ($this->numMethods === null) {
+            $this->numMethods = 0;
+
+            foreach ($this->classes as $class) {
+                foreach ($class['methods'] as $method) {
+                    if ($method['executableLines'] > 0) {
+                        $this->numMethods++;
+                    }
+                }
+            }
+
+            foreach ($this->traits as $trait) {
+                foreach ($trait['methods'] as $method) {
+                    if ($method['executableLines'] > 0) {
+                        $this->numMethods++;
+                    }
+                }
+            }
+        }
+
+        return $this->numMethods;
+    }
+
+    /**
+     * Returns the number of tested methods.
+     *
+     * @return int
+     */
+    public function getNumTestedMethods()
+    {
+        if ($this->numTestedMethods === null) {
+            $this->numTestedMethods = 0;
+
+            foreach ($this->classes as $class) {
+                foreach ($class['methods'] as $method) {
+                    if ($method['executableLines'] > 0 &&
+                        $method['coverage'] == 100
+                    ) {
+                        $this->numTestedMethods++;
+                    }
+                }
+            }
+
+            foreach ($this->traits as $trait) {
+                foreach ($trait['methods'] as $method) {
+                    if ($method['executableLines'] > 0 &&
+                        $method['coverage'] == 100
+                    ) {
+                        $this->numTestedMethods++;
+                    }
+                }
+            }
+        }
+
+        return $this->numTestedMethods;
+    }
+
+    /**
+     * Returns the number of functions.
+     *
+     * @return int
+     */
+    public function getNumFunctions()
+    {
+        return count($this->functions);
+    }
+
+    /**
+     * Returns the number of tested functions.
+     *
+     * @return int
+     */
+    public function getNumTestedFunctions()
+    {
+        if ($this->numTestedFunctions === null) {
+            $this->numTestedFunctions = 0;
+
+            foreach ($this->functions as $function) {
+                if ($function['executableLines'] > 0 &&
+                    $function['coverage'] == 100
+                ) {
+                    $this->numTestedFunctions++;
+                }
+            }
+        }
+
+        return $this->numTestedFunctions;
     }
 }

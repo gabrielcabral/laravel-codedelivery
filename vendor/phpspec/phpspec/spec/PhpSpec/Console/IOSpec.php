@@ -2,12 +2,10 @@
 
 namespace spec\PhpSpec\Console;
 
+use PhpSpec\Config\OptionsConfig;
 use PhpSpec\Console\Prompter;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use PhpSpec\Config\OptionsConfig;
-
-use Symfony\Component\Console\Helper\DialogHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 

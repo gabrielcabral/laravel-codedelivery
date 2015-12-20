@@ -12,8 +12,8 @@
 namespace Prophecy\Prediction;
 
 use Prophecy\Call\Call;
-use Prophecy\Prophecy\ObjectProphecy;
 use Prophecy\Prophecy\MethodProphecy;
+use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Prediction interface.

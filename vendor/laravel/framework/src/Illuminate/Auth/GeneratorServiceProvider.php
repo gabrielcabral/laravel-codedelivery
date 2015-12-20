@@ -2,8 +2,8 @@
 
 namespace Illuminate\Auth;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Auth\Console\ClearResetsCommand;
+use Illuminate\Support\ServiceProvider;
 
 class GeneratorServiceProvider extends ServiceProvider
 {
@@ -40,18 +40,6 @@ class GeneratorServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register the command.
-     *
-     * @return void
-     */
-    protected function registerClearResetsCommand()
-    {
-        $this->app->singleton('command.auth.resets.clear', function () {
-            return new ClearResetsCommand;
-        });
-    }
-
-    /**
      * Get the services provided by the provider.
      *
      * @return array
@@ -61,5 +49,17 @@ class GeneratorServiceProvider extends ServiceProvider
         return [
             'command.auth.resets.clear',
         ];
+    }
+
+    /**
+     * Register the command.
+     *
+     * @return void
+     */
+    protected function registerClearResetsCommand()
+    {
+        $this->app->singleton('command.auth.resets.clear', function () {
+            return new ClearResetsCommand;
+        });
     }
 }

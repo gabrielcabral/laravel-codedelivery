@@ -66,6 +66,37 @@ class Restorer
     }
 
     /**
+     * Restores a super-global variable array from this snapshot.
+     *
+     * @param Snapshot $snapshot
+     * @param $superGlobalArray
+     */
+    private function restoreSuperGlobalArray(Snapshot $snapshot, $superGlobalArray)
+    {
+        $superGlobalVariables = $snapshot->superGlobalVariables();
+
+        if (isset($GLOBALS[$superGlobalArray]) &&
+            is_array($GLOBALS[$superGlobalArray]) &&
+            isset($superGlobalVariables[$superGlobalArray])
+        ) {
+            $keys = array_keys(
+                array_merge(
+                    $GLOBALS[$superGlobalArray],
+                    $superGlobalVariables[$superGlobalArray]
+                )
+            );
+
+            foreach ($keys as $key) {
+                if (isset($superGlobalVariables[$superGlobalArray][$key])) {
+                    $GLOBALS[$superGlobalArray][$key] = $superGlobalVariables[$superGlobalArray][$key];
+                } else {
+                    unset($GLOBALS[$superGlobalArray][$key]);
+                }
+            }
+        }
+    }
+
+    /**
      * Restores all static attributes in user-defined classes from this snapshot.
      *
      * @param Snapshot $snapshot
@@ -105,36 +136,6 @@ class Restorer
 
                 $attribute->setAccessible(true);
                 $attribute->setValue($defaults[$name]);
-            }
-        }
-    }
-
-    /**
-     * Restores a super-global variable array from this snapshot.
-     *
-     * @param Snapshot $snapshot
-     * @param $superGlobalArray
-     */
-    private function restoreSuperGlobalArray(Snapshot $snapshot, $superGlobalArray)
-    {
-        $superGlobalVariables = $snapshot->superGlobalVariables();
-
-        if (isset($GLOBALS[$superGlobalArray]) &&
-            is_array($GLOBALS[$superGlobalArray]) &&
-            isset($superGlobalVariables[$superGlobalArray])) {
-            $keys = array_keys(
-                array_merge(
-                    $GLOBALS[$superGlobalArray],
-                    $superGlobalVariables[$superGlobalArray]
-                )
-            );
-
-            foreach ($keys as $key) {
-                if (isset($superGlobalVariables[$superGlobalArray][$key])) {
-                    $GLOBALS[$superGlobalArray][$key] = $superGlobalVariables[$superGlobalArray][$key];
-                } else {
-                    unset($GLOBALS[$superGlobalArray][$key]);
-                }
             }
         }
     }

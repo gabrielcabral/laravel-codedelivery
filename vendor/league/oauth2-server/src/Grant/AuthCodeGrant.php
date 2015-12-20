@@ -91,17 +91,6 @@ class AuthCodeGrant extends AbstractGrant
     }
 
     /**
-     * True if client secret is required during
-     * access token request. False if it isn't.
-     *
-     * @return bool
-     */
-    public function shouldRequireClientSecret()
-    {
-        return $this->requireClientSecret;
-    }
-
-    /**
      * Check authorize parameters
      *
      * @return array Authorize request parameters
@@ -299,5 +288,16 @@ class AuthCodeGrant extends AbstractGrant
         }
 
         return $this->server->getTokenType()->generateResponse();
+    }
+
+    /**
+     * True if client secret is required during
+     * access token request. False if it isn't.
+     *
+     * @return bool
+     */
+    public function shouldRequireClientSecret()
+    {
+        return $this->requireClientSecret;
     }
 }

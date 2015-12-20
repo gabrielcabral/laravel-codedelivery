@@ -45,26 +45,6 @@ class GlobalVariableEnumerator extends Enumerator
     }
 
     /**
-     * Get defined global variables.
-     *
-     * @return array
-     */
-    protected function getGlobals()
-    {
-        global $GLOBALS;
-
-        $names = array_keys($GLOBALS);
-        natcasesort($names);
-
-        $ret = array();
-        foreach ($names as $name) {
-            $ret[$name] = $GLOBALS[$name];
-        }
-
-        return $ret;
-    }
-
-    /**
      * Prepare formatted global variable array.
      *
      * @param array $globals
@@ -85,6 +65,26 @@ class GlobalVariableEnumerator extends Enumerator
                     'value' => $this->presentRef($value),
                 );
             }
+        }
+
+        return $ret;
+    }
+
+    /**
+     * Get defined global variables.
+     *
+     * @return array
+     */
+    protected function getGlobals()
+    {
+        global $GLOBALS;
+
+        $names = array_keys($GLOBALS);
+        natcasesort($names);
+
+        $ret = array();
+        foreach ($names as $name) {
+            $ret[$name] = $GLOBALS[$name];
         }
 
         return $ret;

@@ -16,6 +16,10 @@ use Prophecy\Doubler\DoubleInterface;
 use Prophecy\Exception\Doubler\MethodNotFoundException;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 
+interface ExampleInterface
+{
+}
+
 class CollaboratorMethodNotFoundListenerSpec extends ObjectBehavior
 {
     function let(
@@ -154,8 +158,6 @@ class CollaboratorMethodNotFoundListenerSpec extends ObjectBehavior
         $suiteEvent->markAsWorthRerunning()->shouldHaveBeenCalled();
     }
 }
-
-interface ExampleInterface {}
 
 class DoubleOfInterface extends \stdClass implements ExampleInterface, DoubleInterface {}
 

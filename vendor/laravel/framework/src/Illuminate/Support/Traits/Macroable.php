@@ -2,8 +2,8 @@
 
 namespace Illuminate\Support\Traits;
 
-use Closure;
 use BadMethodCallException;
+use Closure;
 
 trait Macroable
 {
@@ -27,17 +27,6 @@ trait Macroable
     }
 
     /**
-     * Checks if macro is registered.
-     *
-     * @param  string  $name
-     * @return bool
-     */
-    public static function hasMacro($name)
-    {
-        return isset(static::$macros[$name]);
-    }
-
-    /**
      * Dynamically handle calls to the class.
      *
      * @param  string  $method
@@ -57,6 +46,17 @@ trait Macroable
         }
 
         throw new BadMethodCallException("Method {$method} does not exist.");
+    }
+
+    /**
+     * Checks if macro is registered.
+     *
+     * @param  string $name
+     * @return bool
+     */
+    public static function hasMacro($name)
+    {
+        return isset(static::$macros[$name]);
     }
 
     /**

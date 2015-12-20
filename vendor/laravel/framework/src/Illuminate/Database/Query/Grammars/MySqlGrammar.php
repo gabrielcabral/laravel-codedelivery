@@ -43,35 +43,6 @@ class MySqlGrammar extends Grammar
     }
 
     /**
-     * Compile a single union statement.
-     *
-     * @param  array  $union
-     * @return string
-     */
-    protected function compileUnion(array $union)
-    {
-        $joiner = $union['all'] ? ' union all ' : ' union ';
-
-        return $joiner.'('.$union['query']->toSql().')';
-    }
-
-    /**
-     * Compile the lock into SQL.
-     *
-     * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  bool|string  $value
-     * @return string
-     */
-    protected function compileLock(Builder $query, $value)
-    {
-        if (is_string($value)) {
-            return $value;
-        }
-
-        return $value ? 'for update' : 'lock in share mode';
-    }
-
-    /**
      * Compile an update statement into SQL.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
@@ -122,6 +93,35 @@ class MySqlGrammar extends Grammar
         }
 
         return $sql;
+    }
+
+    /**
+     * Compile a single union statement.
+     *
+     * @param  array $union
+     * @return string
+     */
+    protected function compileUnion(array $union)
+    {
+        $joiner = $union['all'] ? ' union all ' : ' union ';
+
+        return $joiner . '(' . $union['query']->toSql() . ')';
+    }
+
+    /**
+     * Compile the lock into SQL.
+     *
+     * @param  \Illuminate\Database\Query\Builder $query
+     * @param  bool|string $value
+     * @return string
+     */
+    protected function compileLock(Builder $query, $value)
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+
+        return $value ? 'for update' : 'lock in share mode';
     }
 
     /**

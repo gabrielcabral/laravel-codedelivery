@@ -52,36 +52,6 @@ class CommandsMatcher extends AbstractMatcher
     }
 
     /**
-     * Check whether a command $name is defined.
-     *
-     * @param string $name
-     *
-     * @return bool
-     */
-    protected function isCommand($name)
-    {
-        return in_array($name, $this->commands);
-    }
-
-    /**
-     * Check whether input matches a defined command.
-     *
-     * @param string $name
-     *
-     * @return bool
-     */
-    protected function matchCommand($name)
-    {
-        foreach ($this->commands as $cmd) {
-            if ($this->startsWith($name, $cmd)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function getMatches(array $tokens, array $info = array())
@@ -107,6 +77,36 @@ class CommandsMatcher extends AbstractMatcher
                 $this->matchCommand($command[1]) &&
                 empty($tokens):
                 return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check whether a command $name is defined.
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    protected function isCommand($name)
+    {
+        return in_array($name, $this->commands);
+    }
+
+    /**
+     * Check whether input matches a defined command.
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    protected function matchCommand($name)
+    {
+        foreach ($this->commands as $cmd) {
+            if ($this->startsWith($name, $cmd)) {
+                return true;
+            }
         }
 
         return false;

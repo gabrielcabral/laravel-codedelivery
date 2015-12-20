@@ -36,32 +36,6 @@ abstract class BasicMatcher implements MatcherInterface
     }
 
     /**
-     * @param string $name
-     * @param mixed  $subject
-     * @param array  $arguments
-     *
-     * @return mixed
-     *
-     * @throws FailureException
-     */
-    final public function negativeMatch($name, $subject, array $arguments)
-    {
-        if (true === $this->matches($subject, $arguments)) {
-            throw $this->getNegativeFailureException($name, $subject, $arguments);
-        }
-
-        return $subject;
-    }
-
-    /**
-     * @return int
-     */
-    public function getPriority()
-    {
-        return 100;
-    }
-
-    /**
      * @param mixed $subject
      * @param array $arguments
      *
@@ -80,10 +54,36 @@ abstract class BasicMatcher implements MatcherInterface
 
     /**
      * @param string $name
+     * @param mixed $subject
+     * @param array $arguments
+     *
+     * @return mixed
+     *
+     * @throws FailureException
+     */
+    final public function negativeMatch($name, $subject, array $arguments)
+    {
+        if (true === $this->matches($subject, $arguments)) {
+            throw $this->getNegativeFailureException($name, $subject, $arguments);
+        }
+
+        return $subject;
+    }
+
+    /**
+     * @param string $name
      * @param mixed  $subject
      * @param array  $arguments
      *
      * @return FailureException
      */
     abstract protected function getNegativeFailureException($name, $subject, array $arguments);
+
+    /**
+     * @return int
+     */
+    public function getPriority()
+    {
+        return 100;
+    }
 }

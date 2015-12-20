@@ -13,10 +13,10 @@
 
 namespace PhpSpec\Console;
 
+use PhpSpec\Config\OptionsConfig;
 use PhpSpec\IO\IOInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use PhpSpec\Config\OptionsConfig;
 
 /**
  * Class IO deals with input and output from command line interaction
@@ -83,14 +83,6 @@ class IO implements IOInterface
     /**
      * @return bool
      */
-    public function isInteractive()
-    {
-        return $this->input->isInteractive();
-    }
-
-    /**
-     * @return bool
-     */
     public function isDecorated()
     {
         return $this->output->isDecorated();
@@ -107,6 +99,14 @@ class IO implements IOInterface
 
         return $this->config->isCodeGenerationEnabled()
             && !$this->input->getOption('no-code-generation');
+    }
+
+    /**
+     * @return bool
+     */
+    public function isInteractive()
+    {
+        return $this->input->isInteractive();
     }
 
     /**
@@ -146,39 +146,6 @@ class IO implements IOInterface
     /**
      * @param string       $message
      * @param integer|null $indent
-     */
-    public function writeTemp($message, $indent = null)
-    {
-        $this->write($message, $indent);
-        $this->hasTempString = true;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function cutTemp()
-    {
-        if (false === $this->hasTempString) {
-            return;
-        }
-
-        $message = $this->lastMessage;
-        $this->write('');
-
-        return $message;
-    }
-
-    /**
-     *
-     */
-    public function freezeTemp()
-    {
-        $this->write($this->lastMessage);
-    }
-
-    /**
-     * @param string       $message
-     * @param integer|null $indent
      * @param bool         $newline
      */
     public function write($message, $indent = null, $newline = false)
@@ -196,15 +163,6 @@ class IO implements IOInterface
 
         $this->output->write($message, $newline);
         $this->lastMessage = $message.($newline ? "\n" : '');
-    }
-
-    /**
-     * @param string       $message
-     * @param integer|null $indent
-     */
-    public function overwriteln($message = '', $indent = null)
-    {
-        $this->overwrite($message, $indent, true);
     }
 
     /**
@@ -244,6 +202,22 @@ class IO implements IOInterface
         $this->lastMessage = $message.($newline ? "\n" : '');
     }
 
+    /**
+     * @param string $text
+     * @param integer $indent
+     *
+     * @return string
+     */
+    private function indentText($text, $indent)
+    {
+        return implode("\n", array_map(
+            function ($line) use ($indent) {
+                return str_repeat(' ', $indent) . $line;
+            },
+            explode("\n", $text)
+        ));
+    }
+
     private function getCommonPrefix($stringA, $stringB)
     {
         for ($i = 0, $len = min(strlen($stringA), strlen($stringB)); $i<$len; $i++) {
@@ -259,6 +233,48 @@ class IO implements IOInterface
         }
 
         return $common;
+    }
+
+    /**
+     * @param string $message
+     * @param integer|null $indent
+     */
+    public function writeTemp($message, $indent = null)
+    {
+        $this->write($message, $indent);
+        $this->hasTempString = true;
+    }
+
+    /**
+     * @return null|string
+     */
+    public function cutTemp()
+    {
+        if (false === $this->hasTempString) {
+            return;
+        }
+
+        $message = $this->lastMessage;
+        $this->write('');
+
+        return $message;
+    }
+
+    /**
+     *
+     */
+    public function freezeTemp()
+    {
+        $this->write($this->lastMessage);
+    }
+
+    /**
+     * @param string $message
+     * @param integer|null $indent
+     */
+    public function overwriteln($message = '', $indent = null)
+    {
+        $this->overwrite($message, $indent, true);
     }
 
     /**
@@ -283,19 +299,18 @@ class IO implements IOInterface
     }
 
     /**
-     * @param string  $text
-     * @param integer $indent
-     *
-     * @return string
+     * @return integer
      */
-    private function indentText($text, $indent)
+    public function getBlockWidth()
     {
-        return implode("\n", array_map(
-            function ($line) use ($indent) {
-                return str_repeat(' ', $indent).$line;
-            },
-            explode("\n", $text)
-        ));
+        $width = self::COL_DEFAULT_WIDTH;
+        if ($this->consoleWidth && ($this->consoleWidth - 10) > self::COL_MIN_WIDTH) {
+            $width = $this->consoleWidth - 10;
+        }
+        if ($width > self::COL_MAX_WIDTH) {
+            $width = self::COL_MAX_WIDTH;
+        }
+        return $width;
     }
 
     public function isRerunEnabled()
@@ -326,20 +341,5 @@ class IO implements IOInterface
     public function setConsoleWidth($width)
     {
         $this->consoleWidth = $width;
-    }
-
-    /**
-     * @return integer
-     */
-    public function getBlockWidth()
-    {
-        $width = self::COL_DEFAULT_WIDTH;
-        if ($this->consoleWidth && ($this->consoleWidth - 10) > self::COL_MIN_WIDTH) {
-            $width = $this->consoleWidth - 10;
-        }
-        if ($width > self::COL_MAX_WIDTH) {
-            $width = self::COL_MAX_WIDTH;
-        }
-        return $width;
     }
 }

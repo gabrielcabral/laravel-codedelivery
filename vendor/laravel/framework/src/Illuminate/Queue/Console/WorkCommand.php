@@ -2,11 +2,11 @@
 
 namespace Illuminate\Queue\Console;
 
-use Illuminate\Queue\Worker;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Queue\Job;
-use Symfony\Component\Console\Input\InputOption;
+use Illuminate\Queue\Worker;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 
 class WorkCommand extends Command
 {
@@ -79,6 +79,20 @@ class WorkCommand extends Command
     }
 
     /**
+     * Determine if the worker should run in maintenance mode.
+     *
+     * @return bool
+     */
+    protected function downForMaintenance()
+    {
+        if ($this->option('force')) {
+            return false;
+        }
+
+        return $this->laravel->isDownForMaintenance();
+    }
+
+    /**
      * Run the worker instance.
      *
      * @param  string  $connection
@@ -123,20 +137,6 @@ class WorkCommand extends Command
         } else {
             $this->output->writeln('<info>Processed:</info> '.$job->getName());
         }
-    }
-
-    /**
-     * Determine if the worker should run in maintenance mode.
-     *
-     * @return bool
-     */
-    protected function downForMaintenance()
-    {
-        if ($this->option('force')) {
-            return false;
-        }
-
-        return $this->laravel->isDownForMaintenance();
     }
 
     /**

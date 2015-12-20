@@ -16,11 +16,6 @@ class StringContains extends SubstringMatcher
         parent::__construct($substring);
     }
 
-    public function ignoringCase()
-    {
-        return new StringContainsIgnoringCase($this->_substring);
-    }
-
     /**
      * Matches if value is a string that contains $substring.
      *
@@ -29,6 +24,11 @@ class StringContains extends SubstringMatcher
     public static function containsString($substring)
     {
         return new self($substring);
+    }
+
+    public function ignoringCase()
+    {
+        return new StringContainsIgnoringCase($this->_substring);
     }
 
     // -- Protected Methods

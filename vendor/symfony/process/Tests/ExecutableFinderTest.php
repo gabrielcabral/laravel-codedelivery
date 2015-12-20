@@ -20,20 +20,6 @@ class ExecutableFinderTest extends \PHPUnit_Framework_TestCase
 {
     private $path;
 
-    protected function tearDown()
-    {
-        if ($this->path) {
-            // Restore path if it was changed.
-            putenv('PATH='.$this->path);
-        }
-    }
-
-    private function setPath($path)
-    {
-        $this->path = getenv('PATH');
-        putenv('PATH='.$path);
-    }
-
     /**
      * @requires PHP 5.4
      */
@@ -49,6 +35,26 @@ class ExecutableFinderTest extends \PHPUnit_Framework_TestCase
         $result = $finder->find($this->getPhpBinaryName());
 
         $this->assertSamePath(PHP_BINARY, $result);
+    }
+
+    private function setPath($path)
+    {
+        $this->path = getenv('PATH');
+        putenv('PATH=' . $path);
+    }
+
+    private function getPhpBinaryName()
+    {
+        return basename(PHP_BINARY, '\\' === DIRECTORY_SEPARATOR ? '.exe' : '');
+    }
+
+    private function assertSamePath($expected, $tested)
+    {
+        if ('\\' === DIRECTORY_SEPARATOR) {
+            $this->assertEquals(strtolower($expected), strtolower($tested));
+        } else {
+            $this->assertEquals($expected, $tested);
+        }
     }
 
     public function testFindWithDefault()
@@ -128,17 +134,11 @@ class ExecutableFinderTest extends \PHPUnit_Framework_TestCase
         $this->assertSamePath(PHP_BINARY, $result);
     }
 
-    private function assertSamePath($expected, $tested)
+    protected function tearDown()
     {
-        if ('\\' === DIRECTORY_SEPARATOR) {
-            $this->assertEquals(strtolower($expected), strtolower($tested));
-        } else {
-            $this->assertEquals($expected, $tested);
+        if ($this->path) {
+            // Restore path if it was changed.
+            putenv('PATH=' . $this->path);
         }
-    }
-
-    private function getPhpBinaryName()
-    {
-        return basename(PHP_BINARY, '\\' === DIRECTORY_SEPARATOR ? '.exe' : '');
     }
 }

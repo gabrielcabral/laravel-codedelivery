@@ -57,6 +57,16 @@ class RedisStore extends TaggableStore implements Store
     }
 
     /**
+     * Get the Redis connection instance.
+     *
+     * @return \Predis\ClientInterface
+     */
+    public function connection()
+    {
+        return $this->redis->connection($this->connection);
+    }
+
+    /**
      * Store an item in the cache for a given number of minutes.
      *
      * @param  string  $key
@@ -141,16 +151,6 @@ class RedisStore extends TaggableStore implements Store
     public function tags($names)
     {
         return new RedisTaggedCache($this, new TagSet($this, is_array($names) ? $names : func_get_args()));
-    }
-
-    /**
-     * Get the Redis connection instance.
-     *
-     * @return \Predis\ClientInterface
-     */
-    public function connection()
-    {
-        return $this->redis->connection($this->connection);
     }
 
     /**

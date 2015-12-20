@@ -2,8 +2,8 @@
 
 namespace Illuminate\Encryption;
 
-use Illuminate\Support\Str;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Str;
 
 abstract class BaseEncrypter
 {
@@ -13,18 +13,6 @@ abstract class BaseEncrypter
      * @var string
      */
     protected $key;
-
-    /**
-     * Create a MAC for the given value.
-     *
-     * @param  string  $iv
-     * @param  string  $value
-     * @return string
-     */
-    protected function hash($iv, $value)
-    {
-        return hash_hmac('sha256', $iv.$value, $this->key);
-    }
 
     /**
      * Get the JSON array from the given payload.
@@ -78,5 +66,17 @@ abstract class BaseEncrypter
         $calcMac = hash_hmac('sha256', $this->hash($payload['iv'], $payload['value']), $bytes, true);
 
         return Str::equals(hash_hmac('sha256', $payload['mac'], $bytes, true), $calcMac);
+    }
+
+    /**
+     * Create a MAC for the given value.
+     *
+     * @param  string $iv
+     * @param  string $value
+     * @return string
+     */
+    protected function hash($iv, $value)
+    {
+        return hash_hmac('sha256', $iv . $value, $this->key);
     }
 }

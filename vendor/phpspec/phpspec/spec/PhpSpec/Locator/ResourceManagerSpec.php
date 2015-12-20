@@ -2,10 +2,9 @@
 
 namespace spec\PhpSpec\Locator;
 
-use PhpSpec\ObjectBehavior;
-
-use PhpSpec\Locator\ResourceLocatorInterface;
 use PhpSpec\Locator\ResourceInterface;
+use PhpSpec\Locator\ResourceLocatorInterface;
+use PhpSpec\ObjectBehavior;
 
 class ResourceManagerSpec extends ObjectBehavior
 {

@@ -36,6 +36,21 @@ class FinderTest extends Iterator\RealIteratorTestCase
         $this->assertIterator($this->toAbsolute(array('foo', 'toto')), $finder->in(self::$tmpDir)->getIterator());
     }
 
+    private function buildFinder()
+    {
+        return Finder::create()
+            ->removeAdapters()
+            ->addAdapter($this->getAdapter());
+    }
+
+    /**
+     * @return AdapterInterface
+     */
+    protected function getAdapter()
+    {
+        return new PhpAdapter();
+    }
+
     public function testFiles()
     {
         $finder = $this->buildFinder();
@@ -723,20 +738,5 @@ class FinderTest extends Iterator\RealIteratorTestCase
         if ($couldRead) {
             $this->markTestSkipped('could read test files while test requires unreadable');
         }
-    }
-
-    /**
-     * @return AdapterInterface
-     */
-    protected function getAdapter()
-    {
-        return new PhpAdapter();
-    }
-
-    private function buildFinder()
-    {
-        return Finder::create()
-            ->removeAdapters()
-            ->addAdapter($this->getAdapter());
     }
 }

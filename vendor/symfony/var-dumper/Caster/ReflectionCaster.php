@@ -74,35 +74,6 @@ class ReflectionCaster
         return $a;
     }
 
-    public static function castClass(\ReflectionClass $c, array $a, Stub $stub, $isNested, $filter = 0)
-    {
-        $prefix = Caster::PREFIX_VIRTUAL;
-
-        if ($n = \Reflection::getModifierNames($c->getModifiers())) {
-            $a[$prefix.'modifiers'] = implode(' ', $n);
-        }
-
-        self::addMap($a, $c, array(
-            'extends' => 'getParentClass',
-            'implements' => 'getInterfaceNames',
-            'constants' => 'getConstants',
-        ));
-
-        foreach ($c->getProperties() as $n) {
-            $a[$prefix.'properties'][$n->name] = $n;
-        }
-
-        foreach ($c->getMethods() as $n) {
-            $a[$prefix.'methods'][$n->name] = $n;
-        }
-
-        if (!($filter & Caster::EXCLUDE_VERBOSE) && !$isNested) {
-            self::addExtra($a, $c);
-        }
-
-        return $a;
-    }
-
     public static function castFunctionAbstract(\ReflectionFunctionAbstract $c, array $a, Stub $stub, $isNested, $filter = 0)
     {
         $prefix = Caster::PREFIX_VIRTUAL;
@@ -146,11 +117,25 @@ class ReflectionCaster
         return $a;
     }
 
-    public static function castMethod(\ReflectionMethod $c, array $a, Stub $stub, $isNested)
+    private static function addMap(&$a, \Reflector $c, $map, $prefix = Caster::PREFIX_VIRTUAL)
     {
-        $a[Caster::PREFIX_VIRTUAL.'modifiers'] = implode(' ', \Reflection::getModifierNames($c->getModifiers()));
+        foreach ($map as $k => $m) {
+            if (method_exists($c, $m) && false !== ($m = $c->$m()) && null !== $m) {
+                $a[$prefix . $k] = $m instanceof \Reflector ? $m->name : $m;
+            }
+        }
+    }
 
-        return $a;
+    private static function addExtra(&$a, \Reflector $c)
+    {
+        $a = &$a[Caster::PREFIX_VIRTUAL . 'extra'];
+
+        if (method_exists($c, 'getFileName') && $m = $c->getFileName()) {
+            $a['file'] = $m;
+            $a['line'] = $c->getStartLine() . ' to ' . $c->getEndLine();
+        }
+
+        self::addMap($a, $c, self::$extraMap, '');
     }
 
     public static function castParameter(\ReflectionParameter $c, array $a, Stub $stub, $isNested)
@@ -198,6 +183,42 @@ class ReflectionCaster
         return $a;
     }
 
+    public static function castClass(\ReflectionClass $c, array $a, Stub $stub, $isNested, $filter = 0)
+    {
+        $prefix = Caster::PREFIX_VIRTUAL;
+
+        if ($n = \Reflection::getModifierNames($c->getModifiers())) {
+            $a[$prefix . 'modifiers'] = implode(' ', $n);
+        }
+
+        self::addMap($a, $c, array(
+            'extends' => 'getParentClass',
+            'implements' => 'getInterfaceNames',
+            'constants' => 'getConstants',
+        ));
+
+        foreach ($c->getProperties() as $n) {
+            $a[$prefix . 'properties'][$n->name] = $n;
+        }
+
+        foreach ($c->getMethods() as $n) {
+            $a[$prefix . 'methods'][$n->name] = $n;
+        }
+
+        if (!($filter & Caster::EXCLUDE_VERBOSE) && !$isNested) {
+            self::addExtra($a, $c);
+        }
+
+        return $a;
+    }
+
+    public static function castMethod(\ReflectionMethod $c, array $a, Stub $stub, $isNested)
+    {
+        $a[Caster::PREFIX_VIRTUAL . 'modifiers'] = implode(' ', \Reflection::getModifierNames($c->getModifiers()));
+
+        return $a;
+    }
+
     public static function castProperty(\ReflectionProperty $c, array $a, Stub $stub, $isNested)
     {
         $a[Caster::PREFIX_VIRTUAL.'modifiers'] = implode(' ', \Reflection::getModifierNames($c->getModifiers()));
@@ -232,26 +253,5 @@ class ReflectionCaster
         ));
 
         return $a;
-    }
-
-    private static function addExtra(&$a, \Reflector $c)
-    {
-        $a = &$a[Caster::PREFIX_VIRTUAL.'extra'];
-
-        if (method_exists($c, 'getFileName') && $m = $c->getFileName()) {
-            $a['file'] = $m;
-            $a['line'] = $c->getStartLine().' to '.$c->getEndLine();
-        }
-
-        self::addMap($a, $c, self::$extraMap, '');
-    }
-
-    private static function addMap(&$a, \Reflector $c, $map, $prefix = Caster::PREFIX_VIRTUAL)
-    {
-        foreach ($map as $k => $m) {
-            if (method_exists($c, $m) && false !== ($m = $c->$m()) && null !== $m) {
-                $a[$prefix.$k] = $m instanceof \Reflector ? $m->name : $m;
-            }
-        }
     }
 }

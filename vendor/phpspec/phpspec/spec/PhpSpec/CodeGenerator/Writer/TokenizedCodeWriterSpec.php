@@ -17,51 +17,6 @@ class TokenizedCodeWriterSpec extends ObjectBehavior
         $this->insertMethodLastInClass($class, $method)->shouldReturn($result);
     }
 
-    function it_should_write_the_content_before_the_first_method()
-    {
-        $class = $this->getSingleMethodClass();
-        $method = $this->getMethod();
-        $result = $this->getClassWithNewMethodFirst();
-
-        $this->insertMethodFirstInClass($class, $method)->shouldReturn($result);
-    }
-
-    function it_should_write_a_method_after_another_method()
-    {
-        $class = $this->getClassWithTwoMethods();
-        $method = $this->getMethod();
-        $result = $this->getClassWithNewMethodInMiddle();
-
-        $this->insertAfterMethod($class, 'methodOne', $method)->shouldReturn($result);
-    }
-
-    function it_should_handle_no_methods_when_writing_method_at_end()
-    {
-        $class = $this->getClassWithNoMethods();
-        $method = $this->getMethod();
-        $result = $this->getClassWithOnlyNewMethod();
-
-        $this->insertMethodLastInClass($class, $method)->shouldReturn($result);
-    }
-
-    function it_should_handle_no_methods_when_writing_method_at_start()
-    {
-        $class = $this->getClassWithNoMethods();
-        $method = $this->getMethod();
-        $result = $this->getClassWithOnlyNewMethod();
-
-        $this->insertMethodFirstInClass($class, $method)->shouldReturn($result);
-    }
-
-    function it_should_throw_an_exception_if_a_specific_method_is_not_found()
-    {
-        $class = $this->getClassWithNoMethods();
-
-        $exception = new NamedMethodNotFoundException('Target method not found');
-
-        $this->shouldThrow($exception)->during('insertAfterMethod', array($class, 'methodOne', ''));
-    }
-
     private function getSingleMethodClass()
     {
         return <<<SINGLE_METHOD_CLASS
@@ -117,6 +72,15 @@ final class MyClass
 NEW_METHOD_LAST;
     }
 
+    function it_should_write_the_content_before_the_first_method()
+    {
+        $class = $this->getSingleMethodClass();
+        $method = $this->getMethod();
+        $result = $this->getClassWithNewMethodFirst();
+
+        $this->insertMethodFirstInClass($class, $method)->shouldReturn($result);
+    }
+
     private function getClassWithNewMethodFirst()
     {
         return <<<NEW_METHOD_FIRST
@@ -140,6 +104,15 @@ final class MyClass
     }
 }
 NEW_METHOD_FIRST;
+    }
+
+    function it_should_write_a_method_after_another_method()
+    {
+        $class = $this->getClassWithTwoMethods();
+        $method = $this->getMethod();
+        $result = $this->getClassWithNewMethodInMiddle();
+
+        $this->insertAfterMethod($class, 'methodOne', $method)->shouldReturn($result);
     }
 
     private function getClassWithTwoMethods()
@@ -203,6 +176,15 @@ final class MyClass
 MIDDLE_METHOD_CLASS;
     }
 
+    function it_should_handle_no_methods_when_writing_method_at_end()
+    {
+        $class = $this->getClassWithNoMethods();
+        $method = $this->getMethod();
+        $result = $this->getClassWithOnlyNewMethod();
+
+        $this->insertMethodLastInClass($class, $method)->shouldReturn($result);
+    }
+
     private function getClassWithNoMethods()
     {
         return <<<NO_METHOD_CLASS
@@ -231,5 +213,23 @@ final class MyClass
     }
 }
 ONLY_NEW_METHOD_CLASS;
+    }
+
+    function it_should_handle_no_methods_when_writing_method_at_start()
+    {
+        $class = $this->getClassWithNoMethods();
+        $method = $this->getMethod();
+        $result = $this->getClassWithOnlyNewMethod();
+
+        $this->insertMethodFirstInClass($class, $method)->shouldReturn($result);
+    }
+
+    function it_should_throw_an_exception_if_a_specific_method_is_not_found()
+    {
+        $class = $this->getClassWithNoMethods();
+
+        $exception = new NamedMethodNotFoundException('Target method not found');
+
+        $this->shouldThrow($exception)->during('insertAfterMethod', array($class, 'methodOne', ''));
     }
 }

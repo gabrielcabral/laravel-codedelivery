@@ -39,6 +39,35 @@ class HasXPath extends DiagnosingMatcher
     }
 
     /**
+     * Wraps <code>$matcher</code> with {@link Hamcrest\Core\IsEqual)
+     * if it's not a matcher and the XPath in <code>count()</code>
+     * if it's an integer.
+     *
+     * @factory
+     */
+    public static function hasXPath($xpath, $matcher = null)
+    {
+        if ($matcher === null || $matcher instanceof Matcher) {
+            return new self($xpath, $matcher);
+        } elseif (is_int($matcher) && strpos($xpath, 'count(') !== 0) {
+            $xpath = 'count(' . $xpath . ')';
+        }
+
+        return new self($xpath, IsEqual::equalTo($matcher));
+    }
+
+    public function describeTo(Description $description)
+    {
+        $description->appendText('XML or HTML document with XPath "')
+            ->appendText($this->_xpath)
+            ->appendText('"');
+        if ($this->_matcher !== null) {
+            $description->appendText(' ');
+            $this->_matcher->describeTo($description);
+        }
+    }
+
+    /**
      * Matches if the XPath matches against the DOM node and the matcher.
      *
      * @param string|\DOMNode $actual
@@ -162,34 +191,5 @@ class HasXPath extends DiagnosingMatcher
         }
 
         return false;
-    }
-
-    public function describeTo(Description $description)
-    {
-        $description->appendText('XML or HTML document with XPath "')
-                                ->appendText($this->_xpath)
-                                ->appendText('"');
-        if ($this->_matcher !== null) {
-            $description->appendText(' ');
-            $this->_matcher->describeTo($description);
-        }
-    }
-
-    /**
-     * Wraps <code>$matcher</code> with {@link Hamcrest\Core\IsEqual)
-     * if it's not a matcher and the XPath in <code>count()</code>
-     * if it's an integer.
-     *
-     * @factory
-     */
-    public static function hasXPath($xpath, $matcher = null)
-    {
-        if ($matcher === null || $matcher instanceof Matcher) {
-            return new self($xpath, $matcher);
-        } elseif (is_int($matcher) && strpos($xpath, 'count(') !== 0) {
-            $xpath = 'count(' . $xpath . ')';
-        }
-
-        return new self($xpath, IsEqual::equalTo($matcher));
     }
 }

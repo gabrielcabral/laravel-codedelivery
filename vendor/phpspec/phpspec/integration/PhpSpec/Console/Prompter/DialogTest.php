@@ -24,15 +24,6 @@ class DialogTest extends \PHPUnit_Framework_TestCase
      */
     private $prompter;
 
-    protected function setUp()
-    {
-        $this->output = $this->getMock('Symfony\Component\Console\Output\OutputInterface');
-        $this->dialogHelper = $this->getMockBuilder('Symfony\Component\Console\Helper\DialogHelper')
-                                   ->disableOriginalConstructor()->getMock();
-
-        $this->prompter = new Dialog($this->output, $this->dialogHelper);
-    }
-
     /**
      * @test
      */
@@ -54,6 +45,15 @@ class DialogTest extends \PHPUnit_Framework_TestCase
         $result = $this->prompter->askConfirmation('Are you sure?');
 
         $this->assertEquals(true, $result);
+    }
+
+    protected function setUp()
+    {
+        $this->output = $this->getMock('Symfony\Component\Console\Output\OutputInterface');
+        $this->dialogHelper = $this->getMockBuilder('Symfony\Component\Console\Helper\DialogHelper')
+            ->disableOriginalConstructor()->getMock();
+
+        $this->prompter = new Dialog($this->output, $this->dialogHelper);
     }
 
 }

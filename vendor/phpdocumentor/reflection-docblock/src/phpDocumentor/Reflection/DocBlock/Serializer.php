@@ -72,26 +72,29 @@ class Serializer
     }
 
     /**
+     * Sets whether or not the first line should be indented.
+     *
+     * Sets whether or not the first line (the one with the "/**") should be
+     * indented.
+     *
+     * @param bool $indentFirstLine The new value for this setting.
+     *
+     * @return $this This serializer object.
+     */
+    public function setIsFirstLineIndented($indentFirstLine)
+    {
+        $this->isFirstLineIndented = (bool)$indentFirstLine;
+        return $this;
+    }
+
+    /**
      * Gets the string to indent comments with.
-     * 
+     *
      * @return string The indent string.
      */
     public function getIndentationString()
     {
         return $this->indentString;
-    }
-
-    /**
-     * Sets the number of indents.
-     * 
-     * @param int $indent The number of times the indent string is repeated.
-     * 
-     * @return $this This serializer object.
-     */
-    public function setIndent($indent)
-    {
-        $this->indent = (int)$indent;
-        return $this;
     }
 
     /**
@@ -105,18 +108,15 @@ class Serializer
     }
 
     /**
-     * Sets whether or not the first line should be indented.
-     * 
-     * Sets whether or not the first line (the one with the "/**") should be
-     * indented.
-     * 
-     * @param bool $indentFirstLine The new value for this setting.
-     * 
+     * Sets the number of indents.
+     *
+     * @param int $indent The number of times the indent string is repeated.
+     *
      * @return $this This serializer object.
      */
-    public function setIsFirstLineIndented($indentFirstLine)
+    public function setIndent($indent)
     {
-        $this->isFirstLineIndented = (bool)$indentFirstLine;
+        $this->indent = (int)$indent;
         return $this;
     }
 
@@ -131,31 +131,31 @@ class Serializer
     }
 
     /**
-     * Sets the line length.
-     * 
-     * Sets the length of each line in the serialization. Content will be
-     * wrapped within this limit.
-     * 
-     * @param int|null $lineLength The length of each line. NULL to disable line
-     *     wrapping altogether.
-     * 
-     * @return $this This serializer object.
-     */
-    public function setLineLength($lineLength)
-    {
-        $this->lineLength = null === $lineLength ? null : (int)$lineLength;
-        return $this;
-    }
-
-    /**
      * Gets the line length.
-     * 
+     *
      * @return int|null The length of each line or NULL if line wrapping is
      *     disabled.
      */
     public function getLineLength()
     {
         return $this->lineLength;
+    }
+
+    /**
+     * Sets the line length.
+     *
+     * Sets the length of each line in the serialization. Content will be
+     * wrapped within this limit.
+     *
+     * @param int|null $lineLength The length of each line. NULL to disable line
+     *     wrapping altogether.
+     *
+     * @return $this This serializer object.
+     */
+    public function setLineLength($lineLength)
+    {
+        $this->lineLength = null === $lineLength ? null : (int)$lineLength;
+        return $this;
     }
 
     /**

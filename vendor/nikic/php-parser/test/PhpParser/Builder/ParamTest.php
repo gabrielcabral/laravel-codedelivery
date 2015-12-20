@@ -8,10 +8,6 @@ use PhpParser\Node\Scalar;
 
 class ParamTest extends \PHPUnit_Framework_TestCase
 {
-    public function createParamBuilder($name) {
-        return new Param($name);
-    }
-
     /**
      * @dataProvider provideTestDefaultValues
      */
@@ -22,6 +18,11 @@ class ParamTest extends \PHPUnit_Framework_TestCase
         ;
 
         $this->assertEquals($expectedValueNode, $node->default);
+    }
+
+    public function createParamBuilder($name)
+    {
+        return new Param($name);
     }
 
     public function provideTestDefaultValues() {

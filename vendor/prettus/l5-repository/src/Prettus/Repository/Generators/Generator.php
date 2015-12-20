@@ -113,6 +113,23 @@ abstract class Generator
     }
 
     /**
+     * Get name input.
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        $name = $this->name;
+        if (str_contains($this->name, '\\')) {
+            $name = str_replace('\\', '/', $this->name);
+        }
+        if (str_contains($this->name, '/')) {
+            $name = str_replace('/', '/', $this->name);
+        }
+        return Str::studly(str_replace(' ', '/', ucwords(str_replace('/', ' ', $name))));
+    }
+
+    /**
      * Get stub template for generated file.
      *
      * @return string
@@ -173,25 +190,6 @@ abstract class Generator
     public function getSegments()
     {
         return explode('/', $this->getName());
-    }
-
-    /**
-     * Get name input.
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        $name = $this->name;
-        if (str_contains($this->name, '\\'))
-        {
-            $name = str_replace('\\', '/', $this->name);
-        }
-        if (str_contains($this->name, '/'))
-        {
-            $name = str_replace('/', '/', $this->name);
-        }
-        return Str::studly(str_replace(' ', '/', ucwords(str_replace('/', ' ', $name))));
     }
 
     /**

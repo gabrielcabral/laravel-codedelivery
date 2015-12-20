@@ -54,23 +54,21 @@ class XPathExpr
     }
 
     /**
+     * @return XPathExpr
+     */
+    public function addStarPrefix()
+    {
+        $this->path .= '*/';
+
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getElement()
     {
         return $this->element;
-    }
-
-    /**
-     * @param $condition
-     *
-     * @return XPathExpr
-     */
-    public function addCondition($condition)
-    {
-        $this->condition = $this->condition ? sprintf('%s and (%s)', $this->condition, $condition) : $condition;
-
-        return $this;
     }
 
     /**
@@ -95,11 +93,13 @@ class XPathExpr
     }
 
     /**
+     * @param $condition
+     *
      * @return XPathExpr
      */
-    public function addStarPrefix()
+    public function addCondition($condition)
     {
-        $this->path .= '*/';
+        $this->condition = $this->condition ? sprintf('%s and (%s)', $this->condition, $condition) : $condition;
 
         return $this;
     }

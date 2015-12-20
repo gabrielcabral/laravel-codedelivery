@@ -2,13 +2,11 @@
 
 namespace spec\PhpSpec\Loader\Node;
 
-use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
-
-use PhpSpec\Locator\ResourceInterface;
 use PhpSpec\Loader\Node\ExampleNode;
 use PhpSpec\Loader\Suite;
-
+use PhpSpec\Locator\ResourceInterface;
+use PhpSpec\ObjectBehavior;
+use Prophecy\Argument;
 use ReflectionClass;
 
 class SpecificationNodeSpec extends ObjectBehavior

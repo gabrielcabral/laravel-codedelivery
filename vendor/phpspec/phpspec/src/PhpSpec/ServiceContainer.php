@@ -66,6 +66,35 @@ class ServiceContainer
     }
 
     /**
+     * Sets a callable for the object creation. The same object will
+     * be returned every time
+     *
+     * @param string $id
+     * @param callable $callable
+     *
+     * @throws \InvalidArgumentException if service is not a callable
+     */
+    public function setShared($id, $callable)
+    {
+        if (!is_callable($callable)) {
+            throw new InvalidArgumentException(sprintf(
+                'Service should be callable, "%s" given.',
+                gettype($callable)
+            ));
+        }
+
+        $this->set($id, function ($container) use ($callable) {
+            static $instance;
+
+            if (null === $instance) {
+                $instance = call_user_func($callable, $container);
+            }
+
+            return $instance;
+        });
+    }
+
+    /**
      * Sets a object or a callable for the object creation. A callable will be invoked
      * every time get is called.
      *
@@ -96,55 +125,22 @@ class ServiceContainer
     }
 
     /**
-     * Sets a callable for the object creation. The same object will
-     * be returned every time
-     *
-     * @param string   $id
-     * @param callable $callable
-     *
-     * @throws \InvalidArgumentException if service is not a callable
-     */
-    public function setShared($id, $callable)
-    {
-        if (!is_callable($callable)) {
-            throw new InvalidArgumentException(sprintf(
-                'Service should be callable, "%s" given.',
-                gettype($callable)
-            ));
-        }
-
-        $this->set($id, function ($container) use ($callable) {
-            static $instance;
-
-            if (null === $instance) {
-                $instance = call_user_func($callable, $container);
-            }
-
-            return $instance;
-        });
-    }
-
-    /**
-     * Retrieves a service from the container
+     * Retrieves the prefix and sid of a given service
      *
      * @param string $id
      *
-     * @return object
-     *
-     * @throws \InvalidArgumentException if service is not defined
+     * @return array
      */
-    public function get($id)
+    private function getPrefixAndSid($id)
     {
-        if (!array_key_exists($id, $this->services)) {
-            throw new InvalidArgumentException(sprintf('Service "%s" is not defined.', $id));
+        if (count($parts = explode('.', $id)) < 2) {
+            return array(null, $id);
         }
 
-        $value = $this->services[$id];
-        if (is_callable($value)) {
-            return call_user_func($value, $this);
-        }
+        $sid = array_pop($parts);
+        $prefix = implode('.', $parts);
 
-        return $value;
+        return array($prefix, $sid);
     }
 
     /**
@@ -175,6 +171,29 @@ class ServiceContainer
         }
 
         return $services;
+    }
+
+    /**
+     * Retrieves a service from the container
+     *
+     * @param string $id
+     *
+     * @return object
+     *
+     * @throws \InvalidArgumentException if service is not defined
+     */
+    public function get($id)
+    {
+        if (!array_key_exists($id, $this->services)) {
+            throw new InvalidArgumentException(sprintf('Service "%s" is not defined.', $id));
+        }
+
+        $value = $this->services[$id];
+        if (is_callable($value)) {
+            return call_user_func($value, $this);
+        }
+
+        return $value;
     }
 
     /**
@@ -225,24 +244,5 @@ class ServiceContainer
         foreach ($this->configurators as $configurator) {
             call_user_func($configurator, $this);
         }
-    }
-
-    /**
-     * Retrieves the prefix and sid of a given service
-     *
-     * @param string $id
-     *
-     * @return array
-     */
-    private function getPrefixAndSid($id)
-    {
-        if (count($parts = explode('.', $id)) < 2) {
-            return array(null, $id);
-        }
-
-        $sid    = array_pop($parts);
-        $prefix = implode('.', $parts);
-
-        return array($prefix, $sid);
     }
 }

@@ -3,9 +3,8 @@
 namespace spec\PhpSpec\CodeGenerator;
 
 use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
-
 use PhpSpec\Util\Filesystem;
+use Prophecy\Argument;
 
 class TemplateRendererSpec extends ObjectBehavior
 {

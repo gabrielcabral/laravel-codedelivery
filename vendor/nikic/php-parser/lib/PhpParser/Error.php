@@ -25,12 +25,17 @@ class Error extends \RuntimeException
     }
 
     /**
-     * Gets the error message
-     *
-     * @return string Error message
+     * Updates the exception message after a change to rawMessage or rawLine.
      */
-    public function getRawMessage() {
-        return $this->rawMessage;
+    protected function updateMessage()
+    {
+        $this->message = $this->rawMessage;
+
+        if (-1 === $this->getStartLine()) {
+            $this->message .= ' on unknown line';
+        } else {
+            $this->message .= ' on line ' . $this->getStartLine();
+        }
     }
 
     /**
@@ -43,22 +48,13 @@ class Error extends \RuntimeException
     }
 
     /**
-     * Gets the line the error ends in.
+     * Gets the error message
      *
-     * @return int Error end line
+     * @return string Error message
      */
-    public function getEndLine() {
-        return isset($this->attributes['endLine']) ? $this->attributes['endLine'] : -1;
-    }
-
-
-    /**
-     * Gets the attributes of the node/token the error occurred at.
-     *
-     * @return array
-     */
-    public function getAttributes() {
-        return $this->attributes;
+    public function getRawMessage()
+    {
+        return $this->rawMessage;
     }
 
     /**
@@ -72,24 +68,23 @@ class Error extends \RuntimeException
     }
 
     /**
-     * Sets the line the error starts in.
+     * Gets the line the error ends in.
      *
-     * @param int $line Error start line
+     * @return int Error end line
      */
-    public function setStartLine($line) {
-        $this->attributes['startLine'] = (int) $line;
-        $this->updateMessage();
+    public function getEndLine()
+    {
+        return isset($this->attributes['endLine']) ? $this->attributes['endLine'] : -1;
     }
 
     /**
-     * Returns whether the error has start and end column information.
+     * Gets the attributes of the node/token the error occurred at.
      *
-     * For column information enable the startFilePos and endFilePos in the lexer options.
-     *
-     * @return bool
+     * @return array
      */
-    public function hasColumnInfo() {
-        return isset($this->attributes['startFilePos']) && isset($this->attributes['endFilePos']);
+    public function getAttributes()
+    {
+        return $this->attributes;
     }
 
     /**
@@ -107,17 +102,15 @@ class Error extends \RuntimeException
     }
 
     /**
-     * Gets the end column (1-based) into the line where the error ended.
+     * Returns whether the error has start and end column information.
      *
-     * @param string $code Source code of the file
-     * @return int
+     * For column information enable the startFilePos and endFilePos in the lexer options.
+     *
+     * @return bool
      */
-    public function getEndColumn($code) {
-        if (!$this->hasColumnInfo()) {
-            throw new \RuntimeException('Error does not have column information');
-        }
-
-        return $this->toColumn($code, $this->attributes['endFilePos']);
+    public function hasColumnInfo()
+    {
+        return isset($this->attributes['startFilePos']) && isset($this->attributes['endFilePos']);
     }
 
     private function toColumn($code, $pos) {
@@ -134,16 +127,18 @@ class Error extends \RuntimeException
     }
 
     /**
-     * Updates the exception message after a change to rawMessage or rawLine.
+     * Gets the end column (1-based) into the line where the error ended.
+     *
+     * @param string $code Source code of the file
+     * @return int
      */
-    protected function updateMessage() {
-        $this->message = $this->rawMessage;
-
-        if (-1 === $this->getStartLine()) {
-            $this->message .= ' on unknown line';
-        } else {
-            $this->message .= ' on line ' . $this->getStartLine();
+    public function getEndColumn($code)
+    {
+        if (!$this->hasColumnInfo()) {
+            throw new \RuntimeException('Error does not have column information');
         }
+
+        return $this->toColumn($code, $this->attributes['endFilePos']);
     }
 
     /** @deprecated Use getStartLine() instead */
@@ -154,5 +149,16 @@ class Error extends \RuntimeException
     /** @deprecated Use setStartLine() instead */
     public function setRawLine($line) {
         $this->setStartLine($line);
+    }
+
+    /**
+     * Sets the line the error starts in.
+     *
+     * @param int $line Error start line
+     */
+    public function setStartLine($line)
+    {
+        $this->attributes['startLine'] = (int)$line;
+        $this->updateMessage();
     }
 }

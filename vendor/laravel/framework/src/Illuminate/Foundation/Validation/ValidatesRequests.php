@@ -2,12 +2,12 @@
 
 namespace Illuminate\Foundation\Validation;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Routing\UrlGenerator;
 use Illuminate\Contracts\Validation\Factory;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exception\HttpResponseException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\UrlGenerator;
 
 trait ValidatesRequests
 {
@@ -17,6 +17,41 @@ trait ValidatesRequests
      * @var string
      */
     protected $validatesRequestErrorBag;
+
+    /**
+     * Validate the given request with the given rules.
+     *
+     * @param  string $errorBag
+     * @param  \Illuminate\Http\Request  $request
+     * @param  array  $rules
+     * @param  array  $messages
+     * @param  array  $customAttributes
+     * @return void
+     *
+     * @throws \Illuminate\Http\Exception\HttpResponseException
+     */
+    public function validateWithBag($errorBag, Request $request, array $rules, array $messages = [], array $customAttributes = [])
+    {
+        $this->withErrorBag($errorBag, function () use ($request, $rules, $messages, $customAttributes) {
+            $this->validate($request, $rules, $messages, $customAttributes);
+        });
+    }
+
+    /**
+     * Execute a Closure within with a given error bag set as the default bag.
+     *
+     * @param  string $errorBag
+     * @param  callable $callback
+     * @return void
+     */
+    protected function withErrorBag($errorBag, callable $callback)
+    {
+        $this->validatesRequestErrorBag = $errorBag;
+
+        call_user_func($callback);
+
+        $this->validatesRequestErrorBag = null;
+    }
 
     /**
      * Validate the given request with the given rules.
@@ -39,22 +74,13 @@ trait ValidatesRequests
     }
 
     /**
-     * Validate the given request with the given rules.
+     * Get a validation factory instance.
      *
-     * @param  string  $errorBag
-     * @param  \Illuminate\Http\Request  $request
-     * @param  array  $rules
-     * @param  array  $messages
-     * @param  array  $customAttributes
-     * @return void
-     *
-     * @throws \Illuminate\Http\Exception\HttpResponseException
+     * @return \Illuminate\Contracts\Validation\Factory
      */
-    public function validateWithBag($errorBag, Request $request, array $rules, array $messages = [], array $customAttributes = [])
+    protected function getValidationFactory()
     {
-        $this->withErrorBag($errorBag, function () use ($request, $rules, $messages, $customAttributes) {
-            $this->validate($request, $rules, $messages, $customAttributes);
-        });
+        return app(Factory::class);
     }
 
     /**
@@ -92,17 +118,6 @@ trait ValidatesRequests
     }
 
     /**
-     * Format the validation errors to be returned.
-     *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     * @return array
-     */
-    protected function formatValidationErrors(Validator $validator)
-    {
-        return $validator->errors()->getMessages();
-    }
-
-    /**
      * Get the URL we should redirect to.
      *
      * @return string
@@ -113,32 +128,6 @@ trait ValidatesRequests
     }
 
     /**
-     * Get a validation factory instance.
-     *
-     * @return \Illuminate\Contracts\Validation\Factory
-     */
-    protected function getValidationFactory()
-    {
-        return app(Factory::class);
-    }
-
-    /**
-     * Execute a Closure within with a given error bag set as the default bag.
-     *
-     * @param  string  $errorBag
-     * @param  callable  $callback
-     * @return void
-     */
-    protected function withErrorBag($errorBag, callable $callback)
-    {
-        $this->validatesRequestErrorBag = $errorBag;
-
-        call_user_func($callback);
-
-        $this->validatesRequestErrorBag = null;
-    }
-
-    /**
      * Get the key to be used for the view error bag.
      *
      * @return string
@@ -146,5 +135,16 @@ trait ValidatesRequests
     protected function errorBag()
     {
         return $this->validatesRequestErrorBag ?: 'default';
+    }
+
+    /**
+     * Format the validation errors to be returned.
+     *
+     * @param  \Illuminate\Contracts\Validation\Validator $validator
+     * @return array
+     */
+    protected function formatValidationErrors(Validator $validator)
+    {
+        return $validator->errors()->getMessages();
     }
 }

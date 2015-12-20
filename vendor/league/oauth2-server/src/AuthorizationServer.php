@@ -157,6 +157,16 @@ class AuthorizationServer extends AbstractServer
     }
 
     /**
+     * Default scope to be used if none is provided and requireScopeParam is false
+     *
+     * @return string|null
+     */
+    public function getDefaultScope()
+    {
+        return $this->defaultScope;
+    }
+
+    /**
      * Default scope to be used if none is provided and requireScopeParam() is false
      *
      * @param string $default Name of the default scope
@@ -168,16 +178,6 @@ class AuthorizationServer extends AbstractServer
         $this->defaultScope = $default;
 
         return $this;
-    }
-
-    /**
-     * Default scope to be used if none is provided and requireScopeParam is false
-     *
-     * @return string|null
-     */
-    public function getDefaultScope()
-    {
-        return $this->defaultScope;
     }
 
     /**

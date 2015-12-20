@@ -2,9 +2,9 @@
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Filesystem\Filesystem;
 use Behat\Gherkin\Node\PyStringNode;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
 
 /**
  * Defines application features from the specific context.
@@ -33,6 +33,14 @@ class IsolatedProcessContext implements Context, SnippetAcceptingContext
     }
 
     /**
+     * @return string
+     */
+    protected function buildPhpSpecCmd()
+    {
+        return escapeshellcmd(__DIR__ . '/../../bin/phpspec');
+    }
+
+    /**
      * @When I run phpspec and answer :answer when asked if I want to generate the code
      */
     public function iRunPhpspecAndAnswerWhenAskedIfIWantToGenerateTheCode($answer)
@@ -49,14 +57,6 @@ class IsolatedProcessContext implements Context, SnippetAcceptingContext
         $process->setEnv($env);
         $process->setInput($answer);
         $process->run();
-    }
-
-    /**
-     * @return string
-     */
-    protected function buildPhpSpecCmd()
-    {
-        return escapeshellcmd(__DIR__ . '/../../bin/phpspec');
     }
 
     /**

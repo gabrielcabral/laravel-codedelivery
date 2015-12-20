@@ -26,32 +26,6 @@ class IsEmptyString extends BaseMatcher
         $this->_empty = $empty;
     }
 
-    public function matches($item)
-    {
-        return $this->_empty
-            ? ($item === '')
-            : is_string($item) && $item !== '';
-    }
-
-    public function describeTo(Description $description)
-    {
-        $description->appendText($this->_empty ? 'an empty string' : 'a non-empty string');
-    }
-
-    /**
-     * Matches if value is a zero-length string.
-     *
-     * @factory emptyString
-     */
-    public static function isEmptyString()
-    {
-        if (!self::$_INSTANCE) {
-            self::$_INSTANCE = new self(true);
-        }
-
-        return self::$_INSTANCE;
-    }
-
     /**
      * Matches if value is null or a zero-length string.
      *
@@ -70,6 +44,20 @@ class IsEmptyString extends BaseMatcher
     }
 
     /**
+     * Matches if value is a zero-length string.
+     *
+     * @factory emptyString
+     */
+    public static function isEmptyString()
+    {
+        if (!self::$_INSTANCE) {
+            self::$_INSTANCE = new self(true);
+        }
+
+        return self::$_INSTANCE;
+    }
+
+    /**
      * Matches if value is a non-zero-length string.
      *
      * @factory nonEmptyString
@@ -81,5 +69,17 @@ class IsEmptyString extends BaseMatcher
         }
 
         return self::$_NOT_INSTANCE;
+    }
+
+    public function matches($item)
+    {
+        return $this->_empty
+            ? ($item === '')
+            : is_string($item) && $item !== '';
+    }
+
+    public function describeTo(Description $description)
+    {
+        $description->appendText($this->_empty ? 'an empty string' : 'a non-empty string');
     }
 }

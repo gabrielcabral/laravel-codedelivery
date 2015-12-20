@@ -3,13 +3,13 @@
 namespace Illuminate\Foundation\Console;
 
 use Exception;
-use Throwable;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Console\Application as Artisan;
-use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Console\Kernel as KernelContract;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Foundation\Application;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
+use Throwable;
 
 class Kernel implements KernelContract
 {
@@ -93,6 +93,17 @@ class Kernel implements KernelContract
     }
 
     /**
+     * Define the application's command schedule.
+     *
+     * @param  \Illuminate\Console\Scheduling\Schedule $schedule
+     * @return void
+     */
+    protected function schedule(Schedule $schedule)
+    {
+        //
+    }
+
+    /**
      * Run the console application.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
@@ -123,10 +134,75 @@ class Kernel implements KernelContract
     }
 
     /**
+     * Bootstrap the application for artisan commands.
+     *
+     * @return void
+     */
+    public function bootstrap()
+    {
+        if (!$this->app->hasBeenBootstrapped()) {
+            $this->app->bootstrapWith($this->bootstrappers());
+        }
+
+        // If we are calling a arbitary command from within the application, we will load
+        // all of the available deferred providers which will make all of the commands
+        // available to an application. Otherwise the command will not be available.
+        $this->app->loadDeferredProviders();
+    }
+
+    /**
+     * Get the bootstrap classes for the application.
+     *
+     * @return array
+     */
+    protected function bootstrappers()
+    {
+        return $this->bootstrappers;
+    }
+
+    /**
+     * Get the Artisan application instance.
+     *
+     * @return \Illuminate\Console\Application
+     */
+    protected function getArtisan()
+    {
+        if (is_null($this->artisan)) {
+            return $this->artisan = (new Artisan($this->app, $this->events, $this->app->version()))
+                ->resolveCommands($this->commands);
+        }
+
+        return $this->artisan;
+    }
+
+    /**
+     * Report the exception to the exception handler.
+     *
+     * @param  \Exception $e
+     * @return void
+     */
+    protected function reportException(Exception $e)
+    {
+        $this->app['Illuminate\Contracts\Debug\ExceptionHandler']->report($e);
+    }
+
+    /**
+     * Report the exception to the exception handler.
+     *
+     * @param  \Symfony\Component\Console\Output\OutputInterface $output
+     * @param  \Exception $e
+     * @return void
+     */
+    protected function renderException($output, Exception $e)
+    {
+        $this->app['Illuminate\Contracts\Debug\ExceptionHandler']->renderForConsole($output, $e);
+    }
+
+    /**
      * Terminate the application.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  int  $status
+     * @param  \Symfony\Component\Console\Input\InputInterface $input
+     * @param  int $status
      * @return void
      */
     public function terminate($input, $status)
@@ -135,21 +211,10 @@ class Kernel implements KernelContract
     }
 
     /**
-     * Define the application's command schedule.
-     *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
-     * @return void
-     */
-    protected function schedule(Schedule $schedule)
-    {
-        //
-    }
-
-    /**
      * Run an Artisan console command by name.
      *
-     * @param  string  $command
-     * @param  array  $parameters
+     * @param  string $command
+     * @param  array $parameters
      * @return int
      */
     public function call($command, array $parameters = [])
@@ -162,8 +227,8 @@ class Kernel implements KernelContract
     /**
      * Queue the given console command.
      *
-     * @param  string  $command
-     * @param  array   $parameters
+     * @param  string $command
+     * @param  array $parameters
      * @return void
      */
     public function queue($command, array $parameters = [])
@@ -195,70 +260,5 @@ class Kernel implements KernelContract
         $this->bootstrap();
 
         return $this->getArtisan()->output();
-    }
-
-    /**
-     * Bootstrap the application for artisan commands.
-     *
-     * @return void
-     */
-    public function bootstrap()
-    {
-        if (! $this->app->hasBeenBootstrapped()) {
-            $this->app->bootstrapWith($this->bootstrappers());
-        }
-
-        // If we are calling a arbitary command from within the application, we will load
-        // all of the available deferred providers which will make all of the commands
-        // available to an application. Otherwise the command will not be available.
-        $this->app->loadDeferredProviders();
-    }
-
-    /**
-     * Get the Artisan application instance.
-     *
-     * @return \Illuminate\Console\Application
-     */
-    protected function getArtisan()
-    {
-        if (is_null($this->artisan)) {
-            return $this->artisan = (new Artisan($this->app, $this->events, $this->app->version()))
-                                ->resolveCommands($this->commands);
-        }
-
-        return $this->artisan;
-    }
-
-    /**
-     * Get the bootstrap classes for the application.
-     *
-     * @return array
-     */
-    protected function bootstrappers()
-    {
-        return $this->bootstrappers;
-    }
-
-    /**
-     * Report the exception to the exception handler.
-     *
-     * @param  \Exception  $e
-     * @return void
-     */
-    protected function reportException(Exception $e)
-    {
-        $this->app['Illuminate\Contracts\Debug\ExceptionHandler']->report($e);
-    }
-
-    /**
-     * Report the exception to the exception handler.
-     *
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @param  \Exception  $e
-     * @return void
-     */
-    protected function renderException($output, Exception $e)
-    {
-        $this->app['Illuminate\Contracts\Debug\ExceptionHandler']->renderForConsole($output, $e);
     }
 }

@@ -26,6 +26,16 @@ class IsTypeOf extends BaseMatcher
         $this->_theType = strtolower($theType);
     }
 
+    /**
+     * Is the value a particular built-in type?
+     *
+     * @factory
+     */
+    public static function typeOf($theType)
+    {
+        return new self($theType);
+    }
+
     public function matches($item)
     {
         return strtolower(gettype($item)) == $this->_theType;
@@ -34,19 +44,6 @@ class IsTypeOf extends BaseMatcher
     public function describeTo(Description $description)
     {
         $description->appendText(self::getTypeDescription($this->_theType));
-    }
-
-    public function describeMismatch($item, Description $description)
-    {
-        if ($item === null) {
-            $description->appendText('was null');
-        } else {
-            $description->appendText('was ')
-                                    ->appendText(self::getTypeDescription(strtolower(gettype($item))))
-                                    ->appendText(' ')
-                                    ->appendValue($item)
-                                    ;
-        }
     }
 
     public static function getTypeDescription($type)
@@ -59,13 +56,15 @@ class IsTypeOf extends BaseMatcher
                 . $type;
     }
 
-    /**
-     * Is the value a particular built-in type?
-     *
-     * @factory
-     */
-    public static function typeOf($theType)
+    public function describeMismatch($item, Description $description)
     {
-        return new self($theType);
+        if ($item === null) {
+            $description->appendText('was null');
+        } else {
+            $description->appendText('was ')
+                ->appendText(self::getTypeDescription(strtolower(gettype($item))))
+                ->appendText(' ')
+                ->appendValue($item);
+        }
     }
 }

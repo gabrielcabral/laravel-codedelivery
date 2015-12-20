@@ -2,21 +2,18 @@
 
 namespace spec\PhpSpec\Runner;
 
+use PhpSpec\Event\ExampleEvent;
+use PhpSpec\Formatter\Presenter\PresenterInterface;
+use PhpSpec\Loader\Node\ExampleNode;
+use PhpSpec\Loader\Node\SpecificationNode;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Runner\Maintainer\LetAndLetgoMaintainer;
-use Prophecy\Argument;
-
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-
-use PhpSpec\SpecificationInterface;
-use PhpSpec\Formatter\Presenter\PresenterInterface;
 use PhpSpec\Runner\Maintainer\MaintainerInterface;
-use PhpSpec\Loader\Node\SpecificationNode;
-use PhpSpec\Loader\Node\ExampleNode;
-use PhpSpec\Event\ExampleEvent;
-
+use PhpSpec\SpecificationInterface;
+use Prophecy\Argument;
 use ReflectionClass;
 use ReflectionMethod;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ExampleRunnerSpec extends ObjectBehavior
 {

@@ -40,19 +40,29 @@ class TemplateRenderer
     }
 
     /**
-     * @param array $locations
-     */
-    public function setLocations(array $locations)
-    {
-        $this->locations = array_map(array($this, 'normalizeLocation'), $locations);
-    }
-
-    /**
      * @param string $location
      */
     public function prependLocation($location)
     {
         array_unshift($this->locations, $this->normalizeLocation($location));
+    }
+
+    /**
+     * @param string $location
+     * @param bool $trimLeft
+     *
+     * @return string
+     */
+    private function normalizeLocation($location, $trimLeft = false)
+    {
+        $location = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $location);
+        $location = rtrim($location, DIRECTORY_SEPARATOR);
+
+        if ($trimLeft) {
+            $location = ltrim($location, DIRECTORY_SEPARATOR);
+        }
+
+        return $location;
     }
 
     /**
@@ -69,6 +79,14 @@ class TemplateRenderer
     public function getLocations()
     {
         return $this->locations;
+    }
+
+    /**
+     * @param array $locations
+     */
+    public function setLocations(array $locations)
+    {
+        $this->locations = array_map(array($this, 'normalizeLocation'), $locations);
     }
 
     /**
@@ -97,23 +115,5 @@ class TemplateRenderer
     public function renderString($template, array $values = array())
     {
         return strtr($template, $values);
-    }
-
-    /**
-     * @param string $location
-     * @param bool   $trimLeft
-     *
-     * @return string
-     */
-    private function normalizeLocation($location, $trimLeft = false)
-    {
-        $location = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $location);
-        $location = rtrim($location, DIRECTORY_SEPARATOR);
-
-        if ($trimLeft) {
-            $location = ltrim($location, DIRECTORY_SEPARATOR);
-        }
-
-        return $location;
     }
 }

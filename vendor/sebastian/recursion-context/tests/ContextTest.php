@@ -22,11 +22,6 @@ class ContextTest extends PHPUnit_Framework_TestCase
      */
     private $context;
 
-    protected function setUp()
-    {
-        $this->context = new Context();
-    }
-
     public function failsProvider()
     {
         return array(
@@ -140,5 +135,10 @@ class ContextTest extends PHPUnit_Framework_TestCase
     public function testContainsNotFound($value)
     {
         $this->assertFalse($this->context->contains($value));
+    }
+
+    protected function setUp()
+    {
+        $this->context = new Context();
     }
 }

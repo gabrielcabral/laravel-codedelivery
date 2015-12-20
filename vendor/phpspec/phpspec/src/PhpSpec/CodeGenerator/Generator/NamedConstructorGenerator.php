@@ -14,12 +14,12 @@
 namespace PhpSpec\CodeGenerator\Generator;
 
 use PhpSpec\CodeGenerator\TemplateRenderer;
+use PhpSpec\CodeGenerator\Writer\CodeWriter;
+use PhpSpec\CodeGenerator\Writer\TokenizedCodeWriter;
 use PhpSpec\Console\IO;
 use PhpSpec\Exception\Generator\NamedMethodNotFoundException;
 use PhpSpec\Locator\ResourceInterface;
-use PhpSpec\CodeGenerator\Writer\CodeWriter;
 use PhpSpec\Util\Filesystem;
-use PhpSpec\CodeGenerator\Writer\TokenizedCodeWriter;
 
 class NamedConstructorGenerator implements GeneratorInterface
 {
@@ -95,14 +95,6 @@ class NamedConstructorGenerator implements GeneratorInterface
     }
 
     /**
-     * @return int
-     */
-    public function getPriority()
-    {
-        return 0;
-    }
-
-    /**
      * @param  ResourceInterface $resource
      * @param  string            $methodName
      * @param  array             $arguments
@@ -140,5 +132,13 @@ class NamedConstructorGenerator implements GeneratorInterface
         } catch (NamedMethodNotFoundException $e) {
             return $this->codeWriter->insertMethodFirstInClass($code, $method);
         }
+    }
+
+    /**
+     * @return int
+     */
+    public function getPriority()
+    {
+        return 0;
     }
 }

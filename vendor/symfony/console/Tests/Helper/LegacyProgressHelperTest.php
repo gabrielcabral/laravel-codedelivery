@@ -20,6 +20,8 @@ use Symfony\Component\Console\Output\StreamOutput;
  */
 class LegacyProgressHelperTest extends \PHPUnit_Framework_TestCase
 {
+    protected $lastMessagesLength;
+
     public function testAdvance()
     {
         $progress = new ProgressHelper();
@@ -28,6 +30,24 @@ class LegacyProgressHelperTest extends \PHPUnit_Framework_TestCase
 
         rewind($output->getStream());
         $this->assertEquals($this->generateOutput('    1 [->--------------------------]'), stream_get_contents($output->getStream()));
+    }
+
+    protected function getOutputStream($decorated = true)
+    {
+        return new StreamOutput(fopen('php://memory', 'r+', false), StreamOutput::VERBOSITY_NORMAL, $decorated);
+    }
+
+    protected function generateOutput($expected)
+    {
+        $expectedout = $expected;
+
+        if ($this->lastMessagesLength !== null) {
+            $expectedout = str_pad($expected, $this->lastMessagesLength, "\x20", STR_PAD_RIGHT);
+        }
+
+        $this->lastMessagesLength = strlen($expectedout);
+
+        return "\x0D" . $expectedout;
     }
 
     public function testAdvanceWithStep()
@@ -203,25 +223,5 @@ class LegacyProgressHelperTest extends \PHPUnit_Framework_TestCase
 
         rewind($output->getStream());
         $this->assertEquals('', stream_get_contents($output->getStream()));
-    }
-
-    protected function getOutputStream($decorated = true)
-    {
-        return new StreamOutput(fopen('php://memory', 'r+', false), StreamOutput::VERBOSITY_NORMAL, $decorated);
-    }
-
-    protected $lastMessagesLength;
-
-    protected function generateOutput($expected)
-    {
-        $expectedout = $expected;
-
-        if ($this->lastMessagesLength !== null) {
-            $expectedout = str_pad($expected, $this->lastMessagesLength, "\x20", STR_PAD_RIGHT);
-        }
-
-        $this->lastMessagesLength = strlen($expectedout);
-
-        return "\x0D".$expectedout;
     }
 }

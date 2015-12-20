@@ -27,9 +27,17 @@ class IsArrayWithSize extends FeatureMatcher
         );
     }
 
-    protected function featureValueOf($array)
+    /**
+     * Matches an empty array.
+     *
+     * @factory
+     */
+    public static function emptyArray()
     {
-        return count($array);
+        return DescribedAs::describedAs(
+            'an empty array',
+            self::arrayWithSize(0)
+        );
     }
 
     /**
@@ -50,24 +58,16 @@ class IsArrayWithSize extends FeatureMatcher
      *
      * @factory
      */
-    public static function emptyArray()
-    {
-        return DescribedAs::describedAs(
-            'an empty array',
-            self::arrayWithSize(0)
-        );
-    }
-
-    /**
-     * Matches an empty array.
-     *
-     * @factory
-     */
     public static function nonEmptyArray()
     {
         return DescribedAs::describedAs(
             'a non-empty array',
             self::arrayWithSize(IsNot::not(0))
         );
+    }
+
+    protected function featureValueOf($array)
+    {
+        return count($array);
     }
 }

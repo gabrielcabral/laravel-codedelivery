@@ -162,6 +162,23 @@ final class SimpleExceptionPresenter implements ExceptionPresenter
     }
 
     /**
+     * @param int $offset
+     * @param string $file
+     * @param int $line
+     *
+     * @return string
+     */
+    private function presentExceptionTraceLocation($offset, $file, $line)
+    {
+        return $this->presentExceptionTraceHeader(sprintf(
+            "%2d %s:%d",
+            $offset,
+            str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $file),
+            $line
+        ));
+    }
+
+    /**
      * @param string $header
      *
      * @return string
@@ -169,19 +186,6 @@ final class SimpleExceptionPresenter implements ExceptionPresenter
     private function presentExceptionTraceHeader($header)
     {
         return $this->exceptionElementPresenter->presentExceptionTraceHeader($header) . PHP_EOL;
-    }
-
-    /**
-     * @param string $class
-     * @param string $type
-     * @param string $method
-     * @param array  $args
-     *
-     * @return string
-     */
-    private function presentExceptionTraceMethod($class, $type, $method, array $args)
-    {
-        return $this->exceptionElementPresenter->presentExceptionTraceMethod($class, $type, $method, $args) . PHP_EOL;
     }
 
     /**
@@ -193,23 +197,6 @@ final class SimpleExceptionPresenter implements ExceptionPresenter
     private function presentExceptionTraceFunction($function, array $args)
     {
         return $this->exceptionElementPresenter->presentExceptionTraceFunction($function, $args) . PHP_EOL;
-    }
-
-    /**
-     * @param int    $offset
-     * @param string $file
-     * @param int    $line
-     *
-     * @return string
-     */
-    private function presentExceptionTraceLocation($offset, $file, $line)
-    {
-        return $this->presentExceptionTraceHeader(sprintf(
-            "%2d %s:%d",
-            $offset,
-            str_replace(getcwd().DIRECTORY_SEPARATOR, '', $file),
-            $line
-        ));
     }
 
     /**
@@ -268,6 +255,19 @@ final class SimpleExceptionPresenter implements ExceptionPresenter
         }
 
         return $text;
+    }
+
+    /**
+     * @param string $class
+     * @param string $type
+     * @param string $method
+     * @param array $args
+     *
+     * @return string
+     */
+    private function presentExceptionTraceMethod($class, $type, $method, array $args)
+    {
+        return $this->exceptionElementPresenter->presentExceptionTraceMethod($class, $type, $method, $args) . PHP_EOL;
     }
 
 }

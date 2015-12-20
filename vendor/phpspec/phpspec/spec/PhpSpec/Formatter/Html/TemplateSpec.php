@@ -2,10 +2,9 @@
 
 namespace spec\PhpSpec\Formatter\Html;
 
+use PhpSpec\IO\IOInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-
-use PhpSpec\IO\IOInterface;
 
 class TemplateSpec extends ObjectBehavior
 {

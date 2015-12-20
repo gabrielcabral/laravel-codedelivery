@@ -3,7 +3,6 @@
 namespace Mockery\Loader;
 
 use Mockery as m;
-use Mockery\Loader\EvalLoader;
 
 require_once __DIR__.'/LoaderTestCase.php';
 

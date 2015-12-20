@@ -6,9 +6,15 @@ class Framework_MockObject_GeneratorTest extends PHPUnit_Framework_TestCase
      */
     protected $generator;
 
-    protected function setUp()
+    /**
+     * Dataprovider for test "testGetMockForAbstractClassExpectingInvalidArgumentException"
+     */
+    public static function getMockForAbstractClassExpectsInvalidArgumentExceptionDataprovider()
     {
-        $this->generator = new PHPUnit_Framework_MockObject_Generator;
+        return array(
+            'className not a string' => array(array(), ''),
+            'mockClassName not a string' => array('Countable', new StdClass),
+        );
     }
 
     /**
@@ -111,17 +117,6 @@ class Framework_MockObject_GeneratorTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Dataprovider for test "testGetMockForAbstractClassExpectingInvalidArgumentException"
-     */
-    public static function getMockForAbstractClassExpectsInvalidArgumentExceptionDataprovider()
-    {
-        return array(
-            'className not a string' => array(array(), ''),
-            'mockClassName not a string' => array('Countable', new StdClass),
-        );
-    }
-
-    /**
      * @covers PHPUnit_Framework_MockObject_Generator::getMockForTrait
      * @requires PHP 5.4.0
      */
@@ -196,5 +191,10 @@ class Framework_MockObject_GeneratorTest extends PHPUnit_Framework_TestCase
 
         $mock = $this->generator->getMock('SoapClient', array(), array(), '', false);
         $this->assertInstanceOf('SoapClient', $mock);
+    }
+
+    protected function setUp()
+    {
+        $this->generator = new PHPUnit_Framework_MockObject_Generator;
     }
 }

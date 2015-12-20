@@ -91,6 +91,15 @@ final class SimpleExceptionElementPresenter implements ExceptionElementPresenter
     }
 
     /**
+     * @param array $args
+     * @return array
+     */
+    private function presentExceptionTraceArguments(array $args)
+    {
+        return implode(', ', array_map(array($this->valuePresenter, 'presentValue'), $args));
+    }
+
+    /**
      * @param string $function
      * @param array $args
      * @return string
@@ -98,14 +107,5 @@ final class SimpleExceptionElementPresenter implements ExceptionElementPresenter
     public function presentExceptionTraceFunction($function, array $args)
     {
         return sprintf('   %s(%s)', $function, $this->presentExceptionTraceArguments($args));
-    }
-
-    /**
-     * @param array $args
-     * @return array
-     */
-    private function presentExceptionTraceArguments(array $args)
-    {
-        return implode(', ', array_map(array($this->valuePresenter, 'presentValue'), $args));
     }
 }

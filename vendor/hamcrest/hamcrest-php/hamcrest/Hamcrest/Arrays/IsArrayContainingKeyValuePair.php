@@ -27,6 +27,28 @@ class IsArrayContainingKeyValuePair extends TypeSafeMatcher
         $this->_valueMatcher = $valueMatcher;
     }
 
+    /**
+     * Test if an array has both an key and value in parity with each other.
+     *
+     * @factory hasEntry
+     */
+    public static function hasKeyValuePair($key, $value)
+    {
+        return new self(
+            Util::wrapValueWithIsEqual($key),
+            Util::wrapValueWithIsEqual($value)
+        );
+    }
+
+    public function describeTo(Description $description)
+    {
+        $description->appendText('array containing [')
+            ->appendDescriptionOf($this->_keyMatcher)
+            ->appendText(' => ')
+            ->appendDescriptionOf($this->_valueMatcher)
+            ->appendText(']');
+    }
+
     protected function matchesSafely($array)
     {
         foreach ($array as $key => $value) {
@@ -53,28 +75,5 @@ class IsArrayContainingKeyValuePair extends TypeSafeMatcher
             $loop = true;
         }
         $mismatchDescription->appendText(']');
-    }
-
-    public function describeTo(Description $description)
-    {
-        $description->appendText('array containing [')
-                                ->appendDescriptionOf($this->_keyMatcher)
-                                ->appendText(' => ')
-                                ->appendDescriptionOf($this->_valueMatcher)
-                                ->appendText(']')
-                                ;
-    }
-
-    /**
-     * Test if an array has both an key and value in parity with each other.
-     *
-     * @factory hasEntry
-     */
-    public static function hasKeyValuePair($key, $value)
-    {
-        return new self(
-            Util::wrapValueWithIsEqual($key),
-            Util::wrapValueWithIsEqual($value)
-        );
     }
 }

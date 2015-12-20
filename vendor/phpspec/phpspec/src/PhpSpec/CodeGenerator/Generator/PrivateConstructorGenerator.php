@@ -15,11 +15,11 @@
 namespace PhpSpec\CodeGenerator\Generator;
 
 use PhpSpec\CodeGenerator\TemplateRenderer;
+use PhpSpec\CodeGenerator\Writer\CodeWriter;
+use PhpSpec\CodeGenerator\Writer\TokenizedCodeWriter;
 use PhpSpec\Console\IO;
 use PhpSpec\Locator\ResourceInterface;
-use PhpSpec\CodeGenerator\Writer\CodeWriter;
 use PhpSpec\Util\Filesystem;
-use PhpSpec\CodeGenerator\Writer\TokenizedCodeWriter;
 
 final class PrivateConstructorGenerator implements GeneratorInterface
 {
@@ -91,18 +91,18 @@ final class PrivateConstructorGenerator implements GeneratorInterface
     }
 
     /**
+     * @return string
+     */
+    protected function getTemplate()
+    {
+        return file_get_contents(__DIR__ . '/templates/private-constructor.template');
+    }
+
+    /**
      * @return int
      */
     public function getPriority()
     {
         return 0;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getTemplate()
-    {
-        return file_get_contents(__DIR__.'/templates/private-constructor.template');
     }
 }

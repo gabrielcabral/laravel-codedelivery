@@ -3,13 +3,13 @@
 namespace Illuminate\Queue;
 
 use Exception;
-use Throwable;
-use Illuminate\Contracts\Queue\Job;
-use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Cache\Repository as CacheContract;
 use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Symfony\Component\Debug\Exception\FatalThrowableError;
-use Illuminate\Contracts\Cache\Repository as CacheContract;
+use Throwable;
 
 class Worker
 {
@@ -96,6 +96,32 @@ class Worker
     }
 
     /**
+     * Get the last queue restart timestamp, or null.
+     *
+     * @return int|null
+     */
+    protected function getTimestampOfLastQueueRestart()
+    {
+        if ($this->cache) {
+            return $this->cache->get('illuminate:queue:restart');
+        }
+    }
+
+    /**
+     * Determine if the daemon should process on this iteration.
+     *
+     * @return bool
+     */
+    protected function daemonShouldRun()
+    {
+        if ($this->manager->isDownForMaintenance()) {
+            return false;
+        }
+
+        return $this->events->until('illuminate.queue.looping') !== false;
+    }
+
+    /**
      * Run the next job for the daemon worker.
      *
      * @param  string  $connectionName
@@ -118,20 +144,6 @@ class Worker
                 $this->exceptions->report(new FatalThrowableError($e));
             }
         }
-    }
-
-    /**
-     * Determine if the daemon should process on this iteration.
-     *
-     * @return bool
-     */
-    protected function daemonShouldRun()
-    {
-        if ($this->manager->isDownForMaintenance()) {
-            return false;
-        }
-
-        return $this->events->until('illuminate.queue.looping') !== false;
     }
 
     /**
@@ -229,22 +241,6 @@ class Worker
     }
 
     /**
-     * Raise the after queue job event.
-     *
-     * @param  string  $connection
-     * @param  \Illuminate\Contracts\Queue\Job  $job
-     * @return void
-     */
-    protected function raiseAfterJobEvent($connection, Job $job)
-    {
-        if ($this->events) {
-            $data = json_decode($job->getRawBody(), true);
-
-            $this->events->fire('illuminate.queue.after', [$connection, $job, $data]);
-        }
-    }
-
-    /**
      * Log a failed job into storage.
      *
      * @param  string  $connection
@@ -283,26 +279,19 @@ class Worker
     }
 
     /**
-     * Determine if the memory limit has been exceeded.
+     * Raise the after queue job event.
      *
-     * @param  int   $memoryLimit
-     * @return bool
-     */
-    public function memoryExceeded($memoryLimit)
-    {
-        return (memory_get_usage() / 1024 / 1024) >= $memoryLimit;
-    }
-
-    /**
-     * Stop listening and bail out of the script.
-     *
+     * @param  string $connection
+     * @param  \Illuminate\Contracts\Queue\Job $job
      * @return void
      */
-    public function stop()
+    protected function raiseAfterJobEvent($connection, Job $job)
     {
-        $this->events->fire('illuminate.queue.stopping');
+        if ($this->events) {
+            $data = json_decode($job->getRawBody(), true);
 
-        die;
+            $this->events->fire('illuminate.queue.after', [$connection, $job, $data]);
+        }
     }
 
     /**
@@ -317,15 +306,14 @@ class Worker
     }
 
     /**
-     * Get the last queue restart timestamp, or null.
+     * Determine if the memory limit has been exceeded.
      *
-     * @return int|null
+     * @param  int $memoryLimit
+     * @return bool
      */
-    protected function getTimestampOfLastQueueRestart()
+    public function memoryExceeded($memoryLimit)
     {
-        if ($this->cache) {
-            return $this->cache->get('illuminate:queue:restart');
-        }
+        return (memory_get_usage() / 1024 / 1024) >= $memoryLimit;
     }
 
     /**
@@ -337,6 +325,18 @@ class Worker
     protected function queueShouldRestart($lastRestart)
     {
         return $this->getTimestampOfLastQueueRestart() != $lastRestart;
+    }
+
+    /**
+     * Stop listening and bail out of the script.
+     *
+     * @return void
+     */
+    public function stop()
+    {
+        $this->events->fire('illuminate.queue.stopping');
+
+        die;
     }
 
     /**

@@ -22,16 +22,6 @@ class Seeder
     protected $command;
 
     /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
-    {
-        //
-    }
-
-    /**
      * Seed the given connection from the given path.
      *
      * @param  string  $class
@@ -44,6 +34,16 @@ class Seeder
         if (isset($this->command)) {
             $this->command->getOutput()->writeln("<info>Seeded:</info> $class");
         }
+    }
+
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        //
     }
 
     /**

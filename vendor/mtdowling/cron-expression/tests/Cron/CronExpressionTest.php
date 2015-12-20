@@ -12,6 +12,21 @@ use InvalidArgumentException;
 class CronExpressionTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * Data provider for testParsesCronScheduleWithAnySpaceCharsAsSeparators
+     *
+     * @return array
+     */
+    public static function scheduleWithDifferentSeparatorsProvider()
+    {
+        return array(
+            array("*\t*\t*\t*\t*\t*", array('*', '*', '*', '*', '*', '*')),
+            array("*  *  *  *  *  *", array('*', '*', '*', '*', '*', '*')),
+            array("* \t * \t * \t * \t * \t *", array('*', '*', '*', '*', '*', '*')),
+            array("*\t \t*\t \t*\t \t*\t \t*\t \t*", array('*', '*', '*', '*', '*', '*')),
+        );
+    }
+
+    /**
      * @covers Cron\CronExpression::factory
      */
     public function testFactoryRecognizesTemplates()
@@ -60,21 +75,6 @@ class CronExpressionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected[3], $cron->getExpression(CronExpression::MONTH));
         $this->assertEquals($expected[4], $cron->getExpression(CronExpression::WEEKDAY));
         $this->assertEquals($expected[5], $cron->getExpression(CronExpression::YEAR));
-    }
-
-    /**
-     * Data provider for testParsesCronScheduleWithAnySpaceCharsAsSeparators
-     *
-     * @return array
-     */
-    public static function scheduleWithDifferentSeparatorsProvider()
-    {
-        return array(
-            array("*\t*\t*\t*\t*\t*", array('*', '*', '*', '*', '*', '*')),
-            array("*  *  *  *  *  *", array('*', '*', '*', '*', '*', '*')),
-            array("* \t * \t * \t * \t * \t *", array('*', '*', '*', '*', '*', '*')),
-            array("*\t \t*\t \t*\t \t*\t \t*\t \t*", array('*', '*', '*', '*', '*', '*')),
-        );
     }
 
     /**

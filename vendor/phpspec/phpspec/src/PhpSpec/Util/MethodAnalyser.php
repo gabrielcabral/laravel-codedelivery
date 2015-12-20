@@ -46,19 +46,23 @@ class MethodAnalyser
     }
 
     /**
-     * @param string $class
-     * @param string $method
-     *
-     * @return string
+     * @param  \ReflectionMethod $method
+     * @return bool
      */
-    public function getMethodOwnerName($class, $method)
+    private function isNotImplementedInPhp(\ReflectionMethod $method)
     {
-        $reflectionMethod = new \ReflectionMethod($class, $method);
-        $startLine = $reflectionMethod->getStartLine();
-        $endLine = $reflectionMethod->getEndLine();
-        $reflectionClass  = $this->getMethodOwner($reflectionMethod, $startLine, $endLine);
+        $filename = $method->getDeclaringClass()->getFileName();
 
-        return $reflectionClass->getName();
+        if (false === $filename) {
+            return true;
+        }
+
+        // HHVM <=3.2.0 does not return FALSE correctly
+        if (preg_match('#^/([:/]systemlib.|/$)#', $filename)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -157,22 +161,18 @@ class MethodAnalyser
     }
 
     /**
-     * @param  \ReflectionMethod $method
-     * @return bool
+     * @param string $class
+     * @param string $method
+     *
+     * @return string
      */
-    private function isNotImplementedInPhp(\ReflectionMethod $method)
+    public function getMethodOwnerName($class, $method)
     {
-        $filename = $method->getDeclaringClass()->getFileName();
+        $reflectionMethod = new \ReflectionMethod($class, $method);
+        $startLine = $reflectionMethod->getStartLine();
+        $endLine = $reflectionMethod->getEndLine();
+        $reflectionClass = $this->getMethodOwner($reflectionMethod, $startLine, $endLine);
 
-        if (false === $filename) {
-            return true;
-        }
-
-        // HHVM <=3.2.0 does not return FALSE correctly
-        if (preg_match('#^/([:/]systemlib.|/$)#', $filename)) {
-            return true;
-        }
-
-        return false;
+        return $reflectionClass->getName();
     }
 }

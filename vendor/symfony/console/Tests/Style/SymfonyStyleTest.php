@@ -25,18 +25,6 @@ class SymfonyStyleTest extends PHPUnit_Framework_TestCase
     /** @var CommandTester */
     protected $tester;
 
-    protected function setUp()
-    {
-        $this->command = new Command('sfstyle');
-        $this->tester = new CommandTester($this->command);
-    }
-
-    protected function tearDown()
-    {
-        $this->command = null;
-        $this->tester = null;
-    }
-
     /**
      * @dataProvider inputCommandToOutputFilesProvider
      */
@@ -69,6 +57,18 @@ class SymfonyStyleTest extends PHPUnit_Framework_TestCase
         $this->tester->execute(array(), array('interactive' => false, 'decorated' => false));
         $expectedCount = (int) ceil($wordLength / ($maxLineLength)) + (int) ($wordLength > $maxLineLength - 5);
         $this->assertSame($expectedCount, substr_count($this->tester->getDisplay(true), ' § '));
+    }
+
+    protected function setUp()
+    {
+        $this->command = new Command('sfstyle');
+        $this->tester = new CommandTester($this->command);
+    }
+
+    protected function tearDown()
+    {
+        $this->command = null;
+        $this->tester = null;
     }
 }
 

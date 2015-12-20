@@ -14,9 +14,9 @@
 namespace PhpSpec\Wrapper\Subject;
 
 use PhpSpec\Exception\Fracture\FactoryDoesNotReturnObjectException;
+use PhpSpec\Exception\Wrapper\SubjectException;
 use PhpSpec\Formatter\Presenter\PresenterInterface;
 use PhpSpec\Wrapper\Unwrapper;
-use PhpSpec\Exception\Wrapper\SubjectException;
 
 class WrappedObject
 {
@@ -60,6 +60,35 @@ class WrappedObject
     }
 
     /**
+     * @param array $args
+     *
+     * @throws \PhpSpec\Exception\Wrapper\SubjectException
+     */
+    public function beConstructedWith($args)
+    {
+        if (null === $this->classname) {
+            throw new SubjectException(sprintf(
+                'You can not set object arguments. Behavior subject is %s.',
+                $this->presenter->presentValue(null)
+            ));
+        }
+
+        if ($this->isInstantiated()) {
+            throw new SubjectException('You can not change object construction method when it is already instantiated');
+        }
+
+        $this->beAnInstanceOf($this->classname, $args);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isInstantiated()
+    {
+        return $this->isInstantiated;
+    }
+
+    /**
      * @param string $classname
      * @param array  $arguments
      *
@@ -79,27 +108,6 @@ class WrappedObject
         $this->arguments      = $unwrapper->unwrapAll($arguments);
         $this->isInstantiated = false;
         $this->factoryMethod  = null;
-    }
-
-    /**
-     * @param array $args
-     *
-     * @throws \PhpSpec\Exception\Wrapper\SubjectException
-     */
-    public function beConstructedWith($args)
-    {
-        if (null === $this->classname) {
-            throw new SubjectException(sprintf(
-                'You can not set object arguments. Behavior subject is %s.',
-                $this->presenter->presentValue(null)
-            ));
-        }
-
-        if ($this->isInstantiated()) {
-            throw new SubjectException('You can not change object construction method when it is already instantiated');
-        }
-
-        $this->beAnInstanceOf($this->classname, $args);
     }
 
     /**
@@ -130,14 +138,6 @@ class WrappedObject
     public function getFactoryMethod()
     {
         return $this->factoryMethod;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isInstantiated()
-    {
-        return $this->isInstantiated;
     }
 
     /**

@@ -2,9 +2,9 @@
 
 namespace Illuminate\Foundation\Testing;
 
-use Mockery;
 use Exception;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
+use Mockery;
 
 trait ApplicationTrait
 {
@@ -21,32 +21,6 @@ trait ApplicationTrait
      * @var int
      */
     protected $code;
-
-    /**
-     * Refresh the application instance.
-     *
-     * @return void
-     */
-    protected function refreshApplication()
-    {
-        putenv('APP_ENV=testing');
-
-        $this->app = $this->createApplication();
-    }
-
-    /**
-     * Register an instance of an object in the container.
-     *
-     * @param  string  $abstract
-     * @param  object  $instance
-     * @return object
-     */
-    protected function instance($abstract, $instance)
-    {
-        $this->app->instance($abstract, $instance);
-
-        return $instance;
-    }
 
     /**
      * Specify a list of events that should be fired for the given operation.
@@ -81,48 +55,6 @@ trait ApplicationTrait
         });
 
         $this->app->instance('events', $mock);
-
-        return $this;
-    }
-
-    /**
-     * Mock the event dispatcher so all events are silenced.
-     *
-     * @return $this
-     */
-    protected function withoutEvents()
-    {
-        $mock = Mockery::mock('Illuminate\Contracts\Events\Dispatcher');
-
-        $mock->shouldReceive('fire');
-
-        $this->app->instance('events', $mock);
-
-        return $this;
-    }
-
-    /**
-     * Specify a list of jobs that should be dispatched for the given operation.
-     *
-     * These jobs will be mocked, so that handlers will not actually be executed.
-     *
-     * @param  array|mixed  $jobs
-     * @return $this
-     */
-    protected function expectsJobs($jobs)
-    {
-        $jobs = is_array($jobs) ? $jobs : func_get_args();
-
-        $mock = Mockery::mock('Illuminate\Bus\Dispatcher[dispatch]', [$this->app]);
-
-        foreach ($jobs as $job) {
-            $mock->shouldReceive('dispatch')->atLeast()->once()
-                ->with(Mockery::type($job));
-        }
-
-        $this->app->instance(
-            'Illuminate\Contracts\Bus\Dispatcher', $mock
-        );
 
         return $this;
     }
@@ -218,6 +150,97 @@ trait ApplicationTrait
     }
 
     /**
+     * Seed a given database connection.
+     *
+     * @param  string $class
+     * @return void
+     */
+    public function seed($class = 'DatabaseSeeder')
+    {
+        $this->artisan('db:seed', ['--class' => $class]);
+    }
+
+    /**
+     * Call artisan command and return code.
+     *
+     * @param  string $command
+     * @param  array $parameters
+     * @return int
+     */
+    public function artisan($command, $parameters = [])
+    {
+        return $this->code = $this->app['Illuminate\Contracts\Console\Kernel']->call($command, $parameters);
+    }
+
+    /**
+     * Refresh the application instance.
+     *
+     * @return void
+     */
+    protected function refreshApplication()
+    {
+        putenv('APP_ENV=testing');
+
+        $this->app = $this->createApplication();
+    }
+
+    /**
+     * Register an instance of an object in the container.
+     *
+     * @param  string $abstract
+     * @param  object $instance
+     * @return object
+     */
+    protected function instance($abstract, $instance)
+    {
+        $this->app->instance($abstract, $instance);
+
+        return $instance;
+    }
+
+    /**
+     * Mock the event dispatcher so all events are silenced.
+     *
+     * @return $this
+     */
+    protected function withoutEvents()
+    {
+        $mock = Mockery::mock('Illuminate\Contracts\Events\Dispatcher');
+
+        $mock->shouldReceive('fire');
+
+        $this->app->instance('events', $mock);
+
+        return $this;
+    }
+
+    /**
+     * Specify a list of jobs that should be dispatched for the given operation.
+     *
+     * These jobs will be mocked, so that handlers will not actually be executed.
+     *
+     * @param  array|mixed $jobs
+     * @return $this
+     */
+    protected function expectsJobs($jobs)
+    {
+        $jobs = is_array($jobs) ? $jobs : func_get_args();
+
+        $mock = Mockery::mock('Illuminate\Bus\Dispatcher[dispatch]', [$this->app]);
+
+        foreach ($jobs as $job) {
+            $mock->shouldReceive('dispatch')->atLeast()->once()
+                ->with(Mockery::type($job));
+        }
+
+        $this->app->instance(
+            'Illuminate\Contracts\Bus\Dispatcher', $mock
+        );
+
+        return $this;
+    }
+
+    /**
      * Assert that a given where condition exists in the database.
      *
      * @param  string  $table
@@ -261,19 +284,6 @@ trait ApplicationTrait
      * @param  string  $connection
      * @return $this
      */
-    protected function dontSeeInDatabase($table, array $data, $connection = null)
-    {
-        return $this->notSeeInDatabase($table, $data, $connection);
-    }
-
-    /**
-     * Assert that a given where condition does not exist in the database.
-     *
-     * @param  string  $table
-     * @param  array  $data
-     * @param  string  $connection
-     * @return $this
-     */
     protected function notSeeInDatabase($table, array $data, $connection = null)
     {
         $database = $this->app->make('db');
@@ -290,25 +300,15 @@ trait ApplicationTrait
     }
 
     /**
-     * Seed a given database connection.
+     * Assert that a given where condition does not exist in the database.
      *
-     * @param  string  $class
-     * @return void
+     * @param  string $table
+     * @param  array $data
+     * @param  string $connection
+     * @return $this
      */
-    public function seed($class = 'DatabaseSeeder')
+    protected function dontSeeInDatabase($table, array $data, $connection = null)
     {
-        $this->artisan('db:seed', ['--class' => $class]);
-    }
-
-    /**
-     * Call artisan command and return code.
-     *
-     * @param  string  $command
-     * @param  array  $parameters
-     * @return int
-     */
-    public function artisan($command, $parameters = [])
-    {
-        return $this->code = $this->app['Illuminate\Contracts\Console\Kernel']->call($command, $parameters);
+        return $this->notSeeInDatabase($table, $data, $connection);
     }
 }

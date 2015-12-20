@@ -62,6 +62,33 @@ class DocblockFormatter implements Formatter
     }
 
     /**
+     * Indent a string.
+     *
+     * @param string $text String to indent
+     * @param string $indent (default: '  ')
+     *
+     * @return string
+     */
+    private static function indent($text, $indent = '  ')
+    {
+        return $indent . str_replace("\n", "\n" . $indent, $text);
+    }
+
+    /**
+     * Convert underscored or whitespace separated words into sentence case.
+     *
+     * @param string $text
+     *
+     * @return string
+     */
+    private static function inflect($text)
+    {
+        $words = trim(preg_replace('/[\s_-]+/', ' ', preg_replace('/([a-z])([A-Z])/', '$1 $2', $text)));
+
+        return implode(' ', array_map('ucfirst', explode(' ', $words)));
+    }
+
+    /**
      * Format a docblock vector, for example, `@throws`, `@param`, or `@return`.
      *
      * @see DocBlock::$vectors
@@ -96,6 +123,23 @@ class DocblockFormatter implements Formatter
     }
 
     /**
+     * Get a docblock vector template.
+     *
+     * @param string $type Vector type
+     * @param int $max Pad width
+     *
+     * @return string
+     */
+    private static function getVectorParamTemplate($type, $max)
+    {
+        if (!isset(self::$vectorParamTemplates[$type])) {
+            return sprintf('%%-%ds', $max);
+        }
+
+        return sprintf('<%s>%%-%ds</%s>', self::$vectorParamTemplates[$type], $max, self::$vectorParamTemplates[$type]);
+    }
+
+    /**
      * Format docblock tags.
      *
      * @param array $skip Tags to exclude
@@ -120,49 +164,5 @@ class DocblockFormatter implements Formatter
         }
 
         return implode("\n", $chunks);
-    }
-
-    /**
-     * Get a docblock vector template.
-     *
-     * @param string $type Vector type
-     * @param int    $max  Pad width
-     *
-     * @return string
-     */
-    private static function getVectorParamTemplate($type, $max)
-    {
-        if (!isset(self::$vectorParamTemplates[$type])) {
-            return sprintf('%%-%ds', $max);
-        }
-
-        return sprintf('<%s>%%-%ds</%s>', self::$vectorParamTemplates[$type], $max, self::$vectorParamTemplates[$type]);
-    }
-
-    /**
-     * Indent a string.
-     *
-     * @param string $text   String to indent
-     * @param string $indent (default: '  ')
-     *
-     * @return string
-     */
-    private static function indent($text, $indent = '  ')
-    {
-        return $indent . str_replace("\n", "\n" . $indent, $text);
-    }
-
-    /**
-     * Convert underscored or whitespace separated words into sentence case.
-     *
-     * @param string $text
-     *
-     * @return string
-     */
-    private static function inflect($text)
-    {
-        $words = trim(preg_replace('/[\s_-]+/', ' ', preg_replace('/([a-z])([A-Z])/', '$1 $2', $text)));
-
-        return implode(' ', array_map('ucfirst', explode(' ', $words)));
     }
 }

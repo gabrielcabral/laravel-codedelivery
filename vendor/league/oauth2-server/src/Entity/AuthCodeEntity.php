@@ -24,6 +24,35 @@ class AuthCodeEntity extends AbstractTokenEntity
     protected $redirectUri = '';
 
     /**
+     * Generate a redirect URI
+     *
+     * @param string $state The state parameter if set by the client
+     * @param string $queryDelimeter The query delimiter ('?' for auth code grant, '#' for implicit grant)
+     *
+     * @return string
+     */
+    public function generateRedirectUri($state = null, $queryDelimeter = '?')
+    {
+        $uri = $this->getRedirectUri();
+        $uri .= (strstr($this->getRedirectUri(), $queryDelimeter) === false) ? $queryDelimeter : '&';
+
+        return $uri . http_build_query([
+            'code' => $this->getId(),
+            'state' => $state,
+        ]);
+    }
+
+    /**
+     * Get the redirect URI
+     *
+     * @return string
+     */
+    public function getRedirectUri()
+    {
+        return $this->redirectUri;
+    }
+
+    /**
      * Set the redirect URI for the authorization request
      *
      * @param string $redirectUri
@@ -38,32 +67,23 @@ class AuthCodeEntity extends AbstractTokenEntity
     }
 
     /**
-     * Get the redirect URI
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    public function getRedirectUri()
+    public function save()
     {
-        return $this->redirectUri;
-    }
+        $this->server->getAuthCodeStorage()->create(
+            $this->getId(),
+            $this->getExpireTime(),
+            $this->getSession()->getId(),
+            $this->getRedirectUri()
+        );
 
-    /**
-     * Generate a redirect URI
-     *
-     * @param string $state          The state parameter if set by the client
-     * @param string $queryDelimeter The query delimiter ('?' for auth code grant, '#' for implicit grant)
-     *
-     * @return string
-     */
-    public function generateRedirectUri($state = null, $queryDelimeter = '?')
-    {
-        $uri = $this->getRedirectUri();
-        $uri .= (strstr($this->getRedirectUri(), $queryDelimeter) === false) ? $queryDelimeter : '&';
+        // Associate the scope with the token
+        foreach ($this->getScopes() as $scope) {
+            $this->server->getAuthCodeStorage()->associateScope($this, $scope);
+        }
 
-        return $uri.http_build_query([
-            'code'  =>  $this->getId(),
-            'state' =>  $state,
-        ]);
+        return $this;
     }
 
     /**
@@ -96,26 +116,6 @@ class AuthCodeEntity extends AbstractTokenEntity
         }
 
         return $this->scopes;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function save()
-    {
-        $this->server->getAuthCodeStorage()->create(
-            $this->getId(),
-            $this->getExpireTime(),
-            $this->getSession()->getId(),
-            $this->getRedirectUri()
-        );
-
-        // Associate the scope with the token
-        foreach ($this->getScopes() as $scope) {
-            $this->server->getAuthCodeStorage()->associateScope($this, $scope);
-        }
-
-        return $this;
     }
 
     /**

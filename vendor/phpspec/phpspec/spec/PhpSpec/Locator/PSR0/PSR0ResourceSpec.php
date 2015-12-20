@@ -2,9 +2,8 @@
 
 namespace spec\PhpSpec\Locator\PSR0;
 
-use PhpSpec\ObjectBehavior;
-
 use PhpSpec\Locator\PSR0\PSR0Locator as Locator;
+use PhpSpec\ObjectBehavior;
 
 class PSR0ResourceSpec extends ObjectBehavior
 {

@@ -143,54 +143,6 @@ final class Instantiator implements InstantiatorInterface
 
     /**
      * @param ReflectionClass $reflectionClass
-     * @param string          $serializedString
-     *
-     * @throws UnexpectedValueException
-     *
-     * @return void
-     */
-    private function checkIfUnSerializationIsSupported(ReflectionClass $reflectionClass, $serializedString)
-    {
-        set_error_handler(function ($code, $message, $file, $line) use ($reflectionClass, & $error) {
-            $error = UnexpectedValueException::fromUncleanUnSerialization(
-                $reflectionClass,
-                $message,
-                $code,
-                $file,
-                $line
-            );
-        });
-
-        $this->attemptInstantiationViaUnSerialization($reflectionClass, $serializedString);
-
-        restore_error_handler();
-
-        if ($error) {
-            throw $error;
-        }
-    }
-
-    /**
-     * @param ReflectionClass $reflectionClass
-     * @param string          $serializedString
-     *
-     * @throws UnexpectedValueException
-     *
-     * @return void
-     */
-    private function attemptInstantiationViaUnSerialization(ReflectionClass $reflectionClass, $serializedString)
-    {
-        try {
-            unserialize($serializedString);
-        } catch (Exception $exception) {
-            restore_error_handler();
-
-            throw UnexpectedValueException::fromSerializationTriggeredException($reflectionClass, $exception);
-        }
-    }
-
-    /**
-     * @param ReflectionClass $reflectionClass
      *
      * @return bool
      */
@@ -252,6 +204,54 @@ final class Instantiator implements InstantiatorInterface
     private function isPhpVersionWithBrokenSerializationFormat()
     {
         return PHP_VERSION_ID === 50429 || PHP_VERSION_ID === 50513;
+    }
+
+    /**
+     * @param ReflectionClass $reflectionClass
+     * @param string $serializedString
+     *
+     * @throws UnexpectedValueException
+     *
+     * @return void
+     */
+    private function checkIfUnSerializationIsSupported(ReflectionClass $reflectionClass, $serializedString)
+    {
+        set_error_handler(function ($code, $message, $file, $line) use ($reflectionClass, & $error) {
+            $error = UnexpectedValueException::fromUncleanUnSerialization(
+                $reflectionClass,
+                $message,
+                $code,
+                $file,
+                $line
+            );
+        });
+
+        $this->attemptInstantiationViaUnSerialization($reflectionClass, $serializedString);
+
+        restore_error_handler();
+
+        if ($error) {
+            throw $error;
+        }
+    }
+
+    /**
+     * @param ReflectionClass $reflectionClass
+     * @param string $serializedString
+     *
+     * @throws UnexpectedValueException
+     *
+     * @return void
+     */
+    private function attemptInstantiationViaUnSerialization(ReflectionClass $reflectionClass, $serializedString)
+    {
+        try {
+            unserialize($serializedString);
+        } catch (Exception $exception) {
+            restore_error_handler();
+
+            throw UnexpectedValueException::fromSerializationTriggeredException($reflectionClass, $exception);
+        }
     }
 
     /**

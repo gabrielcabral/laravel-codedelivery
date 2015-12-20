@@ -25,6 +25,23 @@ class IsArrayContainingInOrder extends TypeSafeDiagnosingMatcher
         $this->_elementMatchers = $elementMatchers;
     }
 
+    /**
+     * An array with elements that match the given matchers in the same order.
+     *
+     * @factory contains ...
+     */
+    public static function arrayContaining(/* args... */)
+    {
+        $args = func_get_args();
+
+        return new self(Util::createMatcherArray($args));
+    }
+
+    public function describeTo(Description $description)
+    {
+        $description->appendList('[', ', ', ']', $this->_elementMatchers);
+    }
+
     protected function matchesSafelyWithDiagnosticDescription($array, Description $mismatchDescription)
     {
         $series = new SeriesMatchingOnce($this->_elementMatchers, $mismatchDescription);
@@ -36,22 +53,5 @@ class IsArrayContainingInOrder extends TypeSafeDiagnosingMatcher
         }
 
         return $series->isFinished();
-    }
-
-    public function describeTo(Description $description)
-    {
-        $description->appendList('[', ', ', ']', $this->_elementMatchers);
-    }
-
-    /**
-     * An array with elements that match the given matchers in the same order.
-     *
-     * @factory contains ...
-     */
-    public static function arrayContaining(/* args... */)
-    {
-        $args = func_get_args();
-
-        return new self(Util::createMatcherArray($args));
     }
 }

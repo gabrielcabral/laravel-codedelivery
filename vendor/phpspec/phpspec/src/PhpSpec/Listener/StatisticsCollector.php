@@ -13,10 +13,10 @@
 
 namespace PhpSpec\Listener;
 
-use PhpSpec\Event\SuiteEvent;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use PhpSpec\Event\ExampleEvent;
 use PhpSpec\Event\SpecificationEvent;
+use PhpSpec\Event\SuiteEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class StatisticsCollector implements EventSubscriberInterface
 {
@@ -78,14 +78,14 @@ class StatisticsCollector implements EventSubscriberInterface
         return $this->globalResult;
     }
 
-    public function getAllEvents()
+    public function getCountsHash()
     {
-        return array_merge(
-            $this->passedEvents,
-            $this->pendingEvents,
-            $this->skippedEvents,
-            $this->failedEvents,
-            $this->brokenEvents
+        return array(
+            'passed' => count($this->getPassedEvents()),
+            'pending' => count($this->getPendingEvents()),
+            'skipped' => count($this->getSkippedEvents()),
+            'failed' => count($this->getFailedEvents()),
+            'broken' => count($this->getBrokenEvents()),
         );
     }
 
@@ -114,17 +114,6 @@ class StatisticsCollector implements EventSubscriberInterface
         return $this->brokenEvents;
     }
 
-    public function getCountsHash()
-    {
-        return array(
-            'passed'  => count($this->getPassedEvents()),
-            'pending' => count($this->getPendingEvents()),
-            'skipped' => count($this->getSkippedEvents()),
-            'failed'  => count($this->getFailedEvents()),
-            'broken'  => count($this->getBrokenEvents()),
-        );
-    }
-
     public function getTotalSpecs()
     {
         return $this->totalSpecs;
@@ -133,6 +122,17 @@ class StatisticsCollector implements EventSubscriberInterface
     public function getEventsCount()
     {
         return count($this->getAllEvents());
+    }
+
+    public function getAllEvents()
+    {
+        return array_merge(
+            $this->passedEvents,
+            $this->pendingEvents,
+            $this->skippedEvents,
+            $this->failedEvents,
+            $this->brokenEvents
+        );
     }
 
     public function getTotalSpecsCount()

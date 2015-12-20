@@ -104,6 +104,47 @@ class RequestCriteria implements CriteriaInterface
         return $model;
     }
 
+    protected function parserFieldsSearch(array $fields = array(), array $searchFields = null)
+    {
+        if (!is_null($searchFields) && count($searchFields)) {
+            $acceptedConditions = config('repository.criteria.acceptedConditions', array('=', 'like'));
+            $originalFields = $fields;
+            $fields = [];
+
+            foreach ($searchFields as $index => $field) {
+                $field_parts = explode(':', $field);
+                $_index = array_search($field_parts[0], $originalFields);
+
+                if (count($field_parts) == 2) {
+                    if (in_array($field_parts[1], $acceptedConditions)) {
+                        unset($originalFields[$_index]);
+                        $field = $field_parts[0];
+                        $condition = $field_parts[1];
+                        $originalFields[$field] = $condition;
+                        $searchFields[$index] = $field;
+                    }
+                }
+            }
+
+            foreach ($originalFields as $field => $condition) {
+                if (is_numeric($field)) {
+                    $field = $condition;
+                    $condition = "=";
+                }
+                if (in_array($field, $searchFields)) {
+                    $fields[$field] = $condition;
+                }
+            }
+
+            if (count($fields) == 0) {
+                throw new \Exception(trans('repository::criteria.fields_not_accepted', array('field' => implode(',', $searchFields))));
+            }
+
+        }
+
+        return $fields;
+    }
+
     /**
      * @param $search
      * @return array
@@ -148,48 +189,5 @@ class RequestCriteria implements CriteriaInterface
         }
 
         return $search;
-    }
-
-
-    protected function parserFieldsSearch(array $fields = array(), array $searchFields =  null)
-    {
-        if ( !is_null($searchFields) && count($searchFields) ) {
-            $acceptedConditions = config('repository.criteria.acceptedConditions', array('=','like') );
-            $originalFields     = $fields;
-            $fields = [];
-
-            foreach ($searchFields as $index => $field) {
-                $field_parts = explode(':', $field);
-                $_index = array_search($field_parts[0], $originalFields);
-
-                if ( count($field_parts) == 2 ) {
-                    if ( in_array($field_parts[1],$acceptedConditions) ) {
-                        unset($originalFields[$_index]);
-                        $field                  = $field_parts[0];
-                        $condition              = $field_parts[1];
-                        $originalFields[$field] = $condition;
-                        $searchFields[$index]   = $field;
-                    }
-                }
-            }
-
-            foreach ($originalFields as $field=>$condition) {
-                if (is_numeric($field)){
-                    $field = $condition;
-                    $condition = "=";
-                }
-                if ( in_array($field, $searchFields) )
-                {
-                    $fields[$field] = $condition;
-                }
-            }
-
-            if ( count($fields) == 0 ){
-                throw new \Exception( trans('repository::criteria.fields_not_accepted', array('field'=>implode(',', $searchFields))) );
-            }
-
-        }
-
-        return $fields;
     }
 }

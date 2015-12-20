@@ -12,9 +12,9 @@
 
 namespace phpDocumentor\Reflection;
 
-use phpDocumentor\Reflection\DocBlock\Tag;
 use phpDocumentor\Reflection\DocBlock\Context;
 use phpDocumentor\Reflection\DocBlock\Location;
+use phpDocumentor\Reflection\DocBlock\Tag;
 
 /**
  * Parses the DocBlock for any structure.
@@ -246,11 +246,25 @@ class DocBlock implements \Reflector
     }
 
     /**
+     * Builds a string representation of this object.
+     *
+     * @todo determine the exact format as used by PHP Reflection and
+     *     implement it.
+     *
+     * @return string
+     * @codeCoverageIgnore Not yet implemented
+     */
+    public static function export()
+    {
+        throw new \Exception('Not yet implemented');
+    }
+
+    /**
      * Gets the text portion of the doc block.
-     * 
+     *
      * Gets the text portion (short and long description combined) of the doc
      * block.
-     * 
+     *
      * @return string The text portion of the doc block.
      */
     public function getText()
@@ -265,23 +279,6 @@ class DocBlock implements \Reflector
         }
     }
 
-    /**
-     * Set the text portion of the doc block.
-     * 
-     * Sets the text portion (short and long description combined) of the doc
-     * block.
-     *
-     * @param string $docblock The new text portion of the doc block.
-     * 
-     * @return $this This doc block.
-     */
-    public function setText($comment)
-    {
-        list(,$short, $long) = $this->splitDocBlock($comment);
-        $this->short_description = $short;
-        $this->long_description = new DocBlock\Description($long, $this);
-        return $this;
-    }
     /**
      * Returns the opening line or also known as short description.
      *
@@ -300,6 +297,24 @@ class DocBlock implements \Reflector
     public function getLongDescription()
     {
         return $this->long_description;
+    }
+
+    /**
+     * Set the text portion of the doc block.
+     *
+     * Sets the text portion (short and long description combined) of the doc
+     * block.
+     *
+     * @param string $docblock The new text portion of the doc block.
+     *
+     * @return $this This doc block.
+     */
+    public function setText($comment)
+    {
+        list(, $short, $long) = $this->splitDocBlock($comment);
+        $this->short_description = $short;
+        $this->long_description = new DocBlock\Description($long, $this);
+        return $this;
     }
 
     /**
@@ -361,16 +376,6 @@ class DocBlock implements \Reflector
     }
 
     /**
-     * Returns the tags for this DocBlock.
-     *
-     * @return Tag[]
-     */
-    public function getTags()
-    {
-        return $this->tags;
-    }
-
-    /**
      * Returns an array of tags matching the given name. If no tags are found
      * an empty array is returned.
      *
@@ -392,6 +397,16 @@ class DocBlock implements \Reflector
         }
 
         return $result;
+    }
+
+    /**
+     * Returns the tags for this DocBlock.
+     *
+     * @return Tag[]
+     */
+    public function getTags()
+    {
+        return $this->tags;
     }
 
     /**
@@ -437,21 +452,6 @@ class DocBlock implements \Reflector
         }
 
         return $tag;
-    }
-
-
-    /**
-     * Builds a string representation of this object.
-     *
-     * @todo determine the exact format as used by PHP Reflection and
-     *     implement it.
-     *
-     * @return string
-     * @codeCoverageIgnore Not yet implemented
-     */
-    public static function export()
-    {
-        throw new \Exception('Not yet implemented');
     }
 
     /**

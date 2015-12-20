@@ -25,6 +25,32 @@ class PersonTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($this->isValidCnp($cnp));
     }
 
+    protected function isValidCnp($cnp)
+    {
+        if (
+            is_string($cnp)
+            && (bool)preg_match(static::TEST_CNP_REGEX, $cnp)
+            && checkdate(substr($cnp, 3, 2), substr($cnp, 5, 2), substr($cnp, 1, 2))
+        ) {
+            $checkNumber = 279146358279;
+
+            $checksum = 0;
+            foreach (range(0, 11) as $digit) {
+                $checksum += substr($cnp, $digit, 1) * substr($checkNumber, $digit, 1);
+            }
+            $checksum = $checksum % 11;
+
+            if (
+                ($checksum < 10 && $checksum == substr($cnp, -1))
+                || ($checksum == 10 && substr($cnp, -1) == 1)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function testCnpReturnsMaleCnp()
     {
         $cnp = $this->faker->cnp('m');
@@ -65,31 +91,5 @@ class PersonTest extends \PHPUnit_Framework_TestCase
     {
         $cnp = $this->faker->cnp('f', 2000, 'CJ');
         $this->assertRegExp('/^6\d{6}12\d{4}$/', $cnp);
-    }
-
-    protected function isValidCnp($cnp)
-    {
-        if (
-            is_string($cnp)
-            && (bool) preg_match(static::TEST_CNP_REGEX, $cnp)
-            && checkdate(substr($cnp, 3, 2), substr($cnp, 5, 2), substr($cnp, 1, 2))
-        ){
-            $checkNumber = 279146358279;
-
-            $checksum = 0;
-            foreach (range(0, 11) as $digit) {
-                $checksum += substr($cnp, $digit, 1) * substr($checkNumber, $digit, 1);
-            }
-            $checksum = $checksum % 11;
-
-            if (
-                ($checksum < 10 && $checksum == substr($cnp, -1))
-                || ($checksum == 10 && substr($cnp, -1) == 1)
-            ){
-                return true;
-            }
-        }
-
-        return false;
     }
 }

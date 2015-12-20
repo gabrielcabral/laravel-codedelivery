@@ -86,23 +86,43 @@ class ForkingLoop extends Loop
     }
 
     /**
+     * Serialize all serializable return values.
+     *
+     * A naïve serialization will run into issues if there is a Closure or
+     * SimpleXMLElement (among other things) in scope when exiting the execution
+     * loop. We'll just ignore these unserializable classes, and serialize what
+     * we can.
+     *
+     * @param array $return
+     *
+     * @return string
+     */
+    private function serializeReturn(array $return)
+    {
+        $serializable = array();
+        foreach ($return as $key => $value) {
+            // Resources don't error, but they don't serialize well either.
+            if (is_resource($value)) {
+                continue;
+            }
+
+            try {
+                serialize($value);
+                $serializable[$key] = $value;
+            } catch (\Exception $e) {
+                // we'll just ignore this one...
+            }
+        }
+
+        return serialize($serializable);
+    }
+
+    /**
      * Create a savegame at the start of each loop iteration.
      */
     public function beforeLoop()
     {
         $this->createSavegame();
-    }
-
-    /**
-     * Clean up old savegames at the end of each loop iteration.
-     */
-    public function afterLoop()
-    {
-        // if there's an old savegame hanging around, let's kill it.
-        if (isset($this->savegame)) {
-            posix_kill($this->savegame, SIGKILL);
-            pcntl_signal_dispatch();
-        }
     }
 
     /**
@@ -135,34 +155,14 @@ class ForkingLoop extends Loop
     }
 
     /**
-     * Serialize all serializable return values.
-     *
-     * A naïve serialization will run into issues if there is a Closure or
-     * SimpleXMLElement (among other things) in scope when exiting the execution
-     * loop. We'll just ignore these unserializable classes, and serialize what
-     * we can.
-     *
-     * @param array $return
-     *
-     * @return string
+     * Clean up old savegames at the end of each loop iteration.
      */
-    private function serializeReturn(array $return)
+    public function afterLoop()
     {
-        $serializable = array();
-        foreach ($return as $key => $value) {
-            // Resources don't error, but they don't serialize well either.
-            if (is_resource($value)) {
-                continue;
-            }
-
-            try {
-                serialize($value);
-                $serializable[$key] = $value;
-            } catch (\Exception $e) {
-                // we'll just ignore this one...
-            }
+        // if there's an old savegame hanging around, let's kill it.
+        if (isset($this->savegame)) {
+            posix_kill($this->savegame, SIGKILL);
+            pcntl_signal_dispatch();
         }
-
-        return serialize($serializable);
     }
 }

@@ -22,6 +22,35 @@ namespace Cron;
  */
 class DayOfMonthField extends AbstractField
 {
+    public function isSatisfiedBy(\DateTime $date, $value)
+    {
+        // ? states that the field value is to be skipped
+        if ($value == '?') {
+            return true;
+        }
+
+        $fieldValue = $date->format('d');
+
+        // Check to see if this is the last day of the month
+        if ($value == 'L') {
+            return $fieldValue == $date->format('t');
+        }
+
+        // Check to see if this is the nearest weekday to a particular value
+        if (strpos($value, 'W')) {
+            // Parse the target day
+            $targetDay = substr($value, 0, strpos($value, 'W'));
+            // Find out if the current day is the nearest day of the week
+            return $date->format('j') == self::getNearestWeekday(
+                $date->format('Y'),
+                $date->format('m'),
+                $targetDay
+            )->format('j');
+        }
+
+        return $this->isSatisfied($date->format('d'), $value);
+    }
+
     /**
      * Get the nearest day of the week for a given day in a month
      *
@@ -52,35 +81,6 @@ class DayOfMonthField extends AbstractField
                 }
             }
         }
-    }
-
-    public function isSatisfiedBy(\DateTime $date, $value)
-    {
-        // ? states that the field value is to be skipped
-        if ($value == '?') {
-            return true;
-        }
-
-        $fieldValue = $date->format('d');
-
-        // Check to see if this is the last day of the month
-        if ($value == 'L') {
-            return $fieldValue == $date->format('t');
-        }
-
-        // Check to see if this is the nearest weekday to a particular value
-        if (strpos($value, 'W')) {
-            // Parse the target day
-            $targetDay = substr($value, 0, strpos($value, 'W'));
-            // Find out if the current day is the nearest day of the week
-            return $date->format('j') == self::getNearestWeekday(
-                $date->format('Y'),
-                $date->format('m'),
-                $targetDay
-            )->format('j');
-        }
-
-        return $this->isSatisfied($date->format('d'), $value);
     }
 
     public function increment(\DateTime $date, $invert = false)

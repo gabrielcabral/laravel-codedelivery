@@ -3,7 +3,6 @@
 namespace spec\Prophecy\Prediction;
 
 use PhpSpec\ObjectBehavior;
-
 use RuntimeException;
 
 class CallbackPredictionSpec extends ObjectBehavior

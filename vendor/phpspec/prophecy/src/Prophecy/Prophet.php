@@ -11,16 +11,16 @@
 
 namespace Prophecy;
 
+use Prophecy\Call\CallCenter;
+use Prophecy\Doubler\ClassPatch;
 use Prophecy\Doubler\Doubler;
 use Prophecy\Doubler\LazyDouble;
-use Prophecy\Doubler\ClassPatch;
-use Prophecy\Prophecy\ObjectProphecy;
-use Prophecy\Prophecy\RevealerInterface;
-use Prophecy\Prophecy\Revealer;
-use Prophecy\Call\CallCenter;
-use Prophecy\Util\StringUtil;
-use Prophecy\Exception\Prediction\PredictionException;
 use Prophecy\Exception\Prediction\AggregateException;
+use Prophecy\Exception\Prediction\PredictionException;
+use Prophecy\Prophecy\ObjectProphecy;
+use Prophecy\Prophecy\Revealer;
+use Prophecy\Prophecy\RevealerInterface;
+use Prophecy\Util\StringUtil;
 
 /**
  * Prophet creates prophecies.

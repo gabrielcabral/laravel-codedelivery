@@ -126,6 +126,11 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(E_ALL & ~E_NOTICE, $config->errorLoggingLevel());
     }
 
+    private function joinPath()
+    {
+        return implode(DIRECTORY_SEPARATOR, func_get_args());
+    }
+
     public function testLoadLocalConfigFile()
     {
         $oldPwd = getenv('PWD');
@@ -152,11 +157,6 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
     public function testBaseDirConfigIsDeprecated()
     {
         $config = new Configuration(array('baseDir' => 'fake'));
-    }
-
-    private function joinPath()
-    {
-        return implode(DIRECTORY_SEPARATOR, func_get_args());
     }
 
     public function testConfigIncludes()

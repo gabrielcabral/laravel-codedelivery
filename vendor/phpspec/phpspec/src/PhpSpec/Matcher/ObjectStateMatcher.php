@@ -13,9 +13,9 @@
 
 namespace PhpSpec\Matcher;
 
-use PhpSpec\Formatter\Presenter\PresenterInterface;
 use PhpSpec\Exception\Example\FailureException;
 use PhpSpec\Exception\Fracture\MethodNotFoundException;
+use PhpSpec\Formatter\Presenter\PresenterInterface;
 
 class ObjectStateMatcher implements MatcherInterface
 {
@@ -77,6 +77,23 @@ class ObjectStateMatcher implements MatcherInterface
     }
 
     /**
+     * @param callable $callable
+     * @param Boolean $expectedBool
+     * @param Boolean $result
+     *
+     * @return FailureException
+     */
+    private function getFailureExceptionFor($callable, $expectedBool, $result)
+    {
+        return new FailureException(sprintf(
+            "Expected %s to return %s, but got %s.",
+            $this->presenter->presentValue($callable),
+            $this->presenter->presentValue($expectedBool),
+            $this->presenter->presentValue($result)
+        ));
+    }
+
+    /**
      * @param string $name
      * @param mixed  $subject
      * @param array  $arguments
@@ -108,22 +125,5 @@ class ObjectStateMatcher implements MatcherInterface
     public function getPriority()
     {
         return 50;
-    }
-
-    /**
-     * @param callable $callable
-     * @param Boolean  $expectedBool
-     * @param Boolean  $result
-     *
-     * @return FailureException
-     */
-    private function getFailureExceptionFor($callable, $expectedBool, $result)
-    {
-        return new FailureException(sprintf(
-            "Expected %s to return %s, but got %s.",
-            $this->presenter->presentValue($callable),
-            $this->presenter->presentValue($expectedBool),
-            $this->presenter->presentValue($result)
-        ));
     }
 }

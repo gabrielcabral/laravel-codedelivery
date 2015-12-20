@@ -2,10 +2,10 @@
 
 namespace Illuminate\Database\Eloquent\Relations;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Expression;
 
 class BelongsTo extends Relation
 {
@@ -47,16 +47,6 @@ class BelongsTo extends Relation
         $this->foreignKey = $foreignKey;
 
         parent::__construct($query, $parent);
-    }
-
-    /**
-     * Get the results of the relationship.
-     *
-     * @return mixed
-     */
-    public function getResults()
-    {
-        return $this->query->first();
     }
 
     /**
@@ -122,6 +112,16 @@ class BelongsTo extends Relation
     public function getRelationCountHash()
     {
         return 'self_'.md5(microtime(true));
+    }
+
+    /**
+     * Get the fully qualified foreign key of the relationship.
+     *
+     * @return string
+     */
+    public function getQualifiedForeignKey()
+    {
+        return $this->parent->getTable() . '.' . $this->foreignKey;
     }
 
     /**
@@ -265,6 +265,16 @@ class BelongsTo extends Relation
     }
 
     /**
+     * Get the results of the relationship.
+     *
+     * @return mixed
+     */
+    public function getResults()
+    {
+        return $this->query->first();
+    }
+
+    /**
      * Get the foreign key of the relationship.
      *
      * @return string
@@ -272,16 +282,6 @@ class BelongsTo extends Relation
     public function getForeignKey()
     {
         return $this->foreignKey;
-    }
-
-    /**
-     * Get the fully qualified foreign key of the relationship.
-     *
-     * @return string
-     */
-    public function getQualifiedForeignKey()
-    {
-        return $this->parent->getTable().'.'.$this->foreignKey;
     }
 
     /**

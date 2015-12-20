@@ -77,18 +77,18 @@ class ExampleNode
     }
 
     /**
-     * @param SpecificationNode $specification
-     */
-    public function setSpecification(SpecificationNode $specification)
-    {
-        $this->specification = $specification;
-    }
-
-    /**
      * @return SpecificationNode|null
      */
     public function getSpecification()
     {
         return $this->specification;
+    }
+
+    /**
+     * @param SpecificationNode $specification
+     */
+    public function setSpecification(SpecificationNode $specification)
+    {
+        $this->specification = $specification;
     }
 }

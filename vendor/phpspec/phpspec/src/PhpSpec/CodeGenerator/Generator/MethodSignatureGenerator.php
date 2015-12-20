@@ -13,10 +13,10 @@
 
 namespace PhpSpec\CodeGenerator\Generator;
 
-use PhpSpec\Console\IO;
 use PhpSpec\CodeGenerator\TemplateRenderer;
-use PhpSpec\Util\Filesystem;
+use PhpSpec\Console\IO;
 use PhpSpec\Locator\ResourceInterface;
+use PhpSpec\Util\Filesystem;
 
 /**
  * Generates interface method signatures from a resource
@@ -90,11 +90,15 @@ class MethodSignatureGenerator implements GeneratorInterface
     }
 
     /**
-     * @return int
+     * @param array $arguments
+     * @return string
      */
-    public function getPriority()
+    private function buildArgumentString($arguments)
     {
-        return 0;
+        $argString = count($arguments)
+            ? '$argument' . implode(', $argument', range(1, count($arguments)))
+            : '';
+        return $argString;
     }
 
     /**
@@ -117,14 +121,10 @@ class MethodSignatureGenerator implements GeneratorInterface
     }
 
     /**
-     * @param array $arguments
-     * @return string
+     * @return int
      */
-    private function buildArgumentString($arguments)
+    public function getPriority()
     {
-        $argString = count($arguments)
-            ? '$argument' . implode(', $argument', range(1, count($arguments)))
-            : '';
-        return $argString;
+        return 0;
     }
 }

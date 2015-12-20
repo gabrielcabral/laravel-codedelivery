@@ -26,6 +26,16 @@ abstract class AbstractStorage implements StorageInterface
     protected $server;
 
     /**
+     * Return the server
+     *
+     * @return \League\OAuth2\Server\AbstractServer
+     */
+    protected function getServer()
+    {
+        return $this->server;
+    }
+
+    /**
      * Set the server
      *
      * @param \League\OAuth2\Server\AbstractServer $server
@@ -37,15 +47,5 @@ abstract class AbstractStorage implements StorageInterface
         $this->server = $server;
 
         return $this;
-    }
-
-    /**
-     * Return the server
-     *
-     * @return \League\OAuth2\Server\AbstractServer
-     */
-    protected function getServer()
-    {
-        return $this->server;
     }
 }

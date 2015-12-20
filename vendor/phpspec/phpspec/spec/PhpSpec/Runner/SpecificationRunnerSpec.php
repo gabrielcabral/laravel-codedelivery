@@ -2,14 +2,12 @@
 
 namespace spec\PhpSpec\Runner;
 
-use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
-
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-
-use PhpSpec\Runner\ExampleRunner;
-use PhpSpec\Loader\Node\SpecificationNode;
 use PhpSpec\Loader\Node\ExampleNode;
+use PhpSpec\Loader\Node\SpecificationNode;
+use PhpSpec\ObjectBehavior;
+use PhpSpec\Runner\ExampleRunner;
+use Prophecy\Argument;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class SpecificationRunnerSpec extends ObjectBehavior
 {

@@ -13,12 +13,12 @@
 
 namespace PhpSpec\CodeGenerator\Generator;
 
-use PhpSpec\Console\IO;
 use PhpSpec\CodeGenerator\TemplateRenderer;
 use PhpSpec\CodeGenerator\Writer\CodeWriter;
-use PhpSpec\Util\Filesystem;
-use PhpSpec\Locator\ResourceInterface;
 use PhpSpec\CodeGenerator\Writer\TokenizedCodeWriter;
+use PhpSpec\Console\IO;
+use PhpSpec\Locator\ResourceInterface;
+use PhpSpec\Util\Filesystem;
 
 /**
  * Generates class methods from a resource
@@ -105,14 +105,6 @@ class MethodGenerator implements GeneratorInterface
     }
 
     /**
-     * @return int
-     */
-    public function getPriority()
-    {
-        return 0;
-    }
-
-    /**
      * @return string
      */
     protected function getTemplate()
@@ -132,5 +124,13 @@ class MethodGenerator implements GeneratorInterface
             return $this->codeWriter->insertMethodFirstInClass($code, $snippetToInsert);
         }
         return $this->codeWriter->insertMethodLastInClass($code, $snippetToInsert);
+    }
+
+    /**
+     * @return int
+     */
+    public function getPriority()
+    {
+        return 0;
     }
 }

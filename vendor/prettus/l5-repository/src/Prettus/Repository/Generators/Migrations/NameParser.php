@@ -54,6 +54,17 @@ class NameParser
         $this->name = $name;
         $this->data = $this->fetchData();
     }
+
+    /**
+     * Fetch the migration name to an array data.
+     *
+     * @return array
+     */
+    protected function fetchData()
+    {
+        return explode('_', $this->name);
+    }
+
     /**
      * Get original migration name.
      *
@@ -63,15 +74,7 @@ class NameParser
     {
         return $this->name;
     }
-    /**
-     * Get schema type or action.
-     *
-     * @return string
-     */
-    public function getAction()
-    {
-        return head($this->data);
-    }
+
     /**
      * Get table name.
      *
@@ -127,15 +130,17 @@ class NameParser
                 break;
         }
     }
+
     /**
-     * Fetch the migration name to an array data.
+     * Get schema type or action.
      *
-     * @return array
+     * @return string
      */
-    protected function fetchData()
+    public function getAction()
     {
-        return explode('_', $this->name);
+        return head($this->data);
     }
+
     /**
      * Get the array data.
      *

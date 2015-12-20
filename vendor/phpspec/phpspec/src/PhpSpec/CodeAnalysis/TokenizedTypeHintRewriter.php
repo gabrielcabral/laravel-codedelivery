@@ -117,14 +117,14 @@ final class TokenizedTypeHintRewriter implements TypeHintRewriter
     }
 
     /**
-     * @param array $tokens
-     * @return string
+     * @param array|string $token
+     * @param string $type
+     *
+     * @return bool
      */
-    private function tokensToString($tokens)
+    private function tokenHasType($token, $type)
     {
-        return join('', array_map(function ($token) {
-            return is_array($token) ? $token[1] : $token;
-        }, $tokens));
+        return is_array($token) && $type == $token[0];
     }
 
     /**
@@ -162,13 +162,13 @@ final class TokenizedTypeHintRewriter implements TypeHintRewriter
     }
 
     /**
-     * @param array|string $token
-     * @param string $type
-     *
-     * @return bool
+     * @param array $tokens
+     * @return string
      */
-    private function tokenHasType($token, $type)
+    private function tokensToString($tokens)
     {
-        return is_array($token) && $type == $token[0];
+        return join('', array_map(function ($token) {
+            return is_array($token) ? $token[1] : $token;
+        }, $tokens));
     }
 }

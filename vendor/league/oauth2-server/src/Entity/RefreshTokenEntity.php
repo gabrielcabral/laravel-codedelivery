@@ -59,6 +59,18 @@ class RefreshTokenEntity extends AbstractTokenEntity
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function save()
+    {
+        $this->server->getRefreshTokenStorage()->create(
+            $this->getId(),
+            $this->getExpireTime(),
+            $this->getAccessToken()->getId()
+        );
+    }
+
+    /**
      * Return access token
      *
      * @return AccessTokenEntity
@@ -70,18 +82,6 @@ class RefreshTokenEntity extends AbstractTokenEntity
         }
 
         return $this->accessTokenEntity;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function save()
-    {
-        $this->server->getRefreshTokenStorage()->create(
-            $this->getId(),
-            $this->getExpireTime(),
-            $this->getAccessToken()->getId()
-        );
     }
 
     /**

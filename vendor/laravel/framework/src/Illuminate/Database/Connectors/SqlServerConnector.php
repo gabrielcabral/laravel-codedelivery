@@ -2,8 +2,8 @@
 
 namespace Illuminate\Database\Connectors;
 
-use PDO;
 use Illuminate\Support\Arr;
+use PDO;
 
 class SqlServerConnector extends Connector implements ConnectorInterface
 {
@@ -51,6 +51,16 @@ class SqlServerConnector extends Connector implements ConnectorInterface
     }
 
     /**
+     * Get the available PDO drivers.
+     *
+     * @return array
+     */
+    protected function getAvailableDrivers()
+    {
+        return PDO::getAvailableDrivers();
+    }
+
+    /**
      * Get the DSN string for a DbLib connection.
      *
      * @param  array  $config
@@ -68,6 +78,38 @@ class SqlServerConnector extends Connector implements ConnectorInterface
         );
 
         return $this->buildConnectString('dblib', $arguments);
+    }
+
+    /**
+     * Build a host string from the given configuration.
+     *
+     * @param  array  $config
+     * @param  string $separator
+     * @return string
+     */
+    protected function buildHostString(array $config, $separator)
+    {
+        if (isset($config['port'])) {
+            return $config['host'] . $separator . $config['port'];
+        } else {
+            return $config['host'];
+        }
+    }
+
+    /**
+     * Build a connection string from the given arguments.
+     *
+     * @param  string  $driver
+     * @param  array  $arguments
+     * @return string
+     */
+    protected function buildConnectString($driver, array $arguments)
+    {
+        $options = array_map(function ($key) use ($arguments) {
+            return sprintf('%s=%s', $key, $arguments[$key]);
+        }, array_keys($arguments));
+
+        return $driver.':'.implode(';', $options);
     }
 
     /**
@@ -91,47 +133,5 @@ class SqlServerConnector extends Connector implements ConnectorInterface
         }
 
         return $this->buildConnectString('sqlsrv', $arguments);
-    }
-
-    /**
-     * Build a connection string from the given arguments.
-     *
-     * @param  string  $driver
-     * @param  array  $arguments
-     * @return string
-     */
-    protected function buildConnectString($driver, array $arguments)
-    {
-        $options = array_map(function ($key) use ($arguments) {
-            return sprintf('%s=%s', $key, $arguments[$key]);
-        }, array_keys($arguments));
-
-        return $driver.':'.implode(';', $options);
-    }
-
-    /**
-     * Build a host string from the given configuration.
-     *
-     * @param  array  $config
-     * @param  string  $separator
-     * @return string
-     */
-    protected function buildHostString(array $config, $separator)
-    {
-        if (isset($config['port'])) {
-            return $config['host'].$separator.$config['port'];
-        } else {
-            return $config['host'];
-        }
-    }
-
-    /**
-     * Get the available PDO drivers.
-     *
-     * @return array
-     */
-    protected function getAvailableDrivers()
-    {
-        return PDO::getAvailableDrivers();
     }
 }

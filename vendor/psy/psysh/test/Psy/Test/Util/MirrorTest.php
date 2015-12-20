@@ -17,8 +17,8 @@ use Psy\Util\Mirror;
 class MirrorTest extends \PHPUnit_Framework_TestCase
 {
     const FOO           = 1;
-    private $bar        = 2;
     private static $baz = 3;
+    private $bar = 2;
 
     public function aPublicMethod()
     {

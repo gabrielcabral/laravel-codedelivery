@@ -493,17 +493,17 @@ class Person extends \Faker\Provider\Person
         return static::titleMale();
     }
 
-    public function title($gender = null)
-    {
-        return static::titleMale();
-    }
-
     /**
      * replaced by specific unisex Czech title
      */
     public static function titleMale()
     {
         return static::randomElement(static::$title);
+    }
+
+    public function title($gender = null)
+    {
+        return static::titleMale();
     }
 
     /**

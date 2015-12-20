@@ -39,9 +39,9 @@ class FeatureMatcherTest extends \Hamcrest\AbstractMatcherTest
         $this->_resultMatcher = $this->_resultMatcher();
     }
 
-    protected function createMatcher()
+    private function _resultMatcher()
     {
-        return $this->_resultMatcher();
+        return new \Hamcrest\ResultMatcher();
     }
 
     public function testMatchesPartOfAnObject()
@@ -66,8 +66,8 @@ class FeatureMatcherTest extends \Hamcrest\AbstractMatcherTest
 
     // -- Creation Methods
 
-    private function _resultMatcher()
+    protected function createMatcher()
     {
-        return new \Hamcrest\ResultMatcher();
+        return $this->_resultMatcher();
     }
 }

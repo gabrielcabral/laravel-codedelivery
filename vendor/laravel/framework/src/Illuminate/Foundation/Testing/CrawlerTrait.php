@@ -260,6 +260,81 @@ trait CrawlerTrait
     }
 
     /**
+     * Assert that the response contains JSON.
+     *
+     * @param  array|null $data
+     * @param  bool $negate
+     * @return $this
+     */
+    public function seeJson(array $data = null, $negate = false)
+    {
+        if (is_null($data)) {
+            $this->assertJson(
+                $this->response->getContent(), "JSON was not returned from [{$this->currentUri}]."
+            );
+
+            return $this;
+        }
+
+        return $this->seeJsonContains($data, $negate);
+    }
+
+    /**
+     * Assert that the response contains the given JSON.
+     *
+     * @param  array $data
+     * @param  bool $negate
+     * @return $this
+     */
+    protected function seeJsonContains(array $data, $negate = false)
+    {
+        $method = $negate ? 'assertFalse' : 'assertTrue';
+
+        $actual = json_decode($this->response->getContent(), true);
+
+        if (is_null($actual) || $actual === false) {
+            return $this->fail('Invalid JSON was returned from the route. Perhaps an exception was thrown?');
+        }
+
+        $actual = json_encode(Arr::sortRecursive(
+            (array)$actual
+        ));
+
+        foreach (Arr::sortRecursive($data) as $key => $value) {
+            $expected = $this->formatToExpectedJson($key, $value);
+
+            $this->{$method}(
+                Str::contains($actual, $expected),
+                ($negate ? 'Found unexpected' : 'Unable to find') . " JSON fragment [{$expected}] within [{$actual}]."
+            );
+        }
+
+        return $this;
+    }
+
+    /**
+     * Format the given key and value into a JSON string for expectation checks.
+     *
+     * @param  string $key
+     * @param  mixed $value
+     * @return string
+     */
+    protected function formatToExpectedJson($key, $value)
+    {
+        $expected = json_encode([$key => $value]);
+
+        if (Str::startsWith($expected, '{')) {
+            $expected = substr($expected, 1);
+        }
+
+        if (Str::endsWith($expected, '}')) {
+            $expected = substr($expected, 0, -1);
+        }
+
+        return $expected;
+    }
+
+    /**
      * Call the given HTTPS URI and return the Response.
      *
      * @param  string $method
@@ -360,81 +435,6 @@ trait CrawlerTrait
         if (! is_null($data)) {
             return $this->seeJson($data);
         }
-    }
-
-    /**
-     * Assert that the response contains JSON.
-     *
-     * @param  array|null  $data
-     * @param  bool  $negate
-     * @return $this
-     */
-    public function seeJson(array $data = null, $negate = false)
-    {
-        if (is_null($data)) {
-            $this->assertJson(
-                $this->response->getContent(), "JSON was not returned from [{$this->currentUri}]."
-            );
-
-            return $this;
-        }
-
-        return $this->seeJsonContains($data, $negate);
-    }
-
-    /**
-     * Assert that the response contains the given JSON.
-     *
-     * @param  array  $data
-     * @param  bool  $negate
-     * @return $this
-     */
-    protected function seeJsonContains(array $data, $negate = false)
-    {
-        $method = $negate ? 'assertFalse' : 'assertTrue';
-
-        $actual = json_decode($this->response->getContent(), true);
-
-        if (is_null($actual) || $actual === false) {
-            return $this->fail('Invalid JSON was returned from the route. Perhaps an exception was thrown?');
-        }
-
-        $actual = json_encode(Arr::sortRecursive(
-            (array) $actual
-        ));
-
-        foreach (Arr::sortRecursive($data) as $key => $value) {
-            $expected = $this->formatToExpectedJson($key, $value);
-
-            $this->{$method}(
-                Str::contains($actual, $expected),
-                ($negate ? 'Found unexpected' : 'Unable to find')." JSON fragment [{$expected}] within [{$actual}]."
-            );
-        }
-
-        return $this;
-    }
-
-    /**
-     * Format the given key and value into a JSON string for expectation checks.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return string
-     */
-    protected function formatToExpectedJson($key, $value)
-    {
-        $expected = json_encode([$key => $value]);
-
-        if (Str::startsWith($expected, '{')) {
-            $expected = substr($expected, 1);
-        }
-
-        if (Str::endsWith($expected, '}')) {
-            $expected = substr($expected, 0, -1);
-        }
-
-        return $expected;
     }
 
     /**

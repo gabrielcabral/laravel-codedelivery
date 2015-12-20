@@ -148,6 +148,38 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
     }
 
     /**
+     * @param  int $percent
+     * @return string
+     */
+    protected function getColorLevel($percent)
+    {
+        if ($percent <= $this->lowUpperBound) {
+            return 'danger';
+        } elseif ($percent > $this->lowUpperBound &&
+            $percent < $this->highLowerBound
+        ) {
+            return 'warning';
+        } else {
+            return 'success';
+        }
+    }
+
+    protected function getCoverageBar($percent)
+    {
+        $level = $this->getColorLevel($percent);
+
+        $template = new Text_Template(
+            $this->templatePath . 'coverage_bar.html',
+            '{{',
+            '}}'
+        );
+
+        $template->setVar(array('level' => $level, 'percent' => sprintf('%.2F', $percent)));
+
+        return $template->render();
+    }
+
+    /**
      * @param Text_Template                $template
      * @param PHP_CodeCoverage_Report_Node $node
      */
@@ -171,6 +203,20 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
                 'high_lower_bound' => $this->highLowerBound
             )
         );
+    }
+
+    protected function getPathToRoot(PHP_CodeCoverage_Report_Node $node)
+    {
+        $id = $node->getId();
+        $depth = substr_count($id, '/');
+
+        if ($id != 'index' &&
+            $node instanceof PHP_CodeCoverage_Report_Node_Directory
+        ) {
+            $depth++;
+        }
+
+        return str_repeat('../', $depth);
     }
 
     protected function getBreadcrumbs(PHP_CodeCoverage_Report_Node $node)
@@ -202,6 +248,15 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
         return $breadcrumbs;
     }
 
+    protected function getInactiveBreadcrumb(PHP_CodeCoverage_Report_Node $node, $pathToRoot)
+    {
+        return sprintf(
+            '        <li><a href="%sindex.html">%s</a></li>' . "\n",
+            $pathToRoot,
+            $node->getName()
+        );
+    }
+
     protected function getActiveBreadcrumb(PHP_CodeCoverage_Report_Node $node)
     {
         $buffer = sprintf(
@@ -214,58 +269,5 @@ abstract class PHP_CodeCoverage_Report_HTML_Renderer
         }
 
         return $buffer;
-    }
-
-    protected function getInactiveBreadcrumb(PHP_CodeCoverage_Report_Node $node, $pathToRoot)
-    {
-        return sprintf(
-            '        <li><a href="%sindex.html">%s</a></li>' . "\n",
-            $pathToRoot,
-            $node->getName()
-        );
-    }
-
-    protected function getPathToRoot(PHP_CodeCoverage_Report_Node $node)
-    {
-        $id    = $node->getId();
-        $depth = substr_count($id, '/');
-
-        if ($id != 'index' &&
-            $node instanceof PHP_CodeCoverage_Report_Node_Directory) {
-            $depth++;
-        }
-
-        return str_repeat('../', $depth);
-    }
-
-    protected function getCoverageBar($percent)
-    {
-        $level = $this->getColorLevel($percent);
-
-        $template = new Text_Template(
-            $this->templatePath . 'coverage_bar.html',
-            '{{',
-            '}}'
-        );
-
-        $template->setVar(array('level' => $level, 'percent' => sprintf('%.2F', $percent)));
-
-        return $template->render();
-    }
-
-    /**
-     * @param  int    $percent
-     * @return string
-     */
-    protected function getColorLevel($percent)
-    {
-        if ($percent <= $this->lowUpperBound) {
-            return 'danger';
-        } elseif ($percent > $this->lowUpperBound &&
-            $percent <  $this->highLowerBound) {
-            return 'warning';
-        } else {
-            return 'success';
-        }
     }
 }

@@ -52,6 +52,25 @@ class Diff_Renderer_Html_Array extends Diff_Renderer_Abstract
 	);
 
 	/**
+	 * Replace a string containing spaces with a HTML representation using &nbsp;.
+	 *
+	 * @param string $matches Regex matches array.
+	 * @return string The HTML representation of the string.
+	 */
+	public static function fixSpaces($matches)
+	{
+		$spaces = isset($matches[1]) ? $matches[1] : '';
+		$count = strlen($spaces);
+		if ($count == 0) {
+			return '';
+		}
+
+		$div = floor($count / 2);
+		$mod = $count % 2;
+		return str_repeat('&nbsp; ', $div) . str_repeat('&nbsp;', $mod);
+	}
+
+	/**
 	 * Render and return an array structure suitable for generating HTML
 	 * based differences. Generally called by subclasses that generate a
 	 * HTML based diff and return an array of the changes to show in the diff.
@@ -180,25 +199,6 @@ class Diff_Renderer_Html_Array extends Diff_Renderer_Abstract
 			$line = preg_replace_callback('# ( +)|^ #', __CLASS__."::fixSpaces", $line);
 		}
 		return $lines;
-	}
-
-	/**
-	 * Replace a string containing spaces with a HTML representation using &nbsp;.
-	 *
-	 * @param string $matches Regex matches array.
-	 * @return string The HTML representation of the string.
-	 */
-	public static function fixSpaces($matches)
-	{
-		$spaces = isset($matches[1]) ? $matches[1] : '';
-		$count = strlen($spaces);
-		if($count == 0) {
-			return '';
-		}
-
-		$div = floor($count / 2);
-		$mod = $count % 2;
-		return str_repeat('&nbsp; ', $div).str_repeat('&nbsp;', $mod);
 	}
 
 	/**

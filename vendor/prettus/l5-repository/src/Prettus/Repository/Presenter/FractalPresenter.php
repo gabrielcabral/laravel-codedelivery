@@ -2,16 +2,16 @@
 namespace Prettus\Repository\Presenter;
 
 use Exception;
-use Prettus\Repository\Contracts\PresenterInterface;
-use League\Fractal\Pagination\IlluminatePaginatorAdapter;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Pagination\AbstractPaginator;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use League\Fractal\Manager;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 use League\Fractal\Resource\Collection;
 use League\Fractal\Resource\Item;
 use League\Fractal\Serializer\SerializerAbstract;
+use Prettus\Repository\Contracts\PresenterInterface;
 
 /**
  * Class FractalPresenter
@@ -56,12 +56,14 @@ abstract class FractalPresenter implements PresenterInterface
     /**
      * @return $this
      */
-    protected function setupSerializer()
+    protected function parseIncludes()
     {
-        $serializer = $this->serializer();
 
-        if ( $serializer instanceof SerializerAbstract ){
-            $this->fractal->setSerializer(new $serializer());
+        $request = app('Illuminate\Http\Request');
+        $paramIncludes = config('repository.fractal.params.include', 'include');
+
+        if ($request->has($paramIncludes)) {
+            $this->fractal->parseIncludes($request->get($paramIncludes));
         }
 
         return $this;
@@ -70,14 +72,12 @@ abstract class FractalPresenter implements PresenterInterface
     /**
      * @return $this
      */
-    protected function parseIncludes()
+    protected function setupSerializer()
     {
+        $serializer = $this->serializer();
 
-        $request        = app('Illuminate\Http\Request');
-        $paramIncludes  = config('repository.fractal.params.include','include');
-
-        if ( $request->has( $paramIncludes ) ) {
-            $this->fractal->parseIncludes( $request->get( $paramIncludes ) );
+        if ($serializer instanceof SerializerAbstract) {
+            $this->fractal->setSerializer(new $serializer());
         }
 
         return $this;
@@ -93,13 +93,6 @@ abstract class FractalPresenter implements PresenterInterface
         $serializer = config('repository.fractal.serializer', 'League\\Fractal\\Serializer\\DataArraySerializer');
         return new $serializer();
     }
-
-    /**
-     * Transformer
-     *
-     * @return \League\Fractal\TransformerAbstract
-     */
-    abstract public function getTransformer();
 
     /**
      * Prepare data to present
@@ -127,21 +120,19 @@ abstract class FractalPresenter implements PresenterInterface
 
     /**
      * @param $data
-     * @return Item
-     */
-    protected function transformItem($data)
-    {
-        return new Item($data, $this->getTransformer(), $this->resourceKeyItem);
-    }
-
-    /**
-     * @param $data
      * @return \League\Fractal\Resource\Collection
      */
     protected function transformCollection($data)
     {
         return new Collection($data, $this->getTransformer(), $this->resourceKeyCollection);
     }
+
+    /**
+     * Transformer
+     *
+     * @return \League\Fractal\TransformerAbstract
+     */
+    abstract public function getTransformer();
 
     /**
      * @param AbstractPaginator|LengthAwarePaginator|Paginator $paginator
@@ -153,5 +144,14 @@ abstract class FractalPresenter implements PresenterInterface
         $resource = new Collection($collection, $this->getTransformer(), $this->resourceKeyCollection);
         $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
         return $resource;
+    }
+
+    /**
+     * @param $data
+     * @return Item
+     */
+    protected function transformItem($data)
+    {
+        return new Item($data, $this->getTransformer(), $this->resourceKeyItem);
     }
 }

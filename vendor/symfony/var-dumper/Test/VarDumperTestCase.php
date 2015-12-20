@@ -24,11 +24,6 @@ abstract class VarDumperTestCase extends \PHPUnit_Framework_TestCase
         $this->assertSame(rtrim($dump), $this->getVarDumperDump($data), $message);
     }
 
-    public function assertDumpMatchesFormat($dump, $data, $message = '')
-    {
-        $this->assertStringMatchesFormat(rtrim($dump), $this->getVarDumperDump($data), $message);
-    }
-
     private function getVarDumperDump($data)
     {
         $h = fopen('php://memory', 'r+b');
@@ -40,5 +35,10 @@ abstract class VarDumperTestCase extends \PHPUnit_Framework_TestCase
         fclose($h);
 
         return rtrim($data);
+    }
+
+    public function assertDumpMatchesFormat($dump, $data, $message = '')
+    {
+        $this->assertStringMatchesFormat(rtrim($dump), $this->getVarDumperDump($data), $message);
     }
 }

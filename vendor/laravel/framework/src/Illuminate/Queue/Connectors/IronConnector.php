@@ -2,10 +2,10 @@
 
 namespace Illuminate\Queue\Connectors;
 
-use IronMQ\IronMQ;
+use Illuminate\Contracts\Encryption\Encrypter as EncrypterContract;
 use Illuminate\Http\Request;
 use Illuminate\Queue\IronQueue;
-use Illuminate\Contracts\Encryption\Encrypter as EncrypterContract;
+use IronMQ\IronMQ;
 
 class IronConnector implements ConnectorInterface
 {

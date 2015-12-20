@@ -21,17 +21,6 @@ class LegacyTableHelperTest extends \PHPUnit_Framework_TestCase
 {
     protected $stream;
 
-    protected function setUp()
-    {
-        $this->stream = fopen('php://memory', 'r+');
-    }
-
-    protected function tearDown()
-    {
-        fclose($this->stream);
-        $this->stream = null;
-    }
-
     /**
      * @dataProvider testRenderProvider
      */
@@ -46,6 +35,18 @@ class LegacyTableHelperTest extends \PHPUnit_Framework_TestCase
         $table->render($output = $this->getOutputStream());
 
         $this->assertEquals($expected, $this->getOutputContent($output));
+    }
+
+    protected function getOutputStream()
+    {
+        return new StreamOutput($this->stream, StreamOutput::VERBOSITY_NORMAL, false);
+    }
+
+    protected function getOutputContent(StreamOutput $output)
+    {
+        rewind($output->getStream());
+
+        return str_replace(PHP_EOL, "\n", stream_get_contents($output->getStream()));
     }
 
     /**
@@ -308,15 +309,14 @@ TABLE;
         $this->assertEquals($expected, $this->getOutputContent($output));
     }
 
-    protected function getOutputStream()
+    protected function setUp()
     {
-        return new StreamOutput($this->stream, StreamOutput::VERBOSITY_NORMAL, false);
+        $this->stream = fopen('php://memory', 'r+');
     }
 
-    protected function getOutputContent(StreamOutput $output)
+    protected function tearDown()
     {
-        rewind($output->getStream());
-
-        return str_replace(PHP_EOL, "\n", stream_get_contents($output->getStream()));
+        fclose($this->stream);
+        $this->stream = null;
     }
 }

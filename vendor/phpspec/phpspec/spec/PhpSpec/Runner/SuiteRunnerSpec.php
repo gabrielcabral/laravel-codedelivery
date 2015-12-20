@@ -2,15 +2,13 @@
 
 namespace spec\PhpSpec\Runner;
 
-use PhpSpec\ObjectBehavior;
-use Prophecy\Argument;
-
 use PhpSpec\Event\ExampleEvent;
 use PhpSpec\Exception\Example\StopOnFailureException;
-use PhpSpec\Loader\Suite;
 use PhpSpec\Loader\Node\SpecificationNode;
+use PhpSpec\Loader\Suite;
+use PhpSpec\ObjectBehavior;
 use PhpSpec\Runner\SpecificationRunner;
-
+use Prophecy\Argument;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class SuiteRunnerSpec extends ObjectBehavior

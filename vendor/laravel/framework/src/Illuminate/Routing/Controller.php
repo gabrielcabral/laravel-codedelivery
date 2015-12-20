@@ -2,8 +2,8 @@
 
 namespace Illuminate\Routing;
 
-use Closure;
 use BadMethodCallException;
+use Closure;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -11,32 +11,29 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 abstract class Controller
 {
     /**
+     * The router instance.
+     *
+     * @var \Illuminate\Routing\Router
+     */
+    protected static $router;
+    /**
      * The middleware registered on the controller.
      *
      * @var array
      */
     protected $middleware = [];
-
     /**
      * The "before" filters registered on the controller.
      *
      * @var array
      */
     protected $beforeFilters = [];
-
     /**
      * The "after" filters registered on the controller.
      *
      * @var array
      */
     protected $afterFilters = [];
-
-    /**
-     * The router instance.
-     *
-     * @var \Illuminate\Routing\Router
-     */
-    protected static $router;
 
     /**
      * Register middleware on the controller.
@@ -62,20 +59,6 @@ abstract class Controller
     public function beforeFilter($filter, array $options = [])
     {
         $this->beforeFilters[] = $this->parseFilter($filter, $options);
-    }
-
-    /**
-     * Register an "after" filter on the controller.
-     *
-     * @param  \Closure|string  $filter
-     * @param  array  $options
-     * @return void
-     *
-     * @deprecated since version 5.1.
-     */
-    public function afterFilter($filter, array $options = [])
-    {
-        $this->afterFilters[] = $this->parseFilter($filter, $options);
     }
 
     /**
@@ -116,16 +99,24 @@ abstract class Controller
     }
 
     /**
-     * Register a controller instance method as a filter.
+     * Get the router instance.
      *
-     * @param  string  $filter
-     * @return string
+     * @return \Illuminate\Routing\Router
      */
-    protected function registerInstanceFilter($filter)
+    public static function getRouter()
     {
-        $this->getRouter()->filter($filter, [$this, substr($filter, 1)]);
+        return static::$router;
+    }
 
-        return $filter;
+    /**
+     * Set the router instance.
+     *
+     * @param  \Illuminate\Routing\Router $router
+     * @return void
+     */
+    public static function setRouter(Router $router)
+    {
+        static::$router = $router;
     }
 
     /**
@@ -150,6 +141,33 @@ abstract class Controller
     }
 
     /**
+     * Register a controller instance method as a filter.
+     *
+     * @param  string  $filter
+     * @return string
+     */
+    protected function registerInstanceFilter($filter)
+    {
+        $this->getRouter()->filter($filter, [$this, substr($filter, 1)]);
+
+        return $filter;
+    }
+
+    /**
+     * Register an "after" filter on the controller.
+     *
+     * @param  \Closure|string $filter
+     * @param  array $options
+     * @return void
+     *
+     * @deprecated since version 5.1.
+     */
+    public function afterFilter($filter, array $options = [])
+    {
+        $this->afterFilters[] = $this->parseFilter($filter, $options);
+    }
+
+    /**
      * Remove the given before filter.
      *
      * @param  string  $filter
@@ -160,19 +178,6 @@ abstract class Controller
     public function forgetBeforeFilter($filter)
     {
         $this->beforeFilters = $this->removeFilter($filter, $this->getBeforeFilters());
-    }
-
-    /**
-     * Remove the given after filter.
-     *
-     * @param  string  $filter
-     * @return void
-     *
-     * @deprecated since version 5.1.
-     */
-    public function forgetAfterFilter($filter)
-    {
-        $this->afterFilters = $this->removeFilter($filter, $this->getAfterFilters());
     }
 
     /**
@@ -190,16 +195,6 @@ abstract class Controller
     }
 
     /**
-     * Get the middleware assigned to the controller.
-     *
-     * @return array
-     */
-    public function getMiddleware()
-    {
-        return $this->middleware;
-    }
-
-    /**
      * Get the registered "before" filters.
      *
      * @return array
@@ -209,6 +204,19 @@ abstract class Controller
     public function getBeforeFilters()
     {
         return $this->beforeFilters;
+    }
+
+    /**
+     * Remove the given after filter.
+     *
+     * @param  string $filter
+     * @return void
+     *
+     * @deprecated since version 5.1.
+     */
+    public function forgetAfterFilter($filter)
+    {
+        $this->afterFilters = $this->removeFilter($filter, $this->getAfterFilters());
     }
 
     /**
@@ -224,24 +232,13 @@ abstract class Controller
     }
 
     /**
-     * Get the router instance.
+     * Get the middleware assigned to the controller.
      *
-     * @return \Illuminate\Routing\Router
+     * @return array
      */
-    public static function getRouter()
+    public function getMiddleware()
     {
-        return static::$router;
-    }
-
-    /**
-     * Set the router instance.
-     *
-     * @param  \Illuminate\Routing\Router  $router
-     * @return void
-     */
-    public static function setRouter(Router $router)
-    {
-        static::$router = $router;
+        return $this->middleware;
     }
 
     /**

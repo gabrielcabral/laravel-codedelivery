@@ -15,14 +15,13 @@ namespace PhpSpec\Runner\Maintainer;
 
 use PhpSpec\CodeAnalysis\DisallowedScalarTypehintException;
 use PhpSpec\Exception\Fracture\CollaboratorNotFoundException;
-use PhpSpec\Exception\Wrapper\CollaboratorException;
 use PhpSpec\Exception\Wrapper\InvalidCollaboratorTypeException;
 use PhpSpec\Loader\Node\ExampleNode;
 use PhpSpec\Loader\Transformer\InMemoryTypeHintIndex;
 use PhpSpec\Loader\Transformer\TypeHintIndex;
-use PhpSpec\SpecificationInterface;
-use PhpSpec\Runner\MatcherManager;
 use PhpSpec\Runner\CollaboratorManager;
+use PhpSpec\Runner\MatcherManager;
+use PhpSpec\SpecificationInterface;
 use PhpSpec\Wrapper\Collaborator;
 use PhpSpec\Wrapper\Unwrapper;
 use Prophecy\Exception\Doubler\ClassNotFoundException;
@@ -93,29 +92,6 @@ class CollaboratorsMaintainer implements MaintainerInterface
     }
 
     /**
-     * @param ExampleNode            $example
-     * @param SpecificationInterface $context
-     * @param MatcherManager         $matchers
-     * @param CollaboratorManager    $collaborators
-     */
-    public function teardown(
-        ExampleNode $example,
-        SpecificationInterface $context,
-        MatcherManager $matchers,
-        CollaboratorManager $collaborators
-    ) {
-        $this->prophet->checkPredictions();
-    }
-
-    /**
-     * @return int
-     */
-    public function getPriority()
-    {
-        return 50;
-    }
-
-    /**
      * @param CollaboratorManager         $collaborators
      * @param \ReflectionFunctionAbstract $function
      * @param \ReflectionClass            $classRefl
@@ -153,11 +129,6 @@ class CollaboratorsMaintainer implements MaintainerInterface
         }
     }
 
-    private function isUnsupportedTypeHinting(\ReflectionParameter $parameter)
-    {
-        return $parameter->isArray() || version_compare(PHP_VERSION, '5.4.0', '>') && $parameter->isCallable();
-    }
-
     /**
      * @param CollaboratorManager $collaborators
      * @param string              $name
@@ -174,20 +145,9 @@ class CollaboratorsMaintainer implements MaintainerInterface
         return $collaborators->get($name);
     }
 
-    /**
-     * @param Exception $e
-     * @param ReflectionParameter|null $parameter
-     * @param string $className
-     * @throws CollaboratorNotFoundException
-     */
-    private function throwCollaboratorNotFound($e, $parameter, $className = null)
+    private function isUnsupportedTypeHinting(\ReflectionParameter $parameter)
     {
-        throw new CollaboratorNotFoundException(
-            sprintf('Collaborator does not exist '),
-            0, $e,
-            $parameter,
-            $className
-        );
+        return $parameter->isArray() || version_compare(PHP_VERSION, '5.4.0', '>') && $parameter->isCallable();
     }
 
     /**
@@ -222,6 +182,46 @@ class CollaboratorsMaintainer implements MaintainerInterface
         catch (ReflectionException $e) {
             $this->throwCollaboratorNotFound($e, $parameter);
         }
+    }
+
+    /**
+     * @param Exception $e
+     * @param ReflectionParameter|null $parameter
+     * @param string $className
+     * @throws CollaboratorNotFoundException
+     */
+    private function throwCollaboratorNotFound($e, $parameter, $className = null)
+    {
+        throw new CollaboratorNotFoundException(
+            sprintf('Collaborator does not exist '),
+            0, $e,
+            $parameter,
+            $className
+        );
+    }
+
+    /**
+     * @param ExampleNode $example
+     * @param SpecificationInterface $context
+     * @param MatcherManager $matchers
+     * @param CollaboratorManager $collaborators
+     */
+    public function teardown(
+        ExampleNode $example,
+        SpecificationInterface $context,
+        MatcherManager $matchers,
+        CollaboratorManager $collaborators
+    )
+    {
+        $this->prophet->checkPredictions();
+    }
+
+    /**
+     * @return int
+     */
+    public function getPriority()
+    {
+        return 50;
     }
 
 }

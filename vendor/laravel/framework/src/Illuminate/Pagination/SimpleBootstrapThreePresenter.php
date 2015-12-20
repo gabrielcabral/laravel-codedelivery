@@ -18,16 +18,6 @@ class SimpleBootstrapThreePresenter extends BootstrapThreePresenter
     }
 
     /**
-     * Determine if the underlying paginator being presented has pages to show.
-     *
-     * @return bool
-     */
-    public function hasPages()
-    {
-        return $this->paginator->hasPages() && count($this->paginator->items()) > 0;
-    }
-
-    /**
      * Convert the URL window into Bootstrap HTML.
      *
      * @return string
@@ -43,5 +33,15 @@ class SimpleBootstrapThreePresenter extends BootstrapThreePresenter
         }
 
         return '';
+    }
+
+    /**
+     * Determine if the underlying paginator being presented has pages to show.
+     *
+     * @return bool
+     */
+    public function hasPages()
+    {
+        return $this->paginator->hasPages() && count($this->paginator->items()) > 0;
     }
 }

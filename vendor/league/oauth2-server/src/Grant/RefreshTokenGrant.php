@@ -51,44 +51,12 @@ class RefreshTokenGrant extends AbstractGrant
     protected $requireClientSecret = true;
 
     /**
-     * Set the TTL of the refresh token
-     *
-     * @param int $refreshTokenTTL
-     *
-     * @return void
-     */
-    public function setRefreshTokenTTL($refreshTokenTTL)
-    {
-        $this->refreshTokenTTL = $refreshTokenTTL;
-    }
-
-    /**
-     * Get the TTL of the refresh token
-     *
-     * @return int
-     */
-    public function getRefreshTokenTTL()
-    {
-        return $this->refreshTokenTTL;
-    }
-
-    /**
      * Set the rotation boolean of the refresh token
      * @param bool $refreshTokenRotate
      */
     public function setRefreshTokenRotation($refreshTokenRotate = true)
     {
         $this->refreshTokenRotate = $refreshTokenRotate;
-    }
-
-    /**
-     * Get rotation boolean of the refresh token
-     *
-     * @return bool
-     */
-    public function shouldRotateRefreshTokens()
-    {
-        return $this->refreshTokenRotate;
     }
 
     /**
@@ -100,18 +68,6 @@ class RefreshTokenGrant extends AbstractGrant
     {
         $this->requireClientSecret = $required;
     }
-
-    /**
-     * True if client secret is required during
-     * access token request. False if it isn't.
-     *
-     * @return bool
-     */
-    public function shouldRequireClientSecret()
-    {
-        return $this->requireClientSecret;
-    }
-
 
     /**
      * {@inheritdoc}
@@ -219,5 +175,48 @@ class RefreshTokenGrant extends AbstractGrant
         }
 
         return $this->server->getTokenType()->generateResponse();
+    }
+
+    /**
+     * True if client secret is required during
+     * access token request. False if it isn't.
+     *
+     * @return bool
+     */
+    public function shouldRequireClientSecret()
+    {
+        return $this->requireClientSecret;
+    }
+
+    /**
+     * Get rotation boolean of the refresh token
+     *
+     * @return bool
+     */
+    public function shouldRotateRefreshTokens()
+    {
+        return $this->refreshTokenRotate;
+    }
+
+    /**
+     * Get the TTL of the refresh token
+     *
+     * @return int
+     */
+    public function getRefreshTokenTTL()
+    {
+        return $this->refreshTokenTTL;
+    }
+
+    /**
+     * Set the TTL of the refresh token
+     *
+     * @param int $refreshTokenTTL
+     *
+     * @return void
+     */
+    public function setRefreshTokenTTL($refreshTokenTTL)
+    {
+        $this->refreshTokenTTL = $refreshTokenTTL;
     }
 }

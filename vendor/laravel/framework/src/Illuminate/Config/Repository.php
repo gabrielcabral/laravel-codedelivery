@@ -3,8 +3,8 @@
 namespace Illuminate\Config;
 
 use ArrayAccess;
-use Illuminate\Support\Arr;
 use Illuminate\Contracts\Config\Repository as ConfigContract;
+use Illuminate\Support\Arr;
 
 class Repository implements ArrayAccess, ConfigContract
 {
@@ -27,14 +27,19 @@ class Repository implements ArrayAccess, ConfigContract
     }
 
     /**
-     * Determine if the given configuration value exists.
+     * Prepend a value onto an array configuration value.
      *
      * @param  string  $key
-     * @return bool
+     * @param  mixed $value
+     * @return void
      */
-    public function has($key)
+    public function prepend($key, $value)
     {
-        return Arr::has($this->items, $key);
+        $array = $this->get($key);
+
+        array_unshift($array, $value);
+
+        $this->set($key, $array);
     }
 
     /**
@@ -65,22 +70,6 @@ class Repository implements ArrayAccess, ConfigContract
         } else {
             Arr::set($this->items, $key, $value);
         }
-    }
-
-    /**
-     * Prepend a value onto an array configuration value.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return void
-     */
-    public function prepend($key, $value)
-    {
-        $array = $this->get($key);
-
-        array_unshift($array, $value);
-
-        $this->set($key, $array);
     }
 
     /**
@@ -118,6 +107,17 @@ class Repository implements ArrayAccess, ConfigContract
     public function offsetExists($key)
     {
         return $this->has($key);
+    }
+
+    /**
+     * Determine if the given configuration value exists.
+     *
+     * @param  string $key
+     * @return bool
+     */
+    public function has($key)
+    {
+        return Arr::has($this->items, $key);
     }
 
     /**

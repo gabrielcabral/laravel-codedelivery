@@ -2,14 +2,13 @@
 
 namespace spec\PhpSpec\CodeGenerator\Generator;
 
+use PhpSpec\CodeGenerator\TemplateRenderer;
+use PhpSpec\Console\IO;
+use PhpSpec\Locator\ResourceInterface;
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Process\Context\ExecutionContextInterface;
-use Prophecy\Argument;
-
-use PhpSpec\Console\IO;
-use PhpSpec\CodeGenerator\TemplateRenderer;
 use PhpSpec\Util\Filesystem;
-use PhpSpec\Locator\ResourceInterface;
+use Prophecy\Argument;
 
 class ClassGeneratorSpec extends ObjectBehavior
 {

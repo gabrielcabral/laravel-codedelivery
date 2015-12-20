@@ -2,13 +2,11 @@
 
 namespace spec\PhpSpec\Matcher;
 
+use ArrayObject;
+use PhpSpec\Exception\Example\FailureException;
+use PhpSpec\Formatter\Presenter\PresenterInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-
-use PhpSpec\Formatter\Presenter\PresenterInterface;
-
-use PhpSpec\Exception\Example\FailureException;
-use ArrayObject;
 
 class ArrayKeyValueMatcherSpec extends ObjectBehavior
 {

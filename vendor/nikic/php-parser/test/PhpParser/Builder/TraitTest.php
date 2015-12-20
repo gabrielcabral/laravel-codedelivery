@@ -9,10 +9,6 @@ use PhpParser\Node\Stmt;
 
 class TraitTest extends \PHPUnit_Framework_TestCase
 {
-    protected function createTraitBuilder($class) {
-        return new Trait_($class);
-    }
-
     public function testStmtAddition() {
         $method1 = new Stmt\ClassMethod('test1');
         $method2 = new Stmt\ClassMethod('test2');
@@ -33,6 +29,11 @@ class TraitTest extends \PHPUnit_Framework_TestCase
                 new Comment\Doc('/** Nice trait */')
             )
         )), $trait);
+    }
+
+    protected function createTraitBuilder($class)
+    {
+        return new Trait_($class);
     }
 
     /**

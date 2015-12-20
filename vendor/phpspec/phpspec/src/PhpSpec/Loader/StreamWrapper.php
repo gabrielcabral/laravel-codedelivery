@@ -15,10 +15,9 @@ namespace PhpSpec\Loader;
 
 class StreamWrapper
 {
+    private static $specTransformers = array();
     private $realPath;
     private $fileResource;
-
-    private static $specTransformers = array();
 
     public static function register()
     {

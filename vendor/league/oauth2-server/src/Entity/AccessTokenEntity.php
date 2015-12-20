@@ -17,22 +17,6 @@ namespace League\OAuth2\Server\Entity;
 class AccessTokenEntity extends AbstractTokenEntity
 {
     /**
-     * Get session
-     *
-     * @return \League\OAuth2\Server\Entity\SessionEntity
-     */
-    public function getSession()
-    {
-        if ($this->session instanceof SessionEntity) {
-            return $this->session;
-        }
-
-        $this->session = $this->server->getSessionStorage()->getByAccessToken($this);
-
-        return $this->session;
-    }
-
-    /**
      * Check if access token has an associated scope
      *
      * @param string $scope Scope to check
@@ -81,6 +65,22 @@ class AccessTokenEntity extends AbstractTokenEntity
         }
 
         return $this;
+    }
+
+    /**
+     * Get session
+     *
+     * @return \League\OAuth2\Server\Entity\SessionEntity
+     */
+    public function getSession()
+    {
+        if ($this->session instanceof SessionEntity) {
+            return $this->session;
+        }
+
+        $this->session = $this->server->getSessionStorage()->getByAccessToken($this);
+
+        return $this->session;
     }
 
     /**

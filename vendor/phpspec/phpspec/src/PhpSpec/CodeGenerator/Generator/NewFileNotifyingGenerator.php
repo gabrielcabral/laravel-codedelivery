@@ -64,14 +64,6 @@ class NewFileNotifyingGenerator implements GeneratorInterface
     }
 
     /**
-     * @return int
-     */
-    public function getPriority()
-    {
-        return $this->generator->getPriority();
-    }
-
-    /**
      * @param ResourceInterface $resource
      * @return string
      */
@@ -103,5 +95,13 @@ class NewFileNotifyingGenerator implements GeneratorInterface
             $event = new FileCreationEvent($filePath);
             $this->dispatcher->dispatch('afterFileCreation', $event);
         }
+    }
+
+    /**
+     * @return int
+     */
+    public function getPriority()
+    {
+        return $this->generator->getPriority();
     }
 }

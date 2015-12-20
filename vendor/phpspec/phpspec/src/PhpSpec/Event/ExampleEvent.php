@@ -13,8 +13,8 @@
 
 namespace PhpSpec\Event;
 
-use Symfony\Component\EventDispatcher\Event;
 use PhpSpec\Loader\Node\ExampleNode;
+use Symfony\Component\EventDispatcher\Event;
 
 /**
  * Class ExampleEvent holds the information about the example event
@@ -93,19 +93,19 @@ class ExampleEvent extends Event implements EventInterface
     }
 
     /**
-     * @return \PhpSpec\Loader\Node\SpecificationNode
-     */
-    public function getSpecification()
-    {
-        return $this->example->getSpecification();
-    }
-
-    /**
      * @return \PhpSpec\Loader\Suite
      */
     public function getSuite()
     {
         return $this->getSpecification()->getSuite();
+    }
+
+    /**
+     * @return \PhpSpec\Loader\Node\SpecificationNode
+     */
+    public function getSpecification()
+    {
+        return $this->example->getSpecification();
     }
 
     /**

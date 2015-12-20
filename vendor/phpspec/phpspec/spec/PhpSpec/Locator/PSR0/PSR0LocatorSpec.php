@@ -4,7 +4,6 @@ namespace spec\PhpSpec\Locator\PSR0;
 
 use PhpSpec\ObjectBehavior;
 use PhpSpec\Util\Filesystem;
-
 use SplFileInfo;
 
 class PSR0LocatorSpec extends ObjectBehavior
@@ -145,6 +144,15 @@ class PSR0LocatorSpec extends ObjectBehavior
         $resources = $this->getAllResources();
         $resources->shouldHaveCount(1);
         $resources[0]->getSpecClassname()->shouldReturn('spec\Some\ClassSpec');
+    }
+
+    private function convert_to_path($path)
+    {
+        if ('/' === DIRECTORY_SEPARATOR) {
+            return $path;
+        }
+
+        return str_replace('/', DIRECTORY_SEPARATOR, $path);
     }
 
     function it_returns_empty_array_if_tracked_specPath_does_not_exist(Filesystem $fs)
@@ -519,14 +527,5 @@ class PSR0LocatorSpec extends ObjectBehavior
         $this->beConstructedWith('Test\\Namespace\\PhpSpec', 'spec', $this->srcPath, $this->specPath, $filesystem, 'Test\\Namespace');
         $filesystem->pathExists($this->specPath.'/spec/PhpSpec/Console/ApplicationSpec.php')->willReturn(true);
         $this->supportsQuery('Test\\Namespace\\PhpSpec\\Console\\Application')->shouldReturn(true);
-    }
-
-    private function convert_to_path($path)
-    {
-        if ('/' === DIRECTORY_SEPARATOR) {
-            return $path;
-        }
-
-        return str_replace('/', DIRECTORY_SEPARATOR, $path);
     }
 }

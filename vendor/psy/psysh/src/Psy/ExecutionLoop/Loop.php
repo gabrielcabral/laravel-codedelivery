@@ -129,6 +129,22 @@ class Loop
     }
 
     /**
+     * Decide whether to bind the execution loop.
+     *
+     * @return bool
+     */
+    protected static function bindLoop()
+    {
+        // skip binding on HHVM <= 3.5.0
+        // see https://github.com/facebook/hhvm/issues/1203
+        if (defined('HHVM_VERSION')) {
+            return version_compare(HHVM_VERSION, '3.5.0', '>=');
+        }
+
+        return version_compare(PHP_VERSION, '5.4', '>=');
+    }
+
+    /**
      * A beforeLoop callback.
      *
      * This is executed at the start of each loop iteration. In the default
@@ -148,21 +164,5 @@ class Loop
     public function afterLoop()
     {
         // no-op
-    }
-
-    /**
-     * Decide whether to bind the execution loop.
-     *
-     * @return bool
-     */
-    protected static function bindLoop()
-    {
-        // skip binding on HHVM <= 3.5.0
-        // see https://github.com/facebook/hhvm/issues/1203
-        if (defined('HHVM_VERSION')) {
-            return version_compare(HHVM_VERSION, '3.5.0', '>=');
-        }
-
-        return version_compare(PHP_VERSION, '5.4', '>=');
     }
 }

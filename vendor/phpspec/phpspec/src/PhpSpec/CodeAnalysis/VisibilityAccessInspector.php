@@ -35,17 +35,6 @@ final class VisibilityAccessInspector implements AccessInspectorInterface
      *
      * @return bool
      */
-    public function isPropertyWritable($object, $property)
-    {
-        return $this->isExistingPublicProperty($object, $property);
-    }
-
-    /**
-     * @param object $object
-     * @param string $property
-     *
-     * @return bool
-     */
     private function isExistingPublicProperty($object, $property)
     {
         if (!property_exists($object, $property)) {
@@ -55,6 +44,17 @@ final class VisibilityAccessInspector implements AccessInspectorInterface
         $propertyReflection = new ReflectionProperty($object, $property);
 
         return $propertyReflection->isPublic();
+    }
+
+    /**
+     * @param object $object
+     * @param string $property
+     *
+     * @return bool
+     */
+    public function isPropertyWritable($object, $property)
+    {
+        return $this->isExistingPublicProperty($object, $property);
     }
 
     /**

@@ -15,13 +15,13 @@ namespace PhpSpec\Wrapper\Subject;
 
 use PhpSpec\Loader\Node\ExampleNode;
 use PhpSpec\Matcher\MatcherInterface;
+use PhpSpec\Runner\MatcherManager;
 use PhpSpec\Wrapper\Subject\Expectation\ConstructorDecorator;
 use PhpSpec\Wrapper\Subject\Expectation\DispatcherDecorator;
 use PhpSpec\Wrapper\Subject\Expectation\ExpectationInterface;
 use PhpSpec\Wrapper\Subject\Expectation\UnwrapDecorator;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use PhpSpec\Runner\MatcherManager;
 use PhpSpec\Wrapper\Unwrapper;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ExpectationFactory
 {
@@ -66,22 +66,6 @@ class ExpectationFactory
         if (0 === strpos($expectation, 'should')) {
             return $this->createPositive(lcfirst(substr($expectation, 6)), $subject, $arguments);
         }
-    }
-
-    /**
-     * @param string $name
-     * @param mixed  $subject
-     * @param array  $arguments
-     *
-     * @return ExpectationInterface
-     */
-    private function createPositive($name, $subject, array $arguments = array())
-    {
-        if (strtolower($name) === 'throw') {
-            return $this->createDecoratedExpectation("PositiveThrow", $name, $subject, $arguments);
-        }
-
-        return $this->createDecoratedExpectation("Positive", $name, $subject, $arguments);
     }
 
     /**
@@ -150,5 +134,21 @@ class ExpectationFactory
         $constructorDecorator = new ConstructorDecorator($unwrapperDecorator);
 
         return $constructorDecorator;
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $subject
+     * @param array $arguments
+     *
+     * @return ExpectationInterface
+     */
+    private function createPositive($name, $subject, array $arguments = array())
+    {
+        if (strtolower($name) === 'throw') {
+            return $this->createDecoratedExpectation("PositiveThrow", $name, $subject, $arguments);
+        }
+
+        return $this->createDecoratedExpectation("Positive", $name, $subject, $arguments);
     }
 }

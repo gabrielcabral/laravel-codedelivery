@@ -34,14 +34,6 @@ class SecureKey
     }
 
     /**
-     * @param KeyAlgorithmInterface $algorithm
-     */
-    public static function setAlgorithm(KeyAlgorithmInterface $algorithm)
-    {
-        self::$algorithm = $algorithm;
-    }
-
-    /**
      * @return KeyAlgorithmInterface
      */
     public static function getAlgorithm()
@@ -51,5 +43,13 @@ class SecureKey
         }
 
         return self::$algorithm;
+    }
+
+    /**
+     * @param KeyAlgorithmInterface $algorithm
+     */
+    public static function setAlgorithm(KeyAlgorithmInterface $algorithm)
+    {
+        self::$algorithm = $algorithm;
     }
 }

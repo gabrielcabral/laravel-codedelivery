@@ -39,6 +39,23 @@ class ConsoleFormatter extends BasicFormatter implements FatalPresenter
         $this->io = $io;
     }
 
+    public function displayFatal(CurrentExampleTracker $currentExample, $error)
+    {
+        if (
+            (null !== $error && $currentExample->getCurrentExample()) ||
+            (is_null($currentExample->getCurrentExample()) && defined('HHVM_VERSION'))
+        ) {
+            ini_set('display_errors', "stderr");
+            $failedOpen = ($this->io->isDecorated()) ? '<failed>' : '';
+            $failedClosed = ($this->io->isDecorated()) ? '</failed>' : '';
+            $failedCross = ($this->io->isDecorated()) ? '✘' : '';
+
+            $this->io->writeln("$failedOpen$failedCross Fatal error happened while executing the following $failedClosed");
+            $this->io->writeln("$failedOpen    {$currentExample->getCurrentExample()} $failedClosed");
+            $this->io->writeln("$failedOpen    {$error['message']} in {$error['file']} on line {$error['line']} $failedClosed");
+        }
+    }
+
     /**
      * @return IO
      */
@@ -91,22 +108,5 @@ class ConsoleFormatter extends BasicFormatter implements FatalPresenter
         ));
         $this->io->writeln(sprintf('<%s>%s</%s>', $type, lcfirst($message), $type), 6);
         $this->io->writeln();
-    }
-
-    public function displayFatal(CurrentExampleTracker $currentExample, $error)
-    {
-        if (
-            (null !== $error && $currentExample->getCurrentExample()) ||
-            (is_null($currentExample->getCurrentExample()) && defined('HHVM_VERSION'))
-        ) {
-            ini_set('display_errors', "stderr");
-            $failedOpen = ($this->io->isDecorated()) ? '<failed>' : '';
-            $failedClosed = ($this->io->isDecorated()) ? '</failed>' : '';
-            $failedCross = ($this->io->isDecorated()) ? '✘' : '';
-
-            $this->io->writeln("$failedOpen$failedCross Fatal error happened while executing the following $failedClosed");
-            $this->io->writeln("$failedOpen    {$currentExample->getCurrentExample()} $failedClosed");
-            $this->io->writeln("$failedOpen    {$error['message']} in {$error['file']} on line {$error['line']} $failedClosed");
-        }
     }
 }

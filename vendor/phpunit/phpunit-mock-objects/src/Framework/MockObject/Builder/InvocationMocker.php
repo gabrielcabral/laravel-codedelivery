@@ -64,18 +64,7 @@ class PHPUnit_Framework_MockObject_Builder_InvocationMocker implements PHPUnit_F
     }
 
     /**
-     * @param  PHPUnit_Framework_MockObject_Stub                     $stub
-     * @return PHPUnit_Framework_MockObject_Builder_InvocationMocker
-     */
-    public function will(PHPUnit_Framework_MockObject_Stub $stub)
-    {
-        $this->matcher->stub = $stub;
-
-        return $this;
-    }
-
-    /**
-     * @param  mixed                                                 $value
+     * @param  mixed $value
      * @return PHPUnit_Framework_MockObject_Builder_InvocationMocker
      */
     public function willReturn($value)
@@ -85,6 +74,17 @@ class PHPUnit_Framework_MockObject_Builder_InvocationMocker implements PHPUnit_F
         );
 
         return $this->will($stub);
+    }
+
+    /**
+     * @param  PHPUnit_Framework_MockObject_Stub $stub
+     * @return PHPUnit_Framework_MockObject_Builder_InvocationMocker
+     */
+    public function will(PHPUnit_Framework_MockObject_Stub $stub)
+    {
+        $this->matcher->stub = $stub;
+
+        return $this;
     }
 
     /**
@@ -172,6 +172,21 @@ class PHPUnit_Framework_MockObject_Builder_InvocationMocker implements PHPUnit_F
     }
 
     /**
+     * @param  mixed $argument , ...
+     * @return PHPUnit_Framework_MockObject_Builder_InvocationMocker
+     */
+    public function with()
+    {
+        $args = func_get_args();
+
+        $this->canDefineParameters();
+
+        $this->matcher->parametersMatcher = new PHPUnit_Framework_MockObject_Matcher_Parameters($args);
+
+        return $this;
+    }
+
+    /**
      * Validate that a parameters matcher can be defined, throw exceptions otherwise.
      *
      * @throws PHPUnit_Framework_Exception
@@ -190,21 +205,6 @@ class PHPUnit_Framework_MockObject_Builder_InvocationMocker implements PHPUnit_F
                 'Parameter matcher is already defined, cannot redefine'
             );
         }
-    }
-
-    /**
-     * @param  mixed                                                 $argument, ...
-     * @return PHPUnit_Framework_MockObject_Builder_InvocationMocker
-     */
-    public function with()
-    {
-        $args = func_get_args();
-
-        $this->canDefineParameters();
-
-        $this->matcher->parametersMatcher = new PHPUnit_Framework_MockObject_Matcher_Parameters($args);
-
-        return $this;
     }
 
     /**

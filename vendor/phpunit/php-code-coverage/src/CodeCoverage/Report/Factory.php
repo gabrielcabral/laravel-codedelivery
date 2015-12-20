@@ -39,96 +39,6 @@ class PHP_CodeCoverage_Report_Factory
     }
 
     /**
-     * @param PHP_CodeCoverage_Report_Node_Directory $root
-     * @param array                                  $items
-     * @param array                                  $tests
-     * @param bool                                   $cacheTokens
-     */
-    private function addItems(PHP_CodeCoverage_Report_Node_Directory $root, array $items, array $tests, $cacheTokens)
-    {
-        foreach ($items as $key => $value) {
-            if (substr($key, -2) == '/f') {
-                $key = substr($key, 0, -2);
-
-                if (file_exists($root->getPath() . DIRECTORY_SEPARATOR . $key)) {
-                    $root->addFile($key, $value, $tests, $cacheTokens);
-                }
-            } else {
-                $child = $root->addDirectory($key);
-                $this->addItems($child, $value, $tests, $cacheTokens);
-            }
-        }
-    }
-
-    /**
-     * Builds an array representation of the directory structure.
-     *
-     * For instance,
-     *
-     * <code>
-     * Array
-     * (
-     *     [Money.php] => Array
-     *         (
-     *             ...
-     *         )
-     *
-     *     [MoneyBag.php] => Array
-     *         (
-     *             ...
-     *         )
-     * )
-     * </code>
-     *
-     * is transformed into
-     *
-     * <code>
-     * Array
-     * (
-     *     [.] => Array
-     *         (
-     *             [Money.php] => Array
-     *                 (
-     *                     ...
-     *                 )
-     *
-     *             [MoneyBag.php] => Array
-     *                 (
-     *                     ...
-     *                 )
-     *         )
-     * )
-     * </code>
-     *
-     * @param  array $files
-     * @return array
-     */
-    private function buildDirectoryStructure($files)
-    {
-        $result = array();
-
-        foreach ($files as $path => $file) {
-            $path    = explode('/', $path);
-            $pointer = &$result;
-            $max     = count($path);
-
-            for ($i = 0; $i < $max; $i++) {
-                if ($i == ($max - 1)) {
-                    $type = '/f';
-                } else {
-                    $type = '';
-                }
-
-                $pointer = &$pointer[$path[$i] . $type];
-            }
-
-            $pointer = $file;
-        }
-
-        return $result;
-    }
-
-    /**
      * Reduces the paths by cutting the longest common start path.
      *
      * For instance,
@@ -238,5 +148,95 @@ class PHP_CodeCoverage_Report_Factory
         ksort($files);
 
         return substr($commonPath, 0, -1);
+    }
+
+    /**
+     * @param PHP_CodeCoverage_Report_Node_Directory $root
+     * @param array $items
+     * @param array $tests
+     * @param bool $cacheTokens
+     */
+    private function addItems(PHP_CodeCoverage_Report_Node_Directory $root, array $items, array $tests, $cacheTokens)
+    {
+        foreach ($items as $key => $value) {
+            if (substr($key, -2) == '/f') {
+                $key = substr($key, 0, -2);
+
+                if (file_exists($root->getPath() . DIRECTORY_SEPARATOR . $key)) {
+                    $root->addFile($key, $value, $tests, $cacheTokens);
+                }
+            } else {
+                $child = $root->addDirectory($key);
+                $this->addItems($child, $value, $tests, $cacheTokens);
+            }
+        }
+    }
+
+    /**
+     * Builds an array representation of the directory structure.
+     *
+     * For instance,
+     *
+     * <code>
+     * Array
+     * (
+     *     [Money.php] => Array
+     *         (
+     *             ...
+     *         )
+     *
+     *     [MoneyBag.php] => Array
+     *         (
+     *             ...
+     *         )
+     * )
+     * </code>
+     *
+     * is transformed into
+     *
+     * <code>
+     * Array
+     * (
+     *     [.] => Array
+     *         (
+     *             [Money.php] => Array
+     *                 (
+     *                     ...
+     *                 )
+     *
+     *             [MoneyBag.php] => Array
+     *                 (
+     *                     ...
+     *                 )
+     *         )
+     * )
+     * </code>
+     *
+     * @param  array $files
+     * @return array
+     */
+    private function buildDirectoryStructure($files)
+    {
+        $result = array();
+
+        foreach ($files as $path => $file) {
+            $path = explode('/', $path);
+            $pointer = &$result;
+            $max = count($path);
+
+            for ($i = 0; $i < $max; $i++) {
+                if ($i == ($max - 1)) {
+                    $type = '/f';
+                } else {
+                    $type = '';
+                }
+
+                $pointer = &$pointer[$path[$i] . $type];
+            }
+
+            $pointer = $file;
+        }
+
+        return $result;
     }
 }

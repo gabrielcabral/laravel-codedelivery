@@ -11,11 +11,11 @@
 
 namespace Symfony\Component\Translation\Loader;
 
+use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\Config\Util\XmlUtils;
-use Symfony\Component\Translation\MessageCatalogue;
 use Symfony\Component\Translation\Exception\InvalidResourceException;
 use Symfony\Component\Translation\Exception\NotFoundResourceException;
-use Symfony\Component\Config\Resource\FileResource;
+use Symfony\Component\Translation\MessageCatalogue;
 
 /**
  * XliffFileLoader loads translations from XLIFF files.
@@ -80,31 +80,6 @@ class XliffFileLoader implements LoaderInterface
         }
 
         return $catalogue;
-    }
-
-    /**
-     * Convert a UTF8 string to the specified encoding.
-     *
-     * @param string $content  String to decode
-     * @param string $encoding Target encoding
-     *
-     * @return string
-     */
-    private function utf8ToCharset($content, $encoding = null)
-    {
-        if ('UTF-8' !== $encoding && !empty($encoding)) {
-            if (function_exists('mb_convert_encoding')) {
-                return mb_convert_encoding($content, $encoding, 'UTF-8');
-            }
-
-            if (function_exists('iconv')) {
-                return iconv('UTF-8', $encoding, $content);
-            }
-
-            throw new \RuntimeException('No suitable convert encoding function (use UTF-8 as your encoding or install the iconv or mbstring extension).');
-        }
-
-        return $content;
     }
 
     /**
@@ -180,5 +155,30 @@ class XliffFileLoader implements LoaderInterface
         libxml_use_internal_errors($internalErrors);
 
         return $errors;
+    }
+
+    /**
+     * Convert a UTF8 string to the specified encoding.
+     *
+     * @param string $content String to decode
+     * @param string $encoding Target encoding
+     *
+     * @return string
+     */
+    private function utf8ToCharset($content, $encoding = null)
+    {
+        if ('UTF-8' !== $encoding && !empty($encoding)) {
+            if (function_exists('mb_convert_encoding')) {
+                return mb_convert_encoding($content, $encoding, 'UTF-8');
+            }
+
+            if (function_exists('iconv')) {
+                return iconv('UTF-8', $encoding, $content);
+            }
+
+            throw new \RuntimeException('No suitable convert encoding function (use UTF-8 as your encoding or install the iconv or mbstring extension).');
+        }
+
+        return $content;
     }
 }

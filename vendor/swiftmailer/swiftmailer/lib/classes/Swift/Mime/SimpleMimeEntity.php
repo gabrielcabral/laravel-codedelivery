@@ -515,38 +515,6 @@ class Swift_Mime_SimpleMimeEntity implements Swift_Mime_MimeEntity
     }
 
     /**
-     * Empty the KeyCache for this entity.
-     */
-    protected function _clearCache()
-    {
-        $this->_cache->clearKey($this->_cacheKey, 'body');
-    }
-
-    /**
-     * Set the Content-type of this entity.
-     *
-     * @param string $type
-     *
-     * @return Swift_Mime_SimpleMimeEntity
-     */
-    public function setContentType($type)
-    {
-        $this->_setContentTypeInHeaders($type);
-        // Keep track of the value so that if the content-type changes automatically
-        // due to added child entities, it can be restored if they are later removed
-        $this->_userContentType = $type;
-
-        return $this;
-    }
-
-    private function _setContentTypeInHeaders($type)
-    {
-        if (!$this->_setHeaderFieldModel('Content-Type', $type)) {
-            $this->_headers->addParameterizedHeader('Content-Type', $type);
-        }
-    }
-
-    /**
      * Get the maximum line length of the body of this entity.
      *
      * @return int
@@ -584,6 +552,38 @@ class Swift_Mime_SimpleMimeEntity implements Swift_Mime_MimeEntity
         }
 
         return $this->_boundary;
+    }
+
+    /**
+     * Empty the KeyCache for this entity.
+     */
+    protected function _clearCache()
+    {
+        $this->_cache->clearKey($this->_cacheKey, 'body');
+    }
+
+    /**
+     * Set the Content-type of this entity.
+     *
+     * @param string $type
+     *
+     * @return Swift_Mime_SimpleMimeEntity
+     */
+    public function setContentType($type)
+    {
+        $this->_setContentTypeInHeaders($type);
+        // Keep track of the value so that if the content-type changes automatically
+        // due to added child entities, it can be restored if they are later removed
+        $this->_userContentType = $type;
+
+        return $this;
+    }
+
+    private function _setContentTypeInHeaders($type)
+    {
+        if (!$this->_setHeaderFieldModel('Content-Type', $type)) {
+            $this->_headers->addParameterizedHeader('Content-Type', $type);
+        }
     }
 
     /**

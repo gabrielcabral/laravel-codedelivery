@@ -3,43 +3,13 @@
 namespace Illuminate\Queue;
 
 use Exception;
-use Throwable;
-use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Contracts\Queue\Job;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
+use Illuminate\Queue\Jobs\SyncJob;
+use Throwable;
 
 class SyncQueue extends Queue implements QueueContract
 {
-    /**
-     * Push a new job onto the queue.
-     *
-     * @param  string  $job
-     * @param  mixed   $data
-     * @param  string  $queue
-     * @return mixed
-     * @throws \Throwable
-     */
-    public function push($job, $data = '', $queue = null)
-    {
-        $queueJob = $this->resolveJob($this->createPayload($job, $data, $queue));
-
-        try {
-            $queueJob->fire();
-
-            $this->raiseAfterJobEvent($queueJob);
-        } catch (Exception $e) {
-            $this->handleFailedJob($queueJob);
-
-            throw $e;
-        } catch (Throwable $e) {
-            $this->handleFailedJob($queueJob);
-
-            throw $e;
-        }
-
-        return 0;
-    }
-
     /**
      * Push a raw payload onto the queue.
      *
@@ -68,14 +38,33 @@ class SyncQueue extends Queue implements QueueContract
     }
 
     /**
-     * Pop the next job off of the queue.
+     * Push a new job onto the queue.
      *
+     * @param  string $job
+     * @param  mixed $data
      * @param  string  $queue
-     * @return \Illuminate\Contracts\Queue\Job|null
+     * @return mixed
+     * @throws \Throwable
      */
-    public function pop($queue = null)
+    public function push($job, $data = '', $queue = null)
     {
-        //
+        $queueJob = $this->resolveJob($this->createPayload($job, $data, $queue));
+
+        try {
+            $queueJob->fire();
+
+            $this->raiseAfterJobEvent($queueJob);
+        } catch (Exception $e) {
+            $this->handleFailedJob($queueJob);
+
+            throw $e;
+        } catch (Throwable $e) {
+            $this->handleFailedJob($queueJob);
+
+            throw $e;
+        }
+
+        return 0;
     }
 
     /**
@@ -130,5 +119,16 @@ class SyncQueue extends Queue implements QueueContract
         if ($this->container->bound('events')) {
             $this->container['events']->fire('illuminate.queue.failed', ['sync', $job, $data]);
         }
+    }
+
+    /**
+     * Pop the next job off of the queue.
+     *
+     * @param  string $queue
+     * @return \Illuminate\Contracts\Queue\Job|null
+     */
+    public function pop($queue = null)
+    {
+        //
     }
 }

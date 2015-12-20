@@ -2,36 +2,36 @@
 
 namespace Illuminate\Foundation\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Foundation\Console\UpCommand;
-use Illuminate\Foundation\Console\DownCommand;
-use Illuminate\Foundation\Console\ServeCommand;
-use Illuminate\Foundation\Console\TinkerCommand;
-use Illuminate\Foundation\Console\JobMakeCommand;
 use Illuminate\Foundation\Console\AppNameCommand;
-use Illuminate\Foundation\Console\OptimizeCommand;
-use Illuminate\Foundation\Console\TestMakeCommand;
-use Illuminate\Foundation\Console\RouteListCommand;
-use Illuminate\Foundation\Console\EventMakeCommand;
-use Illuminate\Foundation\Console\ModelMakeCommand;
-use Illuminate\Foundation\Console\ViewClearCommand;
-use Illuminate\Foundation\Console\PolicyMakeCommand;
-use Illuminate\Foundation\Console\RouteCacheCommand;
-use Illuminate\Foundation\Console\RouteClearCommand;
+use Illuminate\Foundation\Console\ClearCompiledCommand;
 use Illuminate\Foundation\Console\CommandMakeCommand;
 use Illuminate\Foundation\Console\ConfigCacheCommand;
 use Illuminate\Foundation\Console\ConfigClearCommand;
 use Illuminate\Foundation\Console\ConsoleMakeCommand;
+use Illuminate\Foundation\Console\DownCommand;
 use Illuminate\Foundation\Console\EnvironmentCommand;
-use Illuminate\Foundation\Console\KeyGenerateCommand;
-use Illuminate\Foundation\Console\RequestMakeCommand;
-use Illuminate\Foundation\Console\ListenerMakeCommand;
-use Illuminate\Foundation\Console\ProviderMakeCommand;
-use Illuminate\Foundation\Console\HandlerEventCommand;
-use Illuminate\Foundation\Console\ClearCompiledCommand;
 use Illuminate\Foundation\Console\EventGenerateCommand;
-use Illuminate\Foundation\Console\VendorPublishCommand;
+use Illuminate\Foundation\Console\EventMakeCommand;
 use Illuminate\Foundation\Console\HandlerCommandCommand;
+use Illuminate\Foundation\Console\HandlerEventCommand;
+use Illuminate\Foundation\Console\JobMakeCommand;
+use Illuminate\Foundation\Console\KeyGenerateCommand;
+use Illuminate\Foundation\Console\ListenerMakeCommand;
+use Illuminate\Foundation\Console\ModelMakeCommand;
+use Illuminate\Foundation\Console\OptimizeCommand;
+use Illuminate\Foundation\Console\PolicyMakeCommand;
+use Illuminate\Foundation\Console\ProviderMakeCommand;
+use Illuminate\Foundation\Console\RequestMakeCommand;
+use Illuminate\Foundation\Console\RouteCacheCommand;
+use Illuminate\Foundation\Console\RouteClearCommand;
+use Illuminate\Foundation\Console\RouteListCommand;
+use Illuminate\Foundation\Console\ServeCommand;
+use Illuminate\Foundation\Console\TestMakeCommand;
+use Illuminate\Foundation\Console\TinkerCommand;
+use Illuminate\Foundation\Console\UpCommand;
+use Illuminate\Foundation\Console\VendorPublishCommand;
+use Illuminate\Foundation\Console\ViewClearCommand;
+use Illuminate\Support\ServiceProvider;
 
 class ArtisanServiceProvider extends ServiceProvider
 {
@@ -93,6 +93,16 @@ class ArtisanServiceProvider extends ServiceProvider
         }
 
         $this->commands(array_values($this->commands));
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return array_values($this->commands);
     }
 
     /**
@@ -441,15 +451,5 @@ class ArtisanServiceProvider extends ServiceProvider
         $this->app->singleton('command.policy.make', function ($app) {
             return new PolicyMakeCommand($app['files']);
         });
-    }
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array
-     */
-    public function provides()
-    {
-        return array_values($this->commands);
     }
 }

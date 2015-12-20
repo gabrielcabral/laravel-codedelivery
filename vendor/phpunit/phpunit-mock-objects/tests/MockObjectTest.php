@@ -545,6 +545,15 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
         $this->resetMockObjects();
     }
 
+    private function resetMockObjects()
+    {
+        $refl = new ReflectionObject($this);
+        $refl = $refl->getParentClass();
+        $prop = $refl->getProperty('mockObjects');
+        $prop->setAccessible(true);
+        $prop->setValue($this, array());
+    }
+
     public function testVerificationOfMethodNameFailsWithParameters()
     {
         $mock = $this->getMock('SomeClass', array('right', 'wrong'), array(), '', true, true, true);
@@ -829,14 +838,5 @@ class Framework_MockObjectTest extends PHPUnit_Framework_TestCase
                  ->disableOriginalConstructor()
                  ->getMock()
         );
-    }
-
-    private function resetMockObjects()
-    {
-        $refl = new ReflectionObject($this);
-        $refl = $refl->getParentClass();
-        $prop = $refl->getProperty('mockObjects');
-        $prop->setAccessible(true);
-        $prop->setValue($this, array());
     }
 }

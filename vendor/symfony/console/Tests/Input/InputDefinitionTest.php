@@ -11,8 +11,8 @@
 
 namespace Symfony\Component\Console\Tests\Input;
 
-use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 
 class InputDefinitionTest extends \PHPUnit_Framework_TestCase
@@ -37,6 +37,14 @@ class InputDefinitionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array('foo' => $this->foo, 'bar' => $this->bar), $definition->getArguments(), '__construct() takes an array of InputArgument objects as its first argument');
     }
 
+    protected function initializeArguments()
+    {
+        $this->foo = new InputArgument('foo');
+        $this->bar = new InputArgument('bar');
+        $this->foo1 = new InputArgument('foo');
+        $this->foo2 = new InputArgument('foo2', InputArgument::REQUIRED);
+    }
+
     public function testConstructorOptions()
     {
         $this->initializeOptions();
@@ -46,6 +54,15 @@ class InputDefinitionTest extends \PHPUnit_Framework_TestCase
 
         $definition = new InputDefinition(array($this->foo, $this->bar));
         $this->assertEquals(array('foo' => $this->foo, 'bar' => $this->bar), $definition->getOptions(), '__construct() takes an array of InputOption objects as its first argument');
+    }
+
+    protected function initializeOptions()
+    {
+        $this->foo = new InputOption('foo', 'f');
+        $this->bar = new InputOption('bar', 'b');
+        $this->foo1 = new InputOption('fooBis', 'f');
+        $this->foo2 = new InputOption('foo', 'p');
+        $this->multi = new InputOption('multi', 'm|mm|mmm');
     }
 
     public function testSetArguments()
@@ -416,22 +433,5 @@ class InputDefinitionTest extends \PHPUnit_Framework_TestCase
             new InputOption('bar', 'b', InputOption::VALUE_OPTIONAL, 'The bar option', 'bar'),
         ));
         $this->assertXmlStringEqualsXmlFile(self::$fixtures.'/definition_asxml.txt', $definition->asXml(), '->asXml() returns an XML representation of the InputDefinition');
-    }
-
-    protected function initializeArguments()
-    {
-        $this->foo = new InputArgument('foo');
-        $this->bar = new InputArgument('bar');
-        $this->foo1 = new InputArgument('foo');
-        $this->foo2 = new InputArgument('foo2', InputArgument::REQUIRED);
-    }
-
-    protected function initializeOptions()
-    {
-        $this->foo = new InputOption('foo', 'f');
-        $this->bar = new InputOption('bar', 'b');
-        $this->foo1 = new InputOption('fooBis', 'f');
-        $this->foo2 = new InputOption('foo', 'p');
-        $this->multi = new InputOption('multi', 'm|mm|mmm');
     }
 }

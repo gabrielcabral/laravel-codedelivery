@@ -3,12 +3,12 @@
 namespace Illuminate\Queue\Console;
 
 use Exception;
-use RuntimeException;
-use Illuminate\Support\Str;
-use Illuminate\Queue\IronQueue;
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Input\InputOption;
+use Illuminate\Queue\IronQueue;
+use Illuminate\Support\Str;
+use RuntimeException;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 
 /**
  * @deprecated since version 5.1
@@ -87,6 +87,20 @@ class SubscribeCommand extends Command
     }
 
     /**
+     * Get the queue information from Iron.io.
+     *
+     * @return object
+     */
+    protected function getQueue()
+    {
+        if (isset($this->meta)) {
+            return $this->meta;
+        }
+
+        return $this->meta = $this->laravel['queue']->getIron()->getQueue($this->argument('queue'));
+    }
+
+    /**
      * Get the current subscribers for the queue.
      *
      * @return array
@@ -118,20 +132,6 @@ class SubscribeCommand extends Command
         } catch (Exception $e) {
             return [];
         }
-    }
-
-    /**
-     * Get the queue information from Iron.io.
-     *
-     * @return object
-     */
-    protected function getQueue()
-    {
-        if (isset($this->meta)) {
-            return $this->meta;
-        }
-
-        return $this->meta = $this->laravel['queue']->getIron()->getQueue($this->argument('queue'));
     }
 
     /**

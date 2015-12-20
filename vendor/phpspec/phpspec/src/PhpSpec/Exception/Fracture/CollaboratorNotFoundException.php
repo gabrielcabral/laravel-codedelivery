@@ -50,14 +50,6 @@ class CollaboratorNotFoundException extends FractureException
     }
 
     /**
-     * @return string
-     */
-    public function getCollaboratorName()
-    {
-        return $this->collaboratorName;
-    }
-
-    /**
      * @param ReflectionParameter $parameter
      *
      * @return string
@@ -69,5 +61,13 @@ class CollaboratorNotFoundException extends FractureException
         }
 
         return 'Unknown class';
+    }
+
+    /**
+     * @return string
+     */
+    public function getCollaboratorName()
+    {
+        return $this->collaboratorName;
     }
 }

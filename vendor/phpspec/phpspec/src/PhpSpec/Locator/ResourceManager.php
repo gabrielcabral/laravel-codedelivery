@@ -59,6 +59,24 @@ class ResourceManager implements ResourceManagerInterface
     }
 
     /**
+     * @param array $resources
+     *
+     * @return ResourceInterface[]
+     */
+    private function removeDuplicateResources(array $resources)
+    {
+        $filteredResources = array();
+
+        foreach ($resources as $resource) {
+            if (!array_key_exists($resource->getSpecClassname(), $filteredResources)) {
+                $filteredResources[$resource->getSpecClassname()] = $resource;
+            }
+        }
+
+        return array_values($filteredResources);
+    }
+
+    /**
      * @param string $classname
      *
      * @return ResourceInterface
@@ -79,23 +97,5 @@ class ResourceManager implements ResourceManagerInterface
                 $classname
             )
         );
-    }
-
-    /**
-     * @param array $resources
-     *
-     * @return ResourceInterface[]
-     */
-    private function removeDuplicateResources(array $resources)
-    {
-        $filteredResources = array();
-
-        foreach ($resources as $resource) {
-            if (!array_key_exists($resource->getSpecClassname(), $filteredResources)) {
-                $filteredResources[$resource->getSpecClassname()] = $resource;
-            }
-        }
-
-        return array_values($filteredResources);
     }
 }

@@ -37,6 +37,16 @@ class SnapshotTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $snapshot->staticAttributes());
     }
 
+    /**
+     * @return \SebastianBergmann\GlobalState\Blacklist
+     */
+    private function getBlacklist()
+    {
+        return $this->getMockBuilder('SebastianBergmann\GlobalState\Blacklist')
+            ->disableOriginalConstructor()
+            ->getMock();
+    }
+
     public function testConstants()
     {
         $snapshot = new Snapshot($this->getBlacklist(), false, false, true, false, false, false, false, false, false);
@@ -105,15 +115,5 @@ class SnapshotTest extends PHPUnit_Framework_TestCase
     {
         $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, false, false, false, false, true);
         $this->assertContains(__FILE__, $snapshot->includedFiles());
-    }
-
-    /**
-     * @return \SebastianBergmann\GlobalState\Blacklist
-     */
-    private function getBlacklist()
-    {
-        return $this->getMockBuilder('SebastianBergmann\GlobalState\Blacklist')
-                    ->disableOriginalConstructor()
-                    ->getMock();
     }
 }

@@ -103,6 +103,17 @@ class ResourceRegistrar
     }
 
     /**
+     * Format a resource wildcard for usage.
+     *
+     * @param  string $value
+     * @return string
+     */
+    public function getResourceWildcard($value)
+    {
+        return str_replace('-', '_', $value);
+    }
+
+    /**
      * Get the applicable resource methods.
      *
      * @param  array  $defaults
@@ -118,6 +129,24 @@ class ResourceRegistrar
         }
 
         return $defaults;
+    }
+
+    /**
+     * Add the index method for a resourceful route.
+     *
+     * @param  string $name
+     * @param  string $base
+     * @param  string $controller
+     * @param  array $options
+     * @return \Illuminate\Routing\Route
+     */
+    protected function addResourceIndex($name, $base, $controller, $options)
+    {
+        $uri = $this->getResourceUri($name);
+
+        $action = $this->getResourceAction($name, $controller, 'index', $options);
+
+        return $this->router->get($uri, $action);
     }
 
     /**
@@ -218,35 +247,6 @@ class ResourceRegistrar
         }
 
         return trim("{$prefix}{$group}.{$resource}.{$method}", '.');
-    }
-
-    /**
-     * Format a resource wildcard for usage.
-     *
-     * @param  string  $value
-     * @return string
-     */
-    public function getResourceWildcard($value)
-    {
-        return str_replace('-', '_', $value);
-    }
-
-    /**
-     * Add the index method for a resourceful route.
-     *
-     * @param  string  $name
-     * @param  string  $base
-     * @param  string  $controller
-     * @param  array   $options
-     * @return \Illuminate\Routing\Route
-     */
-    protected function addResourceIndex($name, $base, $controller, $options)
-    {
-        $uri = $this->getResourceUri($name);
-
-        $action = $this->getResourceAction($name, $controller, 'index', $options);
-
-        return $this->router->get($uri, $action);
     }
 
     /**

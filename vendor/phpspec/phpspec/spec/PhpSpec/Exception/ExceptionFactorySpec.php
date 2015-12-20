@@ -2,10 +2,9 @@
 
 namespace spec\PhpSpec\Exception;
 
+use PhpSpec\Formatter\Presenter\PresenterInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-
-use PhpSpec\Formatter\Presenter\PresenterInterface;
 
 class ExceptionFactorySpec extends ObjectBehavior
 {
@@ -38,6 +37,15 @@ class ExceptionFactorySpec extends ObjectBehavior
         $this->shouldCreateNamedConstructorNotFoundException();
     }
 
+    function shouldCreateNamedConstructorNotFoundException()
+    {
+        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\NamedConstructorNotFoundException');
+        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
+        $this->createdException->getSubject()->shouldBeLike($this->fixture->subject);
+        $this->createdException->getMethodName()->shouldReturn($this->fixture->method);
+        $this->createdException->getArguments()->shouldReturn($this->fixture->arguments);
+    }
+
     function it_creates_a_method_not_found_exception(PresenterInterface $presenter)
     {
         $presenter->presentString("{$this->fixture->classname}::{$this->fixture->method}")
@@ -51,6 +59,15 @@ class ExceptionFactorySpec extends ObjectBehavior
         );
 
         $this->shouldCreateMethodNotFoundException();
+    }
+
+    function shouldCreateMethodNotFoundException()
+    {
+        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\MethodNotFoundException');
+        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
+        $this->createdException->getSubject()->shouldBeLike($this->fixture->subject);
+        $this->createdException->getMethodName()->shouldReturn($this->fixture->method);
+        $this->createdException->getArguments()->shouldReturn($this->fixture->arguments);
     }
 
     function it_creates_a_method_not_visible_exception(PresenterInterface $presenter)
@@ -69,6 +86,15 @@ class ExceptionFactorySpec extends ObjectBehavior
         $this->shouldCreateMethodNotVisibleException();
     }
 
+    function shouldCreateMethodNotVisibleException()
+    {
+        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\MethodNotVisibleException');
+        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
+        $this->createdException->getSubject()->shouldBeLike($this->fixture->subject);
+        $this->createdException->getMethodName()->shouldReturn($this->fixture->method);
+        $this->createdException->getArguments()->shouldReturn($this->fixture->arguments);
+    }
+
     function it_creates_a_class_not_found_exception(PresenterInterface $presenter)
     {
         $presenter->presentString("{$this->fixture->classname}")
@@ -80,6 +106,13 @@ class ExceptionFactorySpec extends ObjectBehavior
         );
 
         $this->shouldCreateClassNotFoundException();
+    }
+
+    function shouldCreateClassNotFoundException()
+    {
+        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\ClassNotFoundException');
+        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
+        $this->createdException->getClassname()->shouldReturn($this->fixture->classname);
     }
 
     function it_creates_a_property_not_found_exception(PresenterInterface $presenter)
@@ -94,6 +127,14 @@ class ExceptionFactorySpec extends ObjectBehavior
         );
 
         $this->shouldCreatePropertyNotFoundException();
+    }
+
+    function shouldCreatePropertyNotFoundException()
+    {
+        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\PropertyNotFoundException');
+        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
+        $this->createdException->getSubject()->shouldReturn($this->fixture->subject);
+        $this->createdException->getProperty()->shouldReturn($this->fixture->property);
     }
 
     function it_creates_a_calling_method_on_non_object_exception(PresenterInterface $presenter)
@@ -127,47 +168,5 @@ class ExceptionFactorySpec extends ObjectBehavior
         $exception = $this->gettingPropertyOnNonObject($this->fixture->property);
         $exception->shouldHaveType('PhpSpec\Exception\Wrapper\SubjectException');
         $exception->getMessage()->shouldBe($fixtureMessage);
-    }
-
-    function shouldCreateNamedConstructorNotFoundException()
-    {
-        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\NamedConstructorNotFoundException');
-        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
-        $this->createdException->getSubject()->shouldBeLike($this->fixture->subject);
-        $this->createdException->getMethodName()->shouldReturn($this->fixture->method);
-        $this->createdException->getArguments()->shouldReturn($this->fixture->arguments);
-    }
-
-    function shouldCreateMethodNotFoundException()
-    {
-        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\MethodNotFoundException');
-        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
-        $this->createdException->getSubject()->shouldBeLike($this->fixture->subject);
-        $this->createdException->getMethodName()->shouldReturn($this->fixture->method);
-        $this->createdException->getArguments()->shouldReturn($this->fixture->arguments);
-    }
-
-    function shouldCreateMethodNotVisibleException()
-    {
-        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\MethodNotVisibleException');
-        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
-        $this->createdException->getSubject()->shouldBeLike($this->fixture->subject);
-        $this->createdException->getMethodName()->shouldReturn($this->fixture->method);
-        $this->createdException->getArguments()->shouldReturn($this->fixture->arguments);
-    }
-
-    function shouldCreateClassNotFoundException()
-    {
-        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\ClassNotFoundException');
-        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
-        $this->createdException->getClassname()->shouldReturn($this->fixture->classname);
-    }
-
-    function shouldCreatePropertyNotFoundException()
-    {
-        $this->createdException->shouldHaveType('PhpSpec\Exception\Fracture\PropertyNotFoundException');
-        $this->createdException->getMessage()->shouldReturn($this->fixture->message);
-        $this->createdException->getSubject()->shouldReturn($this->fixture->subject);
-        $this->createdException->getProperty()->shouldReturn($this->fixture->property);
     }
 }

@@ -44,6 +44,15 @@ abstract class MultiplePcreFilterIterator extends FilterIterator
     }
 
     /**
+     * Converts string into regexp.
+     *
+     * @param string $str Pattern
+     *
+     * @return string regexp corresponding to a given string
+     */
+    abstract protected function toRegex($str);
+
+    /**
      * Checks whether the string is a regex.
      *
      * @param string $str
@@ -54,13 +63,4 @@ abstract class MultiplePcreFilterIterator extends FilterIterator
     {
         return Expression::create($str)->isRegex();
     }
-
-    /**
-     * Converts string into regexp.
-     *
-     * @param string $str Pattern
-     *
-     * @return string regexp corresponding to a given string
-     */
-    abstract protected function toRegex($str);
 }

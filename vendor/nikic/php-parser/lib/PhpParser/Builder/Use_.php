@@ -25,17 +25,6 @@ class Use_ extends BuilderAbstract {
         $this->type = $type;
     }
 
-    /**
-     * Sets alias for used name.
-     *
-     * @param string $alias Alias to use (last component of full name by default)
-     *
-     * @return $this The builder instance (for fluid interface)
-     */
-    protected function as_($alias) {
-        $this->alias = $alias;
-        return $this;
-    }
     public function __call($name, $args) {
         if (method_exists($this, $name . '_')) {
             return call_user_func_array(array($this, $name . '_'), $args);
@@ -54,5 +43,18 @@ class Use_ extends BuilderAbstract {
         return new Stmt\Use_(array(
             new Stmt\UseUse($this->name, $alias)
         ), $this->type);
+    }
+
+    /**
+     * Sets alias for used name.
+     *
+     * @param string $alias Alias to use (last component of full name by default)
+     *
+     * @return $this The builder instance (for fluid interface)
+     */
+    protected function as_($alias)
+    {
+        $this->alias = $alias;
+        return $this;
     }
 }

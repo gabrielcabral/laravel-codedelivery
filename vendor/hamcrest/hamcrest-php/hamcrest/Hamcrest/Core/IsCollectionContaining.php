@@ -24,28 +24,27 @@ class IsCollectionContaining extends TypeSafeMatcher
         $this->_elementMatcher = $elementMatcher;
     }
 
-    protected function matchesSafely($items)
+    /**
+     * Test if the value is an array containing elements that match all of these
+     * matchers.
+     *
+     * Example:
+     * <pre>
+     * assertThat(array('a', 'b', 'c'), hasItems(equalTo('a'), equalTo('b')));
+     * </pre>
+     *
+     * @factory ...
+     */
+    public static function hasItems(/* args... */)
     {
-        foreach ($items as $item) {
-            if ($this->_elementMatcher->matches($item)) {
-                return true;
-            }
+        $args = func_get_args();
+        $matchers = array();
+
+        foreach ($args as $arg) {
+            $matchers[] = self::hasItem($arg);
         }
 
-        return false;
-    }
-
-    protected function describeMismatchSafely($items, Description $mismatchDescription)
-    {
-        $mismatchDescription->appendText('was ')->appendValue($items);
-    }
-
-    public function describeTo(Description $description)
-    {
-        $description
-                ->appendText('a collection containing ')
-                ->appendDescriptionOf($this->_elementMatcher)
-                ;
+        return AllOf::allOf($matchers);
     }
 
     /**
@@ -68,26 +67,26 @@ class IsCollectionContaining extends TypeSafeMatcher
         return new self(Util::wrapValueWithIsEqual($firstArg));
     }
 
-    /**
-     * Test if the value is an array containing elements that match all of these
-     * matchers.
-     *
-     * Example:
-     * <pre>
-     * assertThat(array('a', 'b', 'c'), hasItems(equalTo('a'), equalTo('b')));
-     * </pre>
-     *
-     * @factory ...
-     */
-    public static function hasItems(/* args... */)
+    public function describeTo(Description $description)
     {
-        $args = func_get_args();
-        $matchers = array();
+        $description
+            ->appendText('a collection containing ')
+            ->appendDescriptionOf($this->_elementMatcher);
+    }
 
-        foreach ($args as $arg) {
-            $matchers[] = self::hasItem($arg);
+    protected function matchesSafely($items)
+    {
+        foreach ($items as $item) {
+            if ($this->_elementMatcher->matches($item)) {
+                return true;
+            }
         }
 
-        return AllOf::allOf($matchers);
+        return false;
+    }
+
+    protected function describeMismatchSafely($items, Description $mismatchDescription)
+    {
+        $mismatchDescription->appendText('was ')->appendValue($items);
     }
 }

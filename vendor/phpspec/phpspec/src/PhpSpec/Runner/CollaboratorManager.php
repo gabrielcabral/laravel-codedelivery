@@ -47,6 +47,25 @@ class CollaboratorManager
     }
 
     /**
+     * @param ReflectionFunctionAbstract $function
+     *
+     * @return array
+     */
+    public function getArgumentsFor(ReflectionFunctionAbstract $function)
+    {
+        $parameters = array();
+        foreach ($function->getParameters() as $parameter) {
+            if ($this->has($parameter->getName())) {
+                $parameters[] = $this->get($parameter->getName());
+            } else {
+                $parameters[] = null;
+            }
+        }
+
+        return $parameters;
+    }
+
+    /**
      * @param string $name
      *
      * @return bool
@@ -72,24 +91,5 @@ class CollaboratorManager
         }
 
         return $this->collaborators[$name];
-    }
-
-    /**
-     * @param ReflectionFunctionAbstract $function
-     *
-     * @return array
-     */
-    public function getArgumentsFor(ReflectionFunctionAbstract $function)
-    {
-        $parameters = array();
-        foreach ($function->getParameters() as $parameter) {
-            if ($this->has($parameter->getName())) {
-                $parameters[] = $this->get($parameter->getName());
-            } else {
-                $parameters[] = null;
-            }
-        }
-
-        return $parameters;
     }
 }

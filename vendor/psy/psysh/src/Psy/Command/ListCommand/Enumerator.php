@@ -62,39 +62,6 @@ abstract class Enumerator
         return $this->listItems($input, $reflector, $target);
     }
 
-    /**
-     * Enumerate specific items with the given input options and target.
-     *
-     * Implementing classes should return an array of arrays:
-     *
-     *     [
-     *         'Constants' => [
-     *             'FOO' => [
-     *                 'name'  => 'FOO',
-     *                 'style' => 'public',
-     *                 'value' => '123',
-     *             ],
-     *         ],
-     *     ]
-     *
-     * @param InputInterface $input
-     * @param Reflector      $reflector
-     * @param mixed          $target
-     *
-     * @return array
-     */
-    abstract protected function listItems(InputInterface $input, \Reflector $reflector = null, $target = null);
-
-    protected function presentRef($value)
-    {
-        return $this->presenter->presentRef($value);
-    }
-
-    protected function showItem($name)
-    {
-        return $this->filter === false || (preg_match($this->pattern, $name) xor $this->invertFilter);
-    }
-
     private function setFilter(InputInterface $input)
     {
         if ($pattern = $input->getOption('grep')) {
@@ -132,6 +99,39 @@ abstract class Enumerator
             throw new RuntimeException(str_replace('preg_match(): ', 'Invalid regular expression: ', $e->getRawMessage()));
         }
         restore_error_handler();
+    }
+
+    /**
+     * Enumerate specific items with the given input options and target.
+     *
+     * Implementing classes should return an array of arrays:
+     *
+     *     [
+     *         'Constants' => [
+     *             'FOO' => [
+     *                 'name'  => 'FOO',
+     *                 'style' => 'public',
+     *                 'value' => '123',
+     *             ],
+     *         ],
+     *     ]
+     *
+     * @param InputInterface $input
+     * @param Reflector $reflector
+     * @param mixed $target
+     *
+     * @return array
+     */
+    abstract protected function listItems(InputInterface $input, \Reflector $reflector = null, $target = null);
+
+    protected function presentRef($value)
+    {
+        return $this->presenter->presentRef($value);
+    }
+
+    protected function showItem($name)
+    {
+        return $this->filter === false || (preg_match($this->pattern, $name) xor $this->invertFilter);
     }
 
     protected function presentSignature($target)

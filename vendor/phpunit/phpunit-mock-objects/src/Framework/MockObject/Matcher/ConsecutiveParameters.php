@@ -68,13 +68,6 @@ class PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters extends PHPUnit
         return false;
     }
 
-    public function verify()
-    {
-        foreach ($this->_invocations as $callIndex => $invocation) {
-            $this->verifyInvocation($invocation, $callIndex);
-        }
-    }
-
     /**
      * Verify a single invocation
      *
@@ -118,6 +111,13 @@ class PHPUnit_Framework_MockObject_Matcher_ConsecutiveParameters extends PHPUnit
                     $invocation->toString()
                 )
             );
+        }
+    }
+
+    public function verify()
+    {
+        foreach ($this->_invocations as $callIndex => $invocation) {
+            $this->verifyInvocation($invocation, $callIndex);
         }
     }
 }

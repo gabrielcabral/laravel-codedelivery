@@ -13,8 +13,8 @@
 
 namespace PhpSpec\Loader\Transformer;
 
-use PhpSpec\Loader\SpecTransformer;
 use PhpSpec\CodeAnalysis\TypeHintRewriter as TypeHintRewriterInterface;
+use PhpSpec\Loader\SpecTransformer;
 
 final class TypeHintRewriter implements SpecTransformer
 {

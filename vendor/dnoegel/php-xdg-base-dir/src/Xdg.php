@@ -18,11 +18,15 @@ class Xdg
     const RUNTIME_DIR_FALLBACK = 'php-xdg-runtime-dir-fallback-';
 
     /**
-     * @return string
+     * @return array
      */
-    public function getHomeDir()
+    public function getConfigDirs()
     {
-        return getenv('HOME') ?: (getenv('HOMEDRIVE') . DIRECTORY_SEPARATOR . getenv('HOMEPATH'));
+        $configDirs = getenv('XDG_CONFIG_DIRS') ? explode(':', getenv('XDG_CONFIG_DIRS')) : array('/etc/xdg');
+
+        $paths = array_merge(array($this->getHomeConfigDir()), $configDirs);
+
+        return $paths;
     }
 
     /**
@@ -38,23 +42,9 @@ class Xdg
     /**
      * @return string
      */
-    public function getHomeDataDir()
+    public function getHomeDir()
     {
-        $path = getenv('XDG_DATA_HOME') ?: $this->getHomeDir() . DIRECTORY_SEPARATOR . '.local' . DIRECTORY_SEPARATOR . 'share';
-
-        return $path;
-    }
-
-    /**
-     * @return array
-     */
-    public function getConfigDirs()
-    {
-        $configDirs = getenv('XDG_CONFIG_DIRS') ? explode(':', getenv('XDG_CONFIG_DIRS')) : array('/etc/xdg');
-
-        $paths = array_merge(array($this->getHomeConfigDir()), $configDirs);
-
-        return $paths;
+        return getenv('HOME') ?: (getenv('HOMEDRIVE') . DIRECTORY_SEPARATOR . getenv('HOMEPATH'));
     }
 
     /**
@@ -67,6 +57,16 @@ class Xdg
         $paths = array_merge(array($this->getHomeDataDir()), $dataDirs);
 
         return $paths;
+    }
+
+    /**
+     * @return string
+     */
+    public function getHomeDataDir()
+    {
+        $path = getenv('XDG_DATA_HOME') ?: $this->getHomeDir() . DIRECTORY_SEPARATOR . '.local' . DIRECTORY_SEPARATOR . 'share';
+
+        return $path;
     }
 
     /**

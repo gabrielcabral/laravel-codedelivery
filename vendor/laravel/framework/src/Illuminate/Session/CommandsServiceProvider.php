@@ -2,8 +2,8 @@
 
 namespace Illuminate\Session;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Session\Console\SessionTableCommand;
+use Illuminate\Support\ServiceProvider;
 
 class CommandsServiceProvider extends ServiceProvider
 {

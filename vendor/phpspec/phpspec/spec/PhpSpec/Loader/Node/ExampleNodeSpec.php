@@ -2,11 +2,9 @@
 
 namespace spec\PhpSpec\Loader\Node;
 
+use PhpSpec\Loader\Node\SpecificationNode;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-
-use PhpSpec\Loader\Node\SpecificationNode;
-
 use ReflectionFunctionAbstract;
 
 class ExampleNodeSpec extends ObjectBehavior

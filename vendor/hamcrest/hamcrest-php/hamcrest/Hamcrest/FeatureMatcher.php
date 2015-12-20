@@ -35,15 +35,6 @@ abstract class FeatureMatcher extends TypeSafeDiagnosingMatcher
         $this->_featureName = $featureName;
     }
 
-    /**
-     * Implement this to extract the interesting feature.
-     *
-     * @param mixed $actual the target object
-     *
-     * @return mixed the feature to be matched
-     */
-    abstract protected function featureValueOf($actual);
-
     public function matchesSafelyWithDiagnosticDescription($actual, Description $mismatchDescription)
     {
         $featureValue = $this->featureValueOf($actual);
@@ -57,6 +48,15 @@ abstract class FeatureMatcher extends TypeSafeDiagnosingMatcher
 
         return true;
     }
+
+    /**
+     * Implement this to extract the interesting feature.
+     *
+     * @param mixed $actual the target object
+     *
+     * @return mixed the feature to be matched
+     */
+    abstract protected function featureValueOf($actual);
 
     final public function describeTo(Description $description)
     {

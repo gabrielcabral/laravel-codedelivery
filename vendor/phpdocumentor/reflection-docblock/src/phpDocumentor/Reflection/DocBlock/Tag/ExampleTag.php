@@ -101,40 +101,13 @@ class ExampleTag extends SourceTag
     }
 
     /**
-     * Returns the file path.
-     *
-     * @return string Path to a file to use as an example.
-     *     May also be an absolute URI.
-     */
-    public function getFilePath()
-    {
-        return $this->filePath;
-    }
-    
-    /**
-     * Sets the file path.
-     * 
-     * @param string $filePath The new file path to use for the example.
-     * 
-     * @return $this
-     */
-    public function setFilePath($filePath)
-    {
-        $this->isURI = false;
-        $this->filePath = trim($filePath);
-
-        $this->content = null;
-        return $this;
-    }
-    
-    /**
      * Sets the file path as an URI.
-     * 
+     *
      * This function is equivalent to {@link setFilePath()}, except that it
      * convers an URI to a file path before that.
-     * 
+     *
      * There is no getFileURI(), as {@link getFilePath()} is compatible.
-     * 
+     *
      * @param type $uri The new file URI to use as an example.
      */
     public function setFileURI($uri)
@@ -149,6 +122,33 @@ class ExampleTag extends SourceTag
             //Absolute URL or URI.
             $this->filePath = $uri;
         }
+
+        $this->content = null;
+        return $this;
+    }
+
+    /**
+     * Returns the file path.
+     *
+     * @return string Path to a file to use as an example.
+     *     May also be an absolute URI.
+     */
+    public function getFilePath()
+    {
+        return $this->filePath;
+    }
+    
+    /**
+     * Sets the file path.
+     *
+     * @param string $filePath The new file path to use for the example.
+     *
+     * @return $this
+     */
+    public function setFilePath($filePath)
+    {
+        $this->isURI = false;
+        $this->filePath = trim($filePath);
 
         $this->content = null;
         return $this;

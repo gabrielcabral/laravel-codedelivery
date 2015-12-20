@@ -53,6 +53,46 @@ class Regex implements ValueInterface
     private $endJoker;
 
     /**
+     * @param string $pattern
+     * @param string $options
+     * @param string $delimiter
+     */
+    public function __construct($pattern, $options = '', $delimiter = null)
+    {
+        if (null !== $delimiter) {
+            // removes delimiter escaping
+            $pattern = str_replace('\\' . $delimiter, $delimiter, $pattern);
+        }
+
+        $this->parsePattern($pattern);
+        $this->options = $options;
+    }
+
+    /**
+     * @param string $pattern
+     */
+    private function parsePattern($pattern)
+    {
+        if ($this->startFlag = self::START_FLAG === substr($pattern, 0, 1)) {
+            $pattern = substr($pattern, 1);
+        }
+
+        if ($this->startJoker = self::JOKER === substr($pattern, 0, 2)) {
+            $pattern = substr($pattern, 2);
+        }
+
+        if ($this->endFlag = (self::END_FLAG === substr($pattern, -1) && self::ESCAPING !== substr($pattern, -2, -1))) {
+            $pattern = substr($pattern, 0, -1);
+        }
+
+        if ($this->endJoker = (self::JOKER === substr($pattern, -2) && self::ESCAPING !== substr($pattern, -3, -2))) {
+            $pattern = substr($pattern, 0, -2);
+        }
+
+        $this->pattern = $pattern;
+    }
+
+    /**
      * @param string $expr
      *
      * @return Regex
@@ -75,22 +115,6 @@ class Regex implements ValueInterface
         }
 
         throw new \InvalidArgumentException('Given expression is not a regex.');
-    }
-
-    /**
-     * @param string $pattern
-     * @param string $options
-     * @param string $delimiter
-     */
-    public function __construct($pattern, $options = '', $delimiter = null)
-    {
-        if (null !== $delimiter) {
-            // removes delimiter escaping
-            $pattern = str_replace('\\'.$delimiter, $delimiter, $pattern);
-        }
-
-        $this->parsePattern($pattern);
-        $this->options = $options;
     }
 
     /**
@@ -133,6 +157,16 @@ class Regex implements ValueInterface
     }
 
     /**
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function hasOption($option)
+    {
+        return false !== strpos($this->options, $option);
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getType()
@@ -158,16 +192,6 @@ class Regex implements ValueInterface
         $this->pattern .= $expr;
 
         return $this;
-    }
-
-    /**
-     * @param string $option
-     *
-     * @return bool
-     */
-    public function hasOption($option)
-    {
-        return false !== strpos($this->options, $option);
     }
 
     /**
@@ -293,29 +317,5 @@ class Regex implements ValueInterface
         $this->pattern = preg_replace_callback('~[\\\\]*\\.~', $replace, $this->pattern);
 
         return $this;
-    }
-
-    /**
-     * @param string $pattern
-     */
-    private function parsePattern($pattern)
-    {
-        if ($this->startFlag = self::START_FLAG === substr($pattern, 0, 1)) {
-            $pattern = substr($pattern, 1);
-        }
-
-        if ($this->startJoker = self::JOKER === substr($pattern, 0, 2)) {
-            $pattern = substr($pattern, 2);
-        }
-
-        if ($this->endFlag = (self::END_FLAG === substr($pattern, -1) && self::ESCAPING !== substr($pattern, -2, -1))) {
-            $pattern = substr($pattern, 0, -1);
-        }
-
-        if ($this->endJoker = (self::JOKER === substr($pattern, -2) && self::ESCAPING !== substr($pattern, -3, -2))) {
-            $pattern = substr($pattern, 0, -2);
-        }
-
-        $this->pattern = $pattern;
     }
 }

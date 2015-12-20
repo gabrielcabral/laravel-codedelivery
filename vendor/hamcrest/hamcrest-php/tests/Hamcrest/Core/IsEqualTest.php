@@ -19,11 +19,6 @@ class DummyToStringClass
 class IsEqualTest extends \Hamcrest\AbstractMatcherTest
 {
 
-    protected function createMatcher()
-    {
-        return \Hamcrest\Core\IsEqual::equalTo('irrelevant');
-    }
-
     public function testComparesObjectsUsingEqualityOperator()
     {
         assertThat("hi", equalTo("hi"));
@@ -98,5 +93,10 @@ class IsEqualTest extends \Hamcrest\AbstractMatcherTest
     public function testReturnsGoodDescriptionIfCreatedWithNullReference()
     {
         $this->assertDescription('null', equalTo(null));
+    }
+
+    protected function createMatcher()
+    {
+        return \Hamcrest\Core\IsEqual::equalTo('irrelevant');
     }
 }

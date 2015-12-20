@@ -93,6 +93,11 @@ class ArrayKeyValueMatcher extends BasicMatcher
         ));
     }
 
+    private function offsetExists($key, $subject)
+    {
+        return ($subject instanceof ArrayAccess && $subject->offsetExists($key)) || array_key_exists($key, $subject);
+    }
+
     /**
      * @param string $name
      * @param mixed  $subject
@@ -107,10 +112,5 @@ class ArrayKeyValueMatcher extends BasicMatcher
             $this->presenter->presentValue($subject),
             $this->presenter->presentString($arguments[0])
         ));
-    }
-
-    private function offsetExists($key, $subject)
-    {
-        return ($subject instanceof ArrayAccess && $subject->offsetExists($key)) || array_key_exists($key, $subject);
     }
 }

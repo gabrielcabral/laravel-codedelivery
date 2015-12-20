@@ -297,13 +297,6 @@ class Address extends \Faker\Provider\Address
         return static::randomElement(static::$cityNames);
     }
 
-    public function city()
-    {
-        $format = static::randomElement(static::$cityFormats);
-
-        return $this->generator->parse($format);
-    }
-
     public static function street()
     {
         return static::randomElement(static::$street);
@@ -312,5 +305,12 @@ class Address extends \Faker\Provider\Address
     public static function buildingNumber()
     {
         return static::numberBetween(1, 999);
+    }
+
+    public function city()
+    {
+        $format = static::randomElement(static::$cityFormats);
+
+        return $this->generator->parse($format);
     }
 }

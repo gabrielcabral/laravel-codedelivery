@@ -20,6 +20,10 @@ use PhpSpec\Formatter\Template as TemplateInterface;
 class ReportFailedItem
 {
     /**
+     * @var int
+     */
+    private static $failingExamplesCount = 1;
+    /**
      * @var TemplateInterface
      */
     private $template;
@@ -27,10 +31,6 @@ class ReportFailedItem
      * @var ExampleEvent
      */
     private $event;
-    /**
-     * @var int
-     */
-    private static $failingExamplesCount = 1;
     /**
      * @var \PhpSpec\Formatter\Presenter\PresenterInterface
      */

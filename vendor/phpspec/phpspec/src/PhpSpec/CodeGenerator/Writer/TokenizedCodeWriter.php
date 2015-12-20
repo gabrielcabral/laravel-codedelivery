@@ -49,70 +49,6 @@ final class TokenizedCodeWriter implements CodeWriter
     /**
      * @param string $class
      * @param string $method
-     * @return string
-     */
-    public function insertMethodLastInClass($class, $method)
-    {
-        if ($this->analyser->classHasMethods($class)) {
-            $line = $this->analyser->getEndLineOfLastMethod($class);
-            return $this->insertStringAfterLine($class, $method, $line);
-        }
-
-        return $this->writeAtEndOfClass($class, $method);
-    }
-
-    /**
-     * @param string $class
-     * @param string $methodName
-     * @param string $method
-     * @return string
-     */
-    public function insertAfterMethod($class, $methodName, $method)
-    {
-        $line = $this->analyser->getEndLineOfNamedMethod($class, $methodName);
-
-        return $this->insertStringAfterLine($class, $method, $line);
-    }
-
-    /**
-     * @param string $target
-     * @param string $toInsert
-     * @param int $line
-     * @param bool $leadingNewline
-     * @return string
-     */
-    private function insertStringAfterLine($target, $toInsert, $line, $leadingNewline = true)
-    {
-        $lines = explode(PHP_EOL, $target);
-        $lastLines = array_slice($lines, $line);
-        $toInsert = trim($toInsert, "\n\r");
-        if ($leadingNewline) {
-            $toInsert = PHP_EOL . $toInsert;
-        }
-        array_unshift($lastLines, $toInsert);
-        array_splice($lines, $line, count($lines), $lastLines);
-        return implode(PHP_EOL, $lines);
-    }
-
-    /**
-     * @param string $target
-     * @param string $toInsert
-     * @param int $line
-     * @return string
-     */
-    private function insertStringBeforeLine($target, $toInsert, $line)
-    {
-        $line--;
-        $lines = explode(PHP_EOL, $target);
-        $lastLines = array_slice($lines, $line);
-        array_unshift($lastLines, trim($toInsert, "\n\r") . PHP_EOL);
-        array_splice($lines, $line, count($lines), $lastLines);
-        return implode(PHP_EOL, $lines);
-    }
-
-    /**
-     * @param string $class
-     * @param string $method
      * @param bool $prependNewLine
      * @return string
      */
@@ -156,5 +92,69 @@ final class TokenizedCodeWriter implements CodeWriter
     private function isWritePoint($token)
     {
         return is_array($token) && ($token[1] === PHP_EOL || $token[0] === T_COMMENT);
+    }
+
+    /**
+     * @param string $target
+     * @param string $toInsert
+     * @param int $line
+     * @param bool $leadingNewline
+     * @return string
+     */
+    private function insertStringAfterLine($target, $toInsert, $line, $leadingNewline = true)
+    {
+        $lines = explode(PHP_EOL, $target);
+        $lastLines = array_slice($lines, $line);
+        $toInsert = trim($toInsert, "\n\r");
+        if ($leadingNewline) {
+            $toInsert = PHP_EOL . $toInsert;
+        }
+        array_unshift($lastLines, $toInsert);
+        array_splice($lines, $line, count($lines), $lastLines);
+        return implode(PHP_EOL, $lines);
+    }
+
+    /**
+     * @param string $target
+     * @param string $toInsert
+     * @param int $line
+     * @return string
+     */
+    private function insertStringBeforeLine($target, $toInsert, $line)
+    {
+        $line--;
+        $lines = explode(PHP_EOL, $target);
+        $lastLines = array_slice($lines, $line);
+        array_unshift($lastLines, trim($toInsert, "\n\r") . PHP_EOL);
+        array_splice($lines, $line, count($lines), $lastLines);
+        return implode(PHP_EOL, $lines);
+    }
+
+    /**
+     * @param string $class
+     * @param string $method
+     * @return string
+     */
+    public function insertMethodLastInClass($class, $method)
+    {
+        if ($this->analyser->classHasMethods($class)) {
+            $line = $this->analyser->getEndLineOfLastMethod($class);
+            return $this->insertStringAfterLine($class, $method, $line);
+        }
+
+        return $this->writeAtEndOfClass($class, $method);
+    }
+
+    /**
+     * @param string $class
+     * @param string $methodName
+     * @param string $method
+     * @return string
+     */
+    public function insertAfterMethod($class, $methodName, $method)
+    {
+        $line = $this->analyser->getEndLineOfNamedMethod($class, $methodName);
+
+        return $this->insertStringAfterLine($class, $method, $line);
     }
 }

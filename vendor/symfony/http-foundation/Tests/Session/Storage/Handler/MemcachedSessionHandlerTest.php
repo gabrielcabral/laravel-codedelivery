@@ -29,28 +29,6 @@ class MemcachedSessionHandlerTest extends \PHPUnit_Framework_TestCase
 
     protected $memcached;
 
-    protected function setUp()
-    {
-        parent::setUp();
-
-        if (version_compare(phpversion('memcached'), '2.2.0', '>=')) {
-            $this->markTestSkipped('Tests can only be run with memcached extension 2.1.0 or lower');
-        }
-
-        $this->memcached = $this->getMock('Memcached');
-        $this->storage = new MemcachedSessionHandler(
-            $this->memcached,
-            array('prefix' => self::PREFIX, 'expiretime' => self::TTL)
-        );
-    }
-
-    protected function tearDown()
-    {
-        $this->memcached = null;
-        $this->storage = null;
-        parent::tearDown();
-    }
-
     public function testOpenSession()
     {
         $this->assertTrue($this->storage->open('', ''));
@@ -130,5 +108,27 @@ class MemcachedSessionHandlerTest extends \PHPUnit_Framework_TestCase
         $method->setAccessible(true);
 
         $this->assertInstanceOf('\Memcached', $method->invoke($this->storage));
+    }
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        if (version_compare(phpversion('memcached'), '2.2.0', '>=')) {
+            $this->markTestSkipped('Tests can only be run with memcached extension 2.1.0 or lower');
+        }
+
+        $this->memcached = $this->getMock('Memcached');
+        $this->storage = new MemcachedSessionHandler(
+            $this->memcached,
+            array('prefix' => self::PREFIX, 'expiretime' => self::TTL)
+        );
+    }
+
+    protected function tearDown()
+    {
+        $this->memcached = null;
+        $this->storage = null;
+        parent::tearDown();
     }
 }

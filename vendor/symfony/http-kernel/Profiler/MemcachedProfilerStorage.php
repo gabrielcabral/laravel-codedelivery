@@ -24,6 +24,14 @@ class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
     private $memcached;
 
     /**
+     * {@inheritdoc}
+     */
+    protected function getValue($key)
+    {
+        return $this->getMemcached()->get($key);
+    }
+
+    /**
      * Internal convenience method that returns the instance of the Memcached.
      *
      * @return \Memcached
@@ -61,14 +69,6 @@ class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
     public function setMemcached($memcached)
     {
         $this->memcached = $memcached;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getValue($key)
-    {
-        return $this->getMemcached()->get($key);
     }
 
     /**

@@ -223,6 +223,13 @@ class PHP_CodeCoverage_Report_Text
         return $this->colors['red'];
     }
 
+    private function format($color, $padding, $string)
+    {
+        $reset = $color ? $this->colors['reset'] : '';
+
+        return $color . str_pad($string, $padding) . $reset . PHP_EOL;
+    }
+
     protected function printCoverageCounts($numberOfCoveredElements, $totalNumberOfElements, $presicion)
     {
         $format = '%' . $presicion . 's';
@@ -235,12 +242,5 @@ class PHP_CodeCoverage_Report_Text
         ) .
         ' (' . sprintf($format, $numberOfCoveredElements) . '/' .
         sprintf($format, $totalNumberOfElements) . ')';
-    }
-
-    private function format($color, $padding, $string)
-    {
-        $reset = $color ? $this->colors['reset'] : '';
-
-        return $color . str_pad($string, $padding) . $reset . PHP_EOL;
     }
 }

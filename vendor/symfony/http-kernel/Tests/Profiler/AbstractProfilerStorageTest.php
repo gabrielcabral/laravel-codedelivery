@@ -27,6 +27,11 @@ abstract class AbstractProfilerStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertCount(10, $this->getStorage()->find('127.0.0.1', 'http://foo.bar', 20, 'GET'), '->write() stores data in the storage');
     }
 
+    /**
+     * @return \Symfony\Component\HttpKernel\Profiler\ProfilerStorageInterface
+     */
+    abstract protected function getStorage();
+
     public function testChildren()
     {
         $parentProfile = new Profile('token_parent');
@@ -262,9 +267,4 @@ abstract class AbstractProfilerStorageTest extends \PHPUnit_Framework_TestCase
         $this->assertContains($tokens[0]['status_code'], array(200, 404));
         $this->assertContains($tokens[1]['status_code'], array(200, 404));
     }
-
-    /**
-     * @return \Symfony\Component\HttpKernel\Profiler\ProfilerStorageInterface
-     */
-    abstract protected function getStorage();
 }

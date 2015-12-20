@@ -2,14 +2,14 @@
 
 namespace Illuminate\Filesystem;
 
-use InvalidArgumentException;
-use Illuminate\Support\Collection;
-use League\Flysystem\AdapterInterface;
-use League\Flysystem\FilesystemInterface;
-use League\Flysystem\FileNotFoundException;
-use Illuminate\Contracts\Filesystem\Filesystem as FilesystemContract;
 use Illuminate\Contracts\Filesystem\Cloud as CloudFilesystemContract;
 use Illuminate\Contracts\Filesystem\FileNotFoundException as ContractFileNotFoundException;
+use Illuminate\Contracts\Filesystem\Filesystem as FilesystemContract;
+use Illuminate\Support\Collection;
+use InvalidArgumentException;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\FileNotFoundException;
+use League\Flysystem\FilesystemInterface;
 
 class FilesystemAdapter implements FilesystemContract, CloudFilesystemContract
 {
@@ -32,31 +32,81 @@ class FilesystemAdapter implements FilesystemContract, CloudFilesystemContract
     }
 
     /**
-     * Determine if a file exists.
+     * Get the visibility for the given path.
      *
      * @param  string  $path
+     * @return string
+     */
+    public function getVisibility($path)
+    {
+        if ($this->driver->getVisibility($path) == AdapterInterface::VISIBILITY_PUBLIC) {
+            return FilesystemContract::VISIBILITY_PUBLIC;
+        }
+
+        return FilesystemContract::VISIBILITY_PRIVATE;
+    }
+
+    /**
+     * Set the visibility for the given path.
+     *
+     * @param  string  $path
+     * @param  string $visibility
+     * @return void
+     */
+    public function setVisibility($path, $visibility)
+    {
+        return $this->driver->setVisibility($path, $this->parseVisibility($visibility));
+    }
+
+    /**
+     * Parse the given visibility value.
+     *
+     * @param  string|null $visibility
+     * @return string|null
+     * @throws \InvalidArgumentException
+     */
+    protected function parseVisibility($visibility)
+    {
+        if (is_null($visibility)) {
+            return;
+        }
+
+        switch ($visibility) {
+            case FilesystemContract::VISIBILITY_PUBLIC:
+                return AdapterInterface::VISIBILITY_PUBLIC;
+
+            case FilesystemContract::VISIBILITY_PRIVATE:
+                return AdapterInterface::VISIBILITY_PRIVATE;
+        }
+
+        throw new InvalidArgumentException('Unknown visibility: ' . $visibility);
+    }
+
+    /**
+     * Prepend to a file.
+     *
+     * @param  string $path
+     * @param  string $data
+     * @return int
+     */
+    public function prepend($path, $data)
+    {
+        if ($this->exists($path)) {
+            return $this->put($path, $data . PHP_EOL . $this->get($path));
+        }
+
+        return $this->put($path, $data);
+    }
+
+    /**
+     * Determine if a file exists.
+     *
+     * @param  string $path
      * @return bool
      */
     public function exists($path)
     {
         return $this->driver->has($path);
-    }
-
-    /**
-     * Get the contents of a file.
-     *
-     * @param  string  $path
-     * @return string
-     *
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
-     */
-    public function get($path)
-    {
-        try {
-            return $this->driver->read($path);
-        } catch (FileNotFoundException $e) {
-            throw new ContractFileNotFoundException($path, $e->getCode(), $e);
-        }
     }
 
     /**
@@ -83,46 +133,20 @@ class FilesystemAdapter implements FilesystemContract, CloudFilesystemContract
     }
 
     /**
-     * Get the visibility for the given path.
+     * Get the contents of a file.
      *
      * @param  string  $path
      * @return string
-     */
-    public function getVisibility($path)
-    {
-        if ($this->driver->getVisibility($path) == AdapterInterface::VISIBILITY_PUBLIC) {
-            return FilesystemContract::VISIBILITY_PUBLIC;
-        }
-
-        return FilesystemContract::VISIBILITY_PRIVATE;
-    }
-
-    /**
-     * Set the visibility for the given path.
      *
-     * @param  string  $path
-     * @param  string  $visibility
-     * @return void
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    public function setVisibility($path, $visibility)
+    public function get($path)
     {
-        return $this->driver->setVisibility($path, $this->parseVisibility($visibility));
-    }
-
-    /**
-     * Prepend to a file.
-     *
-     * @param  string  $path
-     * @param  string  $data
-     * @return int
-     */
-    public function prepend($path, $data)
-    {
-        if ($this->exists($path)) {
-            return $this->put($path, $data.PHP_EOL.$this->get($path));
+        try {
+            return $this->driver->read($path);
+        } catch (FileNotFoundException $e) {
+            throw new ContractFileNotFoundException($path, $e->getCode(), $e);
         }
-
-        return $this->put($path, $data);
     }
 
     /**
@@ -216,6 +240,17 @@ class FilesystemAdapter implements FilesystemContract, CloudFilesystemContract
     }
 
     /**
+     * Get all of the files from the given directory (recursive).
+     *
+     * @param  string|null $directory
+     * @return array
+     */
+    public function allFiles($directory = null)
+    {
+        return $this->files($directory, true);
+    }
+
+    /**
      * Get an array of all files in a directory.
      *
      * @param  string|null  $directory
@@ -230,28 +265,19 @@ class FilesystemAdapter implements FilesystemContract, CloudFilesystemContract
     }
 
     /**
-     * Get all of the files from the given directory (recursive).
+     * Filter directory contents by type.
      *
-     * @param  string|null  $directory
+     * @param  array $contents
+     * @param  string $type
      * @return array
      */
-    public function allFiles($directory = null)
+    protected function filterContentsByType($contents, $type)
     {
-        return $this->files($directory, true);
-    }
-
-    /**
-     * Get all of the directories within a given directory.
-     *
-     * @param  string|null  $directory
-     * @param  bool  $recursive
-     * @return array
-     */
-    public function directories($directory = null, $recursive = false)
-    {
-        $contents = $this->driver->listContents($directory, $recursive);
-
-        return $this->filterContentsByType($contents, 'dir');
+        return Collection::make($contents)
+            ->where('type', $type)
+            ->pluck('path')
+            ->values()
+            ->all();
     }
 
     /**
@@ -263,6 +289,20 @@ class FilesystemAdapter implements FilesystemContract, CloudFilesystemContract
     public function allDirectories($directory = null)
     {
         return $this->directories($directory, true);
+    }
+
+    /**
+     * Get all of the directories within a given directory.
+     *
+     * @param  string|null  $directory
+     * @param  bool $recursive
+     * @return array
+     */
+    public function directories($directory = null, $recursive = false)
+    {
+        $contents = $this->driver->listContents($directory, $recursive);
+
+        return $this->filterContentsByType($contents, 'dir');
     }
 
     /**
@@ -295,46 +335,6 @@ class FilesystemAdapter implements FilesystemContract, CloudFilesystemContract
     public function getDriver()
     {
         return $this->driver;
-    }
-
-    /**
-     * Filter directory contents by type.
-     *
-     * @param  array  $contents
-     * @param  string  $type
-     * @return array
-     */
-    protected function filterContentsByType($contents, $type)
-    {
-        return Collection::make($contents)
-            ->where('type', $type)
-            ->pluck('path')
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Parse the given visibility value.
-     *
-     * @param  string|null  $visibility
-     * @return string|null
-     * @throws \InvalidArgumentException
-     */
-    protected function parseVisibility($visibility)
-    {
-        if (is_null($visibility)) {
-            return;
-        }
-
-        switch ($visibility) {
-            case FilesystemContract::VISIBILITY_PUBLIC:
-                return AdapterInterface::VISIBILITY_PUBLIC;
-
-            case FilesystemContract::VISIBILITY_PRIVATE:
-                return AdapterInterface::VISIBILITY_PRIVATE;
-        }
-
-        throw new InvalidArgumentException('Unknown visibility: '.$visibility);
     }
 
     /**

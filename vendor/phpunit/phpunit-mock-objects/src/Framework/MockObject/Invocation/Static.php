@@ -81,27 +81,6 @@ class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framewor
     }
 
     /**
-     * @return string
-     */
-    public function toString()
-    {
-        $exporter = new Exporter;
-
-        return sprintf(
-            '%s::%s(%s)',
-            $this->className,
-            $this->methodName,
-            implode(
-                ', ',
-                array_map(
-                    array($exporter, 'shortenedExport'),
-                    $this->parameters
-                )
-            )
-        );
-    }
-
-    /**
      * @param  object $original
      * @return object
      */
@@ -148,5 +127,26 @@ class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framewor
         } else {
             return $original;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function toString()
+    {
+        $exporter = new Exporter;
+
+        return sprintf(
+            '%s::%s(%s)',
+            $this->className,
+            $this->methodName,
+            implode(
+                ', ',
+                array_map(
+                    array($exporter, 'shortenedExport'),
+                    $this->parameters
+                )
+            )
+        );
     }
 }

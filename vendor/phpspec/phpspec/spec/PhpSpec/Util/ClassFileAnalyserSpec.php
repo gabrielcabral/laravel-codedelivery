@@ -13,24 +13,6 @@ class ClassFileAnalyserSpec extends ObjectBehavior
         $this->getStartLineOfFirstMethod($class)->shouldReturn(7);
     }
 
-    function it_should_detect_if_class_has_a_method()
-    {
-        $class = $this->getSingleMethodClass();
-        $this->classHasMethods($class)->shouldReturn(true);
-    }
-
-    function it_should_detect_if_class_has_no_methods()
-    {
-        $class = $this->getClassWithNoMethods();
-        $this->classHasMethods($class)->shouldReturn(false);
-    }
-
-    function it_should_return_the_line_number_of_the_end_of_the_named_method()
-    {
-        $class = $this->getSingleMethodClass();
-        $this->getEndLineOfNamedMethod($class, 'methodOne')->shouldReturn(13);
-    }
-
     private function getSingleMethodClass()
     {
         return <<<SINGLE_METHOD_CLASS
@@ -51,6 +33,18 @@ final class MyClass
 SINGLE_METHOD_CLASS;
     }
 
+    function it_should_detect_if_class_has_a_method()
+    {
+        $class = $this->getSingleMethodClass();
+        $this->classHasMethods($class)->shouldReturn(true);
+    }
+
+    function it_should_detect_if_class_has_no_methods()
+    {
+        $class = $this->getClassWithNoMethods();
+        $this->classHasMethods($class)->shouldReturn(false);
+    }
+
     private function getClassWithNoMethods()
     {
         return <<<NO_METHOD_CLASS
@@ -62,5 +56,11 @@ final class MyClass
 {
 }
 NO_METHOD_CLASS;
+    }
+
+    function it_should_return_the_line_number_of_the_end_of_the_named_method()
+    {
+        $class = $this->getSingleMethodClass();
+        $this->getEndLineOfNamedMethod($class, 'methodOne')->shouldReturn(13);
     }
 }

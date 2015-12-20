@@ -89,47 +89,6 @@ class Dotenv
     }
 
     /**
-     * Require specified ENV vars to be present, or throw an exception.
-     *
-     * You can also pass through an set of allowed values for the environment variable.
-     *
-     * @param mixed    $environmentVariables
-     * @param string[] $allowedValues
-     *
-     * @throws \RuntimeException
-     *
-     * @return true
-     */
-    public static function required($environmentVariables, array $allowedValues = array())
-    {
-        $environmentVariables = (array) $environmentVariables;
-        $missingEnvironmentVariables = array();
-
-        foreach ($environmentVariables as $environmentVariable) {
-            $value = static::findEnvironmentVariable($environmentVariable);
-            if (is_null($value)) {
-                $missingEnvironmentVariables[] = $environmentVariable;
-            } elseif ($allowedValues) {
-                if (!in_array($value, $allowedValues)) {
-                    // may differentiate in the future, but for now this does the job
-                    $missingEnvironmentVariables[] = $environmentVariable;
-                }
-            }
-        }
-
-        if ($missingEnvironmentVariables) {
-            throw new \RuntimeException(
-                sprintf(
-                    "Required environment variable missing, or value not allowed: '%s'",
-                    implode("', '", $missingEnvironmentVariables)
-                )
-            );
-        }
-
-        return true;
-    }
-
-    /**
      * Takes value as passed in by developer.
      *
      * We're also:
@@ -171,6 +130,18 @@ class Dotenv
     }
 
     /**
+     * Strips quotes and the optional leading "export " from the environment variable name.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
+    protected static function sanitiseVariableName($name)
+    {
+        return trim(str_replace(array('export ', '\'', '"'), '', $name));
+    }
+
+    /**
      * Strips quotes from the environment variable value.
      *
      * @param string $value
@@ -206,18 +177,6 @@ class Dotenv
         }
 
         return trim($value);
-    }
-
-    /**
-     * Strips quotes and the optional leading "export " from the environment variable name.
-     *
-     * @param string $name
-     *
-     * @return string
-     */
-    protected static function sanitiseVariableName($name)
-    {
-        return trim(str_replace(array('export ', '\'', '"'), '', $name));
     }
 
     /**
@@ -267,6 +226,47 @@ class Dotenv
                 $value = getenv($name);
                 return $value === false ? null : $value; // switch getenv default to null
         }
+    }
+
+    /**
+     * Require specified ENV vars to be present, or throw an exception.
+     *
+     * You can also pass through an set of allowed values for the environment variable.
+     *
+     * @param mixed $environmentVariables
+     * @param string[] $allowedValues
+     *
+     * @throws \RuntimeException
+     *
+     * @return true
+     */
+    public static function required($environmentVariables, array $allowedValues = array())
+    {
+        $environmentVariables = (array)$environmentVariables;
+        $missingEnvironmentVariables = array();
+
+        foreach ($environmentVariables as $environmentVariable) {
+            $value = static::findEnvironmentVariable($environmentVariable);
+            if (is_null($value)) {
+                $missingEnvironmentVariables[] = $environmentVariable;
+            } elseif ($allowedValues) {
+                if (!in_array($value, $allowedValues)) {
+                    // may differentiate in the future, but for now this does the job
+                    $missingEnvironmentVariables[] = $environmentVariable;
+                }
+            }
+        }
+
+        if ($missingEnvironmentVariables) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Required environment variable missing, or value not allowed: '%s'",
+                    implode("', '", $missingEnvironmentVariables)
+                )
+            );
+        }
+
+        return true;
     }
 
     /**

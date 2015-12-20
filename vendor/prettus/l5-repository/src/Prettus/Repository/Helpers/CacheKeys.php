@@ -37,17 +37,6 @@ class CacheKeys {
     }
 
     /**
-     * @param $group
-     * @return array|mixed
-     */
-    public static function getKeys($group)
-    {
-        self::loadKeys();
-        self::$keys[$group] = isset(self::$keys[$group]) ? self::$keys[$group] : [];
-        return self::$keys[$group];
-    }
-
-    /**
      * @return array|mixed
      */
     public static function loadKeys()
@@ -70,6 +59,15 @@ class CacheKeys {
     }
 
     /**
+     * @return string
+     */
+    public static function getFileKeys()
+    {
+        $file = storage_path("framework/cache/" . self::$storeFile);
+        return $file;
+    }
+
+    /**
      * @return int
      */
     public static  function storeKeys()
@@ -81,12 +79,14 @@ class CacheKeys {
     }
 
     /**
-     * @return string
+     * @param $group
+     * @return array|mixed
      */
-    public static function getFileKeys()
+    public static function getKeys($group)
     {
-        $file = storage_path("framework/cache/".self::$storeFile);
-        return $file;
+        self::loadKeys();
+        self::$keys[$group] = isset(self::$keys[$group]) ? self::$keys[$group] : [];
+        return self::$keys[$group];
     }
 
     /**

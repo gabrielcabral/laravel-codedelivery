@@ -2,18 +2,14 @@
 
 namespace PhpParser\Builder;
 
+use PhpParser\Comment;
 use PhpParser\Node;
 use PhpParser\Node\Expr\Print_;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt;
-use PhpParser\Comment;
 
 class MethodTest extends \PHPUnit_Framework_TestCase
 {
-    public function createMethodBuilder($name) {
-        return new Method($name);
-    }
-
     public function testModifiers() {
         $node = $this->createMethodBuilder('test')
             ->makePublic()
@@ -57,6 +53,11 @@ class MethodTest extends \PHPUnit_Framework_TestCase
             )),
             $node
         );
+    }
+
+    public function createMethodBuilder($name)
+    {
+        return new Method($name);
     }
 
     public function testReturnByRef() {

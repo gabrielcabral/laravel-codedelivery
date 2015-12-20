@@ -170,28 +170,6 @@ class PHP_CodeCoverage_Filter
     }
 
     /**
-     * Checks whether a filename is a real filename.
-     *
-     * @param  string $filename
-     * @return bool
-     */
-    public function isFile($filename)
-    {
-        if ($filename == '-' ||
-            strpos($filename, 'vfs://') === 0 ||
-            strpos($filename, 'xdebug://debug-eval') !== false ||
-            strpos($filename, 'eval()\'d code') !== false ||
-            strpos($filename, 'runtime-created function') !== false ||
-            strpos($filename, 'runkit created function') !== false ||
-            strpos($filename, 'assert code') !== false ||
-            strpos($filename, 'regexp code') !== false) {
-            return false;
-        }
-
-        return file_exists($filename);
-    }
-
-    /**
      * Checks whether or not a file is filtered.
      *
      * When the whitelist is empty (default), blacklisting is used.
@@ -214,6 +192,29 @@ class PHP_CodeCoverage_Filter
         }
 
         return isset($this->blacklistedFiles[$filename]);
+    }
+
+    /**
+     * Checks whether a filename is a real filename.
+     *
+     * @param  string $filename
+     * @return bool
+     */
+    public function isFile($filename)
+    {
+        if ($filename == '-' ||
+            strpos($filename, 'vfs://') === 0 ||
+            strpos($filename, 'xdebug://debug-eval') !== false ||
+            strpos($filename, 'eval()\'d code') !== false ||
+            strpos($filename, 'runtime-created function') !== false ||
+            strpos($filename, 'runkit created function') !== false ||
+            strpos($filename, 'assert code') !== false ||
+            strpos($filename, 'regexp code') !== false
+        ) {
+            return false;
+        }
+
+        return file_exists($filename);
     }
 
     /**

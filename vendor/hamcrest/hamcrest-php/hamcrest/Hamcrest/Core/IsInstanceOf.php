@@ -27,6 +27,25 @@ class IsInstanceOf extends DiagnosingMatcher
         $this->_theClass = $theClass;
     }
 
+    /**
+     * Is the value an instance of a particular type?
+     * This version assumes no relationship between the required type and
+     * the signature of the method that sets it up, for example in
+     * <code>assertThat($anObject, anInstanceOf('Thing'));</code>
+     *
+     * @factory any
+     */
+    public static function anInstanceOf($theClass)
+    {
+        return new self($theClass);
+    }
+
+    public function describeTo(Description $description)
+    {
+        $description->appendText('an instance of ')
+            ->appendText($this->_theClass);
+    }
+
     protected function matchesWithDiagnosticDescription($item, Description $mismatchDescription)
     {
         if (!is_object($item)) {
@@ -43,25 +62,5 @@ class IsInstanceOf extends DiagnosingMatcher
         }
 
         return true;
-    }
-
-    public function describeTo(Description $description)
-    {
-        $description->appendText('an instance of ')
-                                ->appendText($this->_theClass)
-                                ;
-    }
-
-    /**
-     * Is the value an instance of a particular type?
-     * This version assumes no relationship between the required type and
-     * the signature of the method that sets it up, for example in
-     * <code>assertThat($anObject, anInstanceOf('Thing'));</code>
-     *
-     * @factory any
-     */
-    public static function anInstanceOf($theClass)
-    {
-        return new self($theClass);
     }
 }

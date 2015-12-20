@@ -196,6 +196,25 @@ abstract class AbstractCloner implements ClonerInterface
     abstract protected function doClone($var);
 
     /**
+     * Special handling for errors: cloning must be fail-safe.
+     *
+     * @internal
+     */
+    public function handleError($type, $msg, $file, $line, $context)
+    {
+        if (E_RECOVERABLE_ERROR === $type || E_USER_ERROR === $type) {
+            // Cloner never dies
+            throw new \ErrorException($msg, 0, $type, $file, $line);
+        }
+
+        if ($this->prevErrorHandler) {
+            return call_user_func($this->prevErrorHandler, $type, $msg, $file, $line, $context);
+        }
+
+        return false;
+    }
+
+    /**
      * Casts an object to an array representation.
      *
      * @param Stub $stub     The Stub for the casted object.
@@ -236,29 +255,6 @@ abstract class AbstractCloner implements ClonerInterface
     }
 
     /**
-     * Casts a resource to an array representation.
-     *
-     * @param Stub $stub     The Stub for the casted resource.
-     * @param bool $isNested True if the object is nested in the dumped structure.
-     *
-     * @return array The resource casted as array.
-     */
-    protected function castResource(Stub $stub, $isNested)
-    {
-        $a = array();
-        $res = $stub->value;
-        $type = $stub->class;
-
-        if (!empty($this->casters[':'.$type])) {
-            foreach ($this->casters[':'.$type] as $c) {
-                $a = $this->callCaster($c, $res, $a, $stub, $isNested);
-            }
-        }
-
-        return $a;
-    }
-
-    /**
      * Calls a custom caster.
      *
      * @param callable        $callback The caster.
@@ -285,21 +281,25 @@ abstract class AbstractCloner implements ClonerInterface
     }
 
     /**
-     * Special handling for errors: cloning must be fail-safe.
+     * Casts a resource to an array representation.
      *
-     * @internal
+     * @param Stub $stub The Stub for the casted resource.
+     * @param bool $isNested True if the object is nested in the dumped structure.
+     *
+     * @return array The resource casted as array.
      */
-    public function handleError($type, $msg, $file, $line, $context)
+    protected function castResource(Stub $stub, $isNested)
     {
-        if (E_RECOVERABLE_ERROR === $type || E_USER_ERROR === $type) {
-            // Cloner never dies
-            throw new \ErrorException($msg, 0, $type, $file, $line);
+        $a = array();
+        $res = $stub->value;
+        $type = $stub->class;
+
+        if (!empty($this->casters[':' . $type])) {
+            foreach ($this->casters[':' . $type] as $c) {
+                $a = $this->callCaster($c, $res, $a, $stub, $isNested);
+            }
         }
 
-        if ($this->prevErrorHandler) {
-            return call_user_func($this->prevErrorHandler, $type, $msg, $file, $line, $context);
-        }
-
-        return false;
+        return $a;
     }
 }

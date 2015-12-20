@@ -3,13 +3,13 @@
 namespace spec\PhpSpec\Formatter;
 
 use PhpSpec\Console\IO;
-use PhpSpec\Event\SuiteEvent;
 use PhpSpec\Event\ExampleEvent;
 use PhpSpec\Event\SpecificationEvent;
-use PhpSpec\Loader\Node\ExampleNode;
-use PhpSpec\Loader\Node\SpecificationNode;
+use PhpSpec\Event\SuiteEvent;
 use PhpSpec\Formatter\Presenter\PresenterInterface;
 use PhpSpec\Listener\StatisticsCollector;
+use PhpSpec\Loader\Node\ExampleNode;
+use PhpSpec\Loader\Node\SpecificationNode;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 

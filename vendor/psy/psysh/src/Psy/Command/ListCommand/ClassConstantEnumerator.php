@@ -54,26 +54,6 @@ class ClassConstantEnumerator extends Enumerator
     }
 
     /**
-     * Get defined constants for the given class or object Reflector.
-     *
-     * @param \Reflector $reflector
-     *
-     * @return array
-     */
-    protected function getConstants(\Reflector $reflector)
-    {
-        $constants = array();
-        foreach ($reflector->getConstants() as $name => $constant) {
-            $constants[$name] = new ReflectionConstant($reflector, $name);
-        }
-
-        // TODO: this should be natcasesort
-        ksort($constants);
-
-        return $constants;
-    }
-
-    /**
      * Prepare formatted constant array.
      *
      * @param array $constants
@@ -96,6 +76,26 @@ class ClassConstantEnumerator extends Enumerator
         }
 
         return $ret;
+    }
+
+    /**
+     * Get defined constants for the given class or object Reflector.
+     *
+     * @param \Reflector $reflector
+     *
+     * @return array
+     */
+    protected function getConstants(\Reflector $reflector)
+    {
+        $constants = array();
+        foreach ($reflector->getConstants() as $name => $constant) {
+            $constants[$name] = new ReflectionConstant($reflector, $name);
+        }
+
+        // TODO: this should be natcasesort
+        ksort($constants);
+
+        return $constants;
     }
 
     /**

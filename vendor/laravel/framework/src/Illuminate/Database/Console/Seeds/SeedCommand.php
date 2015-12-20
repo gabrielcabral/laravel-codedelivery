@@ -4,8 +4,8 @@ namespace Illuminate\Database\Console\Seeds;
 
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
-use Symfony\Component\Console\Input\InputOption;
 use Illuminate\Database\ConnectionResolverInterface as Resolver;
+use Symfony\Component\Console\Input\InputOption;
 
 class SeedCommand extends Command
 {
@@ -62,18 +62,6 @@ class SeedCommand extends Command
     }
 
     /**
-     * Get a seeder instance from the container.
-     *
-     * @return \Illuminate\Database\Seeder
-     */
-    protected function getSeeder()
-    {
-        $class = $this->laravel->make($this->input->getOption('class'));
-
-        return $class->setContainer($this->laravel)->setCommand($this);
-    }
-
-    /**
      * Get the name of the database connection to use.
      *
      * @return string
@@ -83,6 +71,18 @@ class SeedCommand extends Command
         $database = $this->input->getOption('database');
 
         return $database ?: $this->laravel['config']['database.default'];
+    }
+
+    /**
+     * Get a seeder instance from the container.
+     *
+     * @return \Illuminate\Database\Seeder
+     */
+    protected function getSeeder()
+    {
+        $class = $this->laravel->make($this->input->getOption('class'));
+
+        return $class->setContainer($this->laravel)->setCommand($this);
     }
 
     /**

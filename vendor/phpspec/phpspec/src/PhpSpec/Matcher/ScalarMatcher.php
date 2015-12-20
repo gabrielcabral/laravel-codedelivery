@@ -13,8 +13,8 @@
 
 namespace PhpSpec\Matcher;
 
-use PhpSpec\Formatter\Presenter\PresenterInterface;
 use PhpSpec\Exception\Example\FailureException;
+use PhpSpec\Formatter\Presenter\PresenterInterface;
 
 class ScalarMatcher implements MatcherInterface
 {
@@ -45,6 +45,25 @@ class ScalarMatcher implements MatcherInterface
         $checkerName = $this->getCheckerName($name);
 
         return $checkerName && function_exists($checkerName);
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string|boolean
+     */
+    private function getCheckerName($name)
+    {
+        if (0 !== strpos($name, 'be')) {
+            return false;
+        }
+
+        $expected = lcfirst(substr($name, 2));
+        if ($expected == 'boolean') {
+            return 'is_bool';
+        }
+
+        return 'is_' . $expected;
     }
 
     /**
@@ -109,24 +128,5 @@ class ScalarMatcher implements MatcherInterface
     public function getPriority()
     {
         return 50;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return string|boolean
-     */
-    private function getCheckerName($name)
-    {
-        if (0 !== strpos($name, 'be')) {
-            return false;
-        }
-
-        $expected = lcfirst(substr($name, 2));
-        if ($expected == 'boolean') {
-            return 'is_bool';
-        }
-
-        return 'is_'.$expected;
     }
 }

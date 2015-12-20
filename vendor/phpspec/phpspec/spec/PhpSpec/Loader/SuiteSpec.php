@@ -2,10 +2,9 @@
 
 namespace spec\PhpSpec\Loader;
 
+use PhpSpec\Loader\Node\SpecificationNode;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-
-use PhpSpec\Loader\Node\SpecificationNode;
 
 class SuiteSpec extends ObjectBehavior
 {

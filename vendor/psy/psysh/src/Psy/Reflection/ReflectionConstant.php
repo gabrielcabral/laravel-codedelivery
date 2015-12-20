@@ -46,6 +46,16 @@ class ReflectionConstant implements \Reflector
     }
 
     /**
+     * Export the constant? I don't think this is possible.
+     *
+     * @throws \RuntimeException
+     */
+    public static function export()
+    {
+        throw new \RuntimeException('Not yet implemented because it\'s unclear what I should do here :)');
+    }
+
+    /**
      * Gets the declaring class.
      *
      * @return string
@@ -53,16 +63,6 @@ class ReflectionConstant implements \Reflector
     public function getDeclaringClass()
     {
         return $this->class;
-    }
-
-    /**
-     * Gets the constant name.
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
     }
 
     /**
@@ -88,16 +88,6 @@ class ReflectionConstant implements \Reflector
     }
 
     /**
-     * Get the code start line.
-     *
-     * @throws \RuntimeException
-     */
-    public function getStartLine()
-    {
-        throw new \RuntimeException('Not yet implemented because it\'s unclear what I should do here :)');
-    }
-
-    /**
      * Get the code end line.
      *
      * @throws \RuntimeException
@@ -105,6 +95,16 @@ class ReflectionConstant implements \Reflector
     public function getEndLine()
     {
         return $this->getStartLine();
+    }
+
+    /**
+     * Get the code start line.
+     *
+     * @throws \RuntimeException
+     */
+    public function getStartLine()
+    {
+        throw new \RuntimeException('Not yet implemented because it\'s unclear what I should do here :)');
     }
 
     /**
@@ -118,16 +118,6 @@ class ReflectionConstant implements \Reflector
     }
 
     /**
-     * Export the constant? I don't think this is possible.
-     *
-     * @throws \RuntimeException
-     */
-    public static function export()
-    {
-        throw new \RuntimeException('Not yet implemented because it\'s unclear what I should do here :)');
-    }
-
-    /**
      * To string.
      *
      * @return string
@@ -135,5 +125,15 @@ class ReflectionConstant implements \Reflector
     public function __toString()
     {
         return $this->getName();
+    }
+
+    /**
+     * Gets the constant name.
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 }

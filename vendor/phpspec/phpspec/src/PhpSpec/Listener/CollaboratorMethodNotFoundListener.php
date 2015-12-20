@@ -91,6 +91,20 @@ class CollaboratorMethodNotFoundListener implements EventSubscriberInterface
     }
 
     /**
+     * @param ExampleEvent $event
+     * @return bool
+     */
+    private function getMethodNotFoundException(ExampleEvent $event)
+    {
+        if ($this->io->isCodeGenerationEnabled()
+            && ($exception = $event->getException())
+            && $exception instanceof MethodNotFoundException
+        ) {
+            return $exception;
+        }
+    }
+
+    /**
      * @param string $classname
      * @return mixed
      */
@@ -153,18 +167,5 @@ class CollaboratorMethodNotFoundListener implements EventSubscriberInterface
         }
 
         return array();
-    }
-
-    /**
-     * @param ExampleEvent $event
-     * @return bool
-     */
-    private function getMethodNotFoundException(ExampleEvent $event)
-    {
-        if ($this->io->isCodeGenerationEnabled()
-            && ($exception = $event->getException())
-            && $exception instanceof MethodNotFoundException) {
-            return $exception;
-        }
     }
 }

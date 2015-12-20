@@ -2,9 +2,9 @@
 
 namespace Illuminate\Support;
 
+use Illuminate\Support\Traits\Macroable;
 use RuntimeException;
 use Stringy\StaticStringy;
-use Illuminate\Support\Traits\Macroable;
 
 class Str
 {
@@ -32,17 +32,6 @@ class Str
     protected static $studlyCache = [];
 
     /**
-     * Transliterate a UTF-8 value to ASCII.
-     *
-     * @param  string  $value
-     * @return string
-     */
-    public static function ascii($value)
-    {
-        return StaticStringy::toAscii($value);
-    }
-
-    /**
      * Convert a value to camel case.
      *
      * @param  string  $value
@@ -58,21 +47,22 @@ class Str
     }
 
     /**
-     * Determine if a given string contains a given substring.
+     * Convert a value to studly caps case.
      *
-     * @param  string  $haystack
-     * @param  string|array  $needles
-     * @return bool
+     * @param  string $value
+     * @return string
      */
-    public static function contains($haystack, $needles)
+    public static function studly($value)
     {
-        foreach ((array) $needles as $needle) {
-            if ($needle != '' && strpos($haystack, $needle) !== false) {
-                return true;
-            }
+        $key = $value;
+
+        if (isset(static::$studlyCache[$key])) {
+            return static::$studlyCache[$key];
         }
 
-        return false;
+        $value = ucwords(str_replace(['-', '_'], ' ', $value));
+
+        return static::$studlyCache[$key] = str_replace(' ', '', $value);
     }
 
     /**
@@ -201,6 +191,24 @@ class Str
     }
 
     /**
+     * Determine if a given string contains a given substring.
+     *
+     * @param  string $haystack
+     * @param  string|array $needles
+     * @return bool
+     */
+    public static function contains($haystack, $needles)
+    {
+        foreach ((array)$needles as $needle) {
+            if ($needle != '' && strpos($haystack, $needle) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get the plural form of an English word.
      *
      * @param  string  $value
@@ -316,17 +324,6 @@ class Str
     }
 
     /**
-     * Convert the given string to upper-case.
-     *
-     * @param  string  $value
-     * @return string
-     */
-    public static function upper($value)
-    {
-        return mb_strtoupper($value, 'UTF-8');
-    }
-
-    /**
      * Convert the given string to title case.
      *
      * @param  string  $value
@@ -374,6 +371,17 @@ class Str
     }
 
     /**
+     * Transliterate a UTF-8 value to ASCII.
+     *
+     * @param  string $value
+     * @return string
+     */
+    public static function ascii($value)
+    {
+        return StaticStringy::toAscii($value);
+    }
+
+    /**
      * Convert a string to snake case.
      *
      * @param  string  $value
@@ -416,45 +424,37 @@ class Str
     }
 
     /**
-     * Convert a value to studly caps case.
+     * Make a string's first character uppercase.
      *
-     * @param  string  $value
+     * @param  string $string
      * @return string
      */
-    public static function studly($value)
+    public static function ucfirst($string)
     {
-        $key = $value;
+        return static::upper(static::substr($string, 0, 1)) . static::substr($string, 1);
+    }
 
-        if (isset(static::$studlyCache[$key])) {
-            return static::$studlyCache[$key];
-        }
-
-        $value = ucwords(str_replace(['-', '_'], ' ', $value));
-
-        return static::$studlyCache[$key] = str_replace(' ', '', $value);
+    /**
+     * Convert the given string to upper-case.
+     *
+     * @param  string $value
+     * @return string
+     */
+    public static function upper($value)
+    {
+        return mb_strtoupper($value, 'UTF-8');
     }
 
     /**
      * Returns the portion of string specified by the start and length parameters.
      *
      * @param  string  $string
-     * @param  int  $start
-     * @param  int|null  $length
+     * @param  int $start
+     * @param  int|null $length
      * @return string
      */
     public static function substr($string, $start, $length = null)
     {
         return mb_substr($string, $start, $length, 'UTF-8');
-    }
-
-    /**
-     * Make a string's first character uppercase.
-     *
-     * @param  string  $string
-     * @return string
-     */
-    public static function ucfirst($string)
-    {
-        return static::upper(static::substr($string, 0, 1)).static::substr($string, 1);
     }
 }

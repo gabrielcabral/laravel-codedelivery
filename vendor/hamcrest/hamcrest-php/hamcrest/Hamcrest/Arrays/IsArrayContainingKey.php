@@ -24,6 +24,26 @@ class IsArrayContainingKey extends TypeSafeMatcher
         $this->_keyMatcher = $keyMatcher;
     }
 
+    /**
+     * Evaluates to true if any key in an array matches the given matcher.
+     *
+     * @param mixed $key as a {@link Hamcrest\Matcher} or a value.
+     *
+     * @return \Hamcrest\Arrays\IsArrayContainingKey
+     * @factory hasKey
+     */
+    public static function hasKeyInArray($key)
+    {
+        return new self(Util::wrapValueWithIsEqual($key));
+    }
+
+    public function describeTo(Description $description)
+    {
+        $description
+            ->appendText('array with key ')
+            ->appendDescriptionOf($this->_keyMatcher);
+    }
+
     protected function matchesSafely($array)
     {
         foreach ($array as $key => $element) {
@@ -50,26 +70,5 @@ class IsArrayContainingKey extends TypeSafeMatcher
             $loop = true;
         }
         $mismatchDescription->appendText(']');
-    }
-
-    public function describeTo(Description $description)
-    {
-        $description
-                 ->appendText('array with key ')
-                 ->appendDescriptionOf($this->_keyMatcher)
-                 ;
-    }
-
-    /**
-     * Evaluates to true if any key in an array matches the given matcher.
-     *
-     * @param mixed $key as a {@link Hamcrest\Matcher} or a value.
-     *
-     * @return \Hamcrest\Arrays\IsArrayContainingKey
-     * @factory hasKey
-     */
-    public static function hasKeyInArray($key)
-    {
-        return new self(Util::wrapValueWithIsEqual($key));
     }
 }

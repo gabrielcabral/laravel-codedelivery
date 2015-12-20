@@ -2,9 +2,9 @@
 
 namespace Illuminate\Cache;
 
+use Carbon\Carbon;
 use Closure;
 use DateTime;
-use Carbon\Carbon;
 use Illuminate\Contracts\Cache\Store;
 
 class TaggedCache implements Store
@@ -62,20 +62,14 @@ class TaggedCache implements Store
     }
 
     /**
-     * Store an item in the cache for a given number of minutes.
+     * Get a fully qualified key for a tagged item.
      *
      * @param  string  $key
-     * @param  mixed   $value
-     * @param  \DateTime|int  $minutes
-     * @return void
+     * @return string
      */
-    public function put($key, $value, $minutes)
+    public function taggedItemKey($key)
     {
-        $minutes = $this->getMinutes($minutes);
-
-        if (! is_null($minutes)) {
-            $this->store->put($this->taggedItemKey($key), $value, $minutes);
-        }
+        return sha1($this->tags->getNamespace()) . ':' . $key;
     }
 
     /**
@@ -95,6 +89,40 @@ class TaggedCache implements Store
         }
 
         return false;
+    }
+
+    /**
+     * Store an item in the cache for a given number of minutes.
+     *
+     * @param  string  $key
+     * @param  mixed   $value
+     * @param  \DateTime|int $minutes
+     * @return void
+     */
+    public function put($key, $value, $minutes)
+    {
+        $minutes = $this->getMinutes($minutes);
+
+        if (!is_null($minutes)) {
+            $this->store->put($this->taggedItemKey($key), $value, $minutes);
+        }
+    }
+
+    /**
+     * Calculate the number of minutes with the given duration.
+     *
+     * @param  \DateTime|int $duration
+     * @return int|null
+     */
+    protected function getMinutes($duration)
+    {
+        if ($duration instanceof DateTime) {
+            $fromNow = Carbon::now()->diffInMinutes(Carbon::instance($duration), false);
+
+            return $fromNow > 0 ? $fromNow : null;
+        }
+
+        return is_string($duration) ? (int)$duration : $duration;
     }
 
     /**
@@ -119,18 +147,6 @@ class TaggedCache implements Store
     public function decrement($key, $value = 1)
     {
         $this->store->decrement($this->taggedItemKey($key), $value);
-    }
-
-    /**
-     * Store an item in the cache indefinitely.
-     *
-     * @param  string  $key
-     * @param  mixed   $value
-     * @return void
-     */
-    public function forever($key, $value)
-    {
-        $this->store->forever($this->taggedItemKey($key), $value);
     }
 
     /**
@@ -210,14 +226,15 @@ class TaggedCache implements Store
     }
 
     /**
-     * Get a fully qualified key for a tagged item.
+     * Store an item in the cache indefinitely.
      *
      * @param  string  $key
-     * @return string
+     * @param  mixed $value
+     * @return void
      */
-    public function taggedItemKey($key)
+    public function forever($key, $value)
     {
-        return sha1($this->tags->getNamespace()).':'.$key;
+        $this->store->forever($this->taggedItemKey($key), $value);
     }
 
     /**
@@ -228,22 +245,5 @@ class TaggedCache implements Store
     public function getPrefix()
     {
         return $this->store->getPrefix();
-    }
-
-    /**
-     * Calculate the number of minutes with the given duration.
-     *
-     * @param  \DateTime|int  $duration
-     * @return int|null
-     */
-    protected function getMinutes($duration)
-    {
-        if ($duration instanceof DateTime) {
-            $fromNow = Carbon::now()->diffInMinutes(Carbon::instance($duration), false);
-
-            return $fromNow > 0 ? $fromNow : null;
-        }
-
-        return is_string($duration) ? (int) $duration : $duration;
     }
 }

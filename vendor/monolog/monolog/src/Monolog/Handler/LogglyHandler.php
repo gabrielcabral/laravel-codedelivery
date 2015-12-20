@@ -11,8 +11,8 @@
 
 namespace Monolog\Handler;
 
-use Monolog\Logger;
 use Monolog\Formatter\LogglyFormatter;
+use Monolog\Logger;
 
 /**
  * Sends errors to Loggly.
@@ -56,11 +56,6 @@ class LogglyHandler extends AbstractProcessingHandler
         }
     }
 
-    protected function write(array $record)
-    {
-        $this->send($record["formatted"], self::ENDPOINT_SINGLE);
-    }
-
     public function handleBatch(array $records)
     {
         $level = $this->level;
@@ -72,6 +67,11 @@ class LogglyHandler extends AbstractProcessingHandler
         if ($records) {
             $this->send($this->getFormatter()->formatBatch($records), self::ENDPOINT_BATCH);
         }
+    }
+
+    protected function write(array $record)
+    {
+        $this->send($record["formatted"], self::ENDPOINT_SINGLE);
     }
 
     protected function send($data, $endpoint)

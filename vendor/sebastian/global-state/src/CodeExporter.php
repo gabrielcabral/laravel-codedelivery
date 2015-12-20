@@ -36,25 +36,6 @@ class CodeExporter
     }
 
     /**
-     * @param  Snapshot $snapshot
-     * @return string
-     */
-    public function iniSettings(Snapshot $snapshot)
-    {
-        $result = '';
-
-        foreach ($snapshot->iniSettings() as $key => $value) {
-            $result .= sprintf(
-                '@ini_set(%s, %s);' . "\n",
-                $this->exportVariable($key),
-                $this->exportVariable($value)
-            );
-        }
-
-        return $result;
-    }
-
-    /**
      * @param  mixed  $variable
      * @return string
      */
@@ -86,6 +67,25 @@ class CodeExporter
             if ($result === false) {
                 break;
             }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  Snapshot $snapshot
+     * @return string
+     */
+    public function iniSettings(Snapshot $snapshot)
+    {
+        $result = '';
+
+        foreach ($snapshot->iniSettings() as $key => $value) {
+            $result .= sprintf(
+                '@ini_set(%s, %s);' . "\n",
+                $this->exportVariable($key),
+                $this->exportVariable($value)
+            );
         }
 
         return $result;

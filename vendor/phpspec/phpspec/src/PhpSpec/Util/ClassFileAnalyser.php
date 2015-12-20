@@ -31,72 +31,18 @@ final class ClassFileAnalyser
     }
 
     /**
-     * @param string $class
-     * @return int
+     * @param $class
+     * @return array
      */
-    public function getEndLineOfLastMethod($class)
+    private function getTokensForClass($class)
     {
-        $tokens = $this->getTokensForClass($class);
-        $index = $this->findIndexOfMethodEnd($tokens, $this->findIndexOfLastMethod($tokens));
-        return $tokens[$index][2];
-    }
+        $hash = md5($class);
 
-    /**
-     * @param string $class
-     * @return bool
-     */
-    public function classHasMethods($class)
-    {
-        foreach ($this->getTokensForClass($class) as $token) {
-            if (!is_array($token)) {
-                continue;
-            }
-
-            if ($token[0] === T_FUNCTION) {
-                return true;
-            }
+        if (!in_array($hash, $this->tokenLists)) {
+            $this->tokenLists[$hash] = token_get_all($class);
         }
 
-        return false;
-    }
-
-    /**
-     * @param string $class
-     * @param string $methodName
-     * @return int
-     */
-    public function getEndLineOfNamedMethod($class, $methodName)
-    {
-        $tokens = $this->getTokensForClass($class);
-
-        $index = $this->findIndexOfNamedMethodEnd($tokens, $methodName);
-        return $tokens[$index][2];
-    }
-
-    /**
-     * @param array $tokens
-     * @return int
-     */
-    private function findIndexOfFirstMethod(array $tokens)
-    {
-        for ($i = 0, $max = count($tokens); $i < $max; $i++) {
-            if ($this->tokenIsFunction($tokens[$i])) {
-                return $i;
-            }
-        }
-    }
-
-    /**
-     * @param array $tokens
-     * @return int
-     */
-    private function findIndexOfLastMethod(array $tokens)
-    {
-        for ($i = count($tokens) - 1; $i >= 0; $i--) {
-            if ($this->tokenIsFunction($tokens[$i])) {
-                return $i;
-            }
-        }
+        return $this->tokenLists[$hash];
     }
 
     /**
@@ -136,18 +82,107 @@ final class ClassFileAnalyser
     }
 
     /**
-     * @param $class
-     * @return array
+     * @param array $tokens
+     * @return int
      */
-    private function getTokensForClass($class)
+    private function findIndexOfFirstMethod(array $tokens)
     {
-        $hash = md5($class);
+        for ($i = 0, $max = count($tokens); $i < $max; $i++) {
+            if ($this->tokenIsFunction($tokens[$i])) {
+                return $i;
+            }
+        }
+    }
 
-        if (!in_array($hash, $this->tokenLists)) {
-            $this->tokenLists[$hash] = token_get_all($class);
+    /**
+     * @param mixed $token
+     * @return bool
+     */
+    private function tokenIsFunction($token)
+    {
+        return is_array($token) && $token[0] === T_FUNCTION;
+    }
+
+    /**
+     * @param string $class
+     * @return int
+     */
+    public function getEndLineOfLastMethod($class)
+    {
+        $tokens = $this->getTokensForClass($class);
+        $index = $this->findIndexOfMethodEnd($tokens, $this->findIndexOfLastMethod($tokens));
+        return $tokens[$index][2];
+    }
+
+    /**
+     * @param array $tokens
+     * @param int $index
+     * @return int
+     */
+    private function findIndexOfMethodEnd(array $tokens, $index)
+    {
+        $braceCount = 0;
+
+        for ($i = $index, $max = count($tokens); $i < $max; $i++) {
+            $token = $tokens[$i];
+
+            if ('{' === $token) {
+                $braceCount++;
+                continue;
+            }
+
+            if ('}' === $token) {
+                $braceCount--;
+                if ($braceCount === 0) {
+                    return $i + 1;
+                }
+            }
+        }
+    }
+
+    /**
+     * @param array $tokens
+     * @return int
+     */
+    private function findIndexOfLastMethod(array $tokens)
+    {
+        for ($i = count($tokens) - 1; $i >= 0; $i--) {
+            if ($this->tokenIsFunction($tokens[$i])) {
+                return $i;
+            }
+        }
+    }
+
+    /**
+     * @param string $class
+     * @return bool
+     */
+    public function classHasMethods($class)
+    {
+        foreach ($this->getTokensForClass($class) as $token) {
+            if (!is_array($token)) {
+                continue;
+            }
+
+            if ($token[0] === T_FUNCTION) {
+                return true;
+            }
         }
 
-        return $this->tokenLists[$hash];
+        return false;
+    }
+
+    /**
+     * @param string $class
+     * @param string $methodName
+     * @return int
+     */
+    public function getEndLineOfNamedMethod($class, $methodName)
+    {
+        $tokens = $this->getTokensForClass($class);
+
+        $index = $this->findIndexOfNamedMethodEnd($tokens, $methodName);
+        return $tokens[$index][2];
     }
 
     /**
@@ -196,40 +231,5 @@ final class ClassFileAnalyser
         }
 
         throw new NamedMethodNotFoundException('Target method not found');
-    }
-
-    /**
-     * @param array $tokens
-     * @param int $index
-     * @return int
-     */
-    private function findIndexOfMethodEnd(array $tokens, $index)
-    {
-        $braceCount = 0;
-
-        for ($i = $index, $max = count($tokens); $i < $max; $i++) {
-            $token = $tokens[$i];
-
-            if ('{' === $token) {
-                $braceCount++;
-                continue;
-            }
-
-            if ('}' === $token) {
-                $braceCount--;
-                if ($braceCount === 0) {
-                    return $i + 1;
-                }
-            }
-        }
-    }
-
-    /**
-     * @param mixed $token
-     * @return bool
-     */
-    private function tokenIsFunction($token)
-    {
-        return is_array($token) && $token[0] === T_FUNCTION;
     }
 }

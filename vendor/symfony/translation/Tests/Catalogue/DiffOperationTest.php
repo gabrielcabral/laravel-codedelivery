@@ -40,6 +40,11 @@ class DiffOperationTest extends AbstractOperationTest
         );
     }
 
+    protected function createOperation(MessageCatalogueInterface $source, MessageCatalogueInterface $target)
+    {
+        return new DiffOperation($source, $target);
+    }
+
     public function testGetResultFromSingleDomain()
     {
         $this->assertEquals(
@@ -73,10 +78,5 @@ class DiffOperationTest extends AbstractOperationTest
                 $rightCatalogue
             )->getResult()
         );
-    }
-
-    protected function createOperation(MessageCatalogueInterface $source, MessageCatalogueInterface $target)
-    {
-        return new DiffOperation($source, $target);
     }
 }

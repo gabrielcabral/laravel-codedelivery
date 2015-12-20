@@ -4,11 +4,6 @@ namespace Hamcrest\Type;
 class IsDoubleTest extends \Hamcrest\AbstractMatcherTest
 {
 
-    protected function createMatcher()
-    {
-        return \Hamcrest\Type\IsDouble::doubleValue();
-    }
-
     public function testEvaluatesToTrueIfArgumentMatchesType()
     {
         assertThat((float) 5.2, floatValue());
@@ -31,5 +26,10 @@ class IsDoubleTest extends \Hamcrest\AbstractMatcherTest
     {
         $this->assertMismatchDescription('was null', doubleValue(), null);
         $this->assertMismatchDescription('was a string "foo"', doubleValue(), 'foo');
+    }
+
+    protected function createMatcher()
+    {
+        return \Hamcrest\Type\IsDouble::doubleValue();
     }
 }

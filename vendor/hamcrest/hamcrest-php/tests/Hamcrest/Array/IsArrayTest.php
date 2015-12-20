@@ -6,11 +6,6 @@ use Hamcrest\AbstractMatcherTest;
 class IsArrayTest extends AbstractMatcherTest
 {
 
-    protected function createMatcher()
-    {
-        return IsArray::anArray(array(equalTo('irrelevant')));
-    }
-
     public function testMatchesAnArrayThatMatchesAllTheElementMatchers()
     {
         $this->assertMatches(
@@ -85,5 +80,10 @@ class IsArrayTest extends AbstractMatcherTest
             array('x'=>'b', 'z'=>'c'),
             'should not match array with different keys'
         );
+    }
+
+    protected function createMatcher()
+    {
+        return IsArray::anArray(array(equalTo('irrelevant')));
     }
 }

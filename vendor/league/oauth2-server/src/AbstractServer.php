@@ -104,20 +104,6 @@ abstract class AbstractServer
     }
 
     /**
-     * Set an event emitter
-     *
-     * @param object $emitter Event emitter object
-     */
-    public function setEventEmitter($emitter = null)
-    {
-        if ($emitter === null) {
-            $this->eventEmitter = new Emitter();
-        } else {
-            $this->eventEmitter = $emitter;
-        }
-    }
-
-    /**
      * Add an event listener to the event emitter
      *
      * @param string   $eventName Event name
@@ -140,17 +126,17 @@ abstract class AbstractServer
     }
 
     /**
-     * Sets the Request Object
+     * Set an event emitter
      *
-     * @param \Symfony\Component\HttpFoundation\Request The Request Object
-     *
-     * @return self
+     * @param object $emitter Event emitter object
      */
-    public function setRequest($request)
+    public function setEventEmitter($emitter = null)
     {
-        $this->request = $request;
-
-        return $this;
+        if ($emitter === null) {
+            $this->eventEmitter = new Emitter();
+        } else {
+            $this->eventEmitter = $emitter;
+        }
     }
 
     /**
@@ -165,6 +151,30 @@ abstract class AbstractServer
         }
 
         return $this->request;
+    }
+
+    /**
+     * Sets the Request Object
+     *
+     * @param \Symfony\Component\HttpFoundation\Request The Request Object
+     *
+     * @return self
+     */
+    public function setRequest($request)
+    {
+        $this->request = $request;
+
+        return $this;
+    }
+
+    /**
+     * Return the client storage
+     *
+     * @return \League\OAuth2\Server\Storage\ClientInterface
+     */
+    public function getClientStorage()
+    {
+        return $this->clientStorage;
     }
 
     /**
@@ -183,63 +193,13 @@ abstract class AbstractServer
     }
 
     /**
-     * Set the session storage
+     * Return the scope storage
      *
-     * @param \League\OAuth2\Server\Storage\SessionInterface $storage
-     *
-     * @return self
+     * @return \League\OAuth2\Server\Storage\ScopeInterface
      */
-    public function setSessionStorage(SessionInterface $storage)
+    public function getScopeStorage()
     {
-        $storage->setServer($this);
-        $this->sessionStorage = $storage;
-
-        return $this;
-    }
-
-    /**
-     * Set the access token storage
-     *
-     * @param \League\OAuth2\Server\Storage\AccessTokenInterface $storage
-     *
-     * @return self
-     */
-    public function setAccessTokenStorage(AccessTokenInterface $storage)
-    {
-        $storage->setServer($this);
-        $this->accessTokenStorage = $storage;
-
-        return $this;
-    }
-
-    /**
-     * Set the refresh token storage
-     *
-     * @param \League\OAuth2\Server\Storage\RefreshTokenInterface $storage
-     *
-     * @return self
-     */
-    public function setRefreshTokenStorage(RefreshTokenInterface $storage)
-    {
-        $storage->setServer($this);
-        $this->refreshTokenStorage = $storage;
-
-        return $this;
-    }
-
-    /**
-     * Set the auth code storage
-     *
-     * @param \League\OAuth2\Server\Storage\AuthCodeInterface $storage
-     *
-     * @return self
-     */
-    public function setAuthCodeStorage(AuthCodeInterface $storage)
-    {
-        $storage->setServer($this);
-        $this->authCodeStorage = $storage;
-
-        return $this;
+        return $this->scopeStorage;
     }
 
     /**
@@ -258,26 +218,6 @@ abstract class AbstractServer
     }
 
     /**
-     * Return the client storage
-     *
-     * @return \League\OAuth2\Server\Storage\ClientInterface
-     */
-    public function getClientStorage()
-    {
-        return $this->clientStorage;
-    }
-
-    /**
-     * Return the scope storage
-     *
-     * @return \League\OAuth2\Server\Storage\ScopeInterface
-     */
-    public function getScopeStorage()
-    {
-        return $this->scopeStorage;
-    }
-
-    /**
      * Return the session storage
      *
      * @return \League\OAuth2\Server\Storage\SessionInterface
@@ -285,6 +225,21 @@ abstract class AbstractServer
     public function getSessionStorage()
     {
         return $this->sessionStorage;
+    }
+
+    /**
+     * Set the session storage
+     *
+     * @param \League\OAuth2\Server\Storage\SessionInterface $storage
+     *
+     * @return self
+     */
+    public function setSessionStorage(SessionInterface $storage)
+    {
+        $storage->setServer($this);
+        $this->sessionStorage = $storage;
+
+        return $this;
     }
 
     /**
@@ -298,6 +253,21 @@ abstract class AbstractServer
     }
 
     /**
+     * Set the refresh token storage
+     *
+     * @param \League\OAuth2\Server\Storage\RefreshTokenInterface $storage
+     *
+     * @return self
+     */
+    public function setRefreshTokenStorage(RefreshTokenInterface $storage)
+    {
+        $storage->setServer($this);
+        $this->refreshTokenStorage = $storage;
+
+        return $this;
+    }
+
+    /**
      * Return the access token storage
      *
      * @return \League\OAuth2\Server\Storage\AccessTokenInterface
@@ -305,6 +275,21 @@ abstract class AbstractServer
     public function getAccessTokenStorage()
     {
         return $this->accessTokenStorage;
+    }
+
+    /**
+     * Set the access token storage
+     *
+     * @param \League\OAuth2\Server\Storage\AccessTokenInterface $storage
+     *
+     * @return self
+     */
+    public function setAccessTokenStorage(AccessTokenInterface $storage)
+    {
+        $storage->setServer($this);
+        $this->accessTokenStorage = $storage;
+
+        return $this;
     }
 
     /**
@@ -318,16 +303,18 @@ abstract class AbstractServer
     }
 
     /**
-     * Set the access token type
+     * Set the auth code storage
      *
-     * @param TokenTypeInterface $tokenType The token type
+     * @param \League\OAuth2\Server\Storage\AuthCodeInterface $storage
      *
-     * @return void
+     * @return self
      */
-    public function setTokenType(TokenTypeInterface $tokenType)
+    public function setAuthCodeStorage(AuthCodeInterface $storage)
     {
-        $tokenType->setServer($this);
-        $this->tokenType = $tokenType;
+        $storage->setServer($this);
+        $this->authCodeStorage = $storage;
+
+        return $this;
     }
 
     /**
@@ -338,6 +325,19 @@ abstract class AbstractServer
     public function getTokenType()
     {
         return $this->tokenType;
+    }
+
+    /**
+     * Set the access token type
+     *
+     * @param TokenTypeInterface $tokenType The token type
+     *
+     * @return void
+     */
+    public function setTokenType(TokenTypeInterface $tokenType)
+    {
+        $tokenType->setServer($this);
+        $this->tokenType = $tokenType;
     }
 
     /**

@@ -88,41 +88,16 @@ class Person extends \Faker\Provider\Person
     protected static $title = array('mgr','inż.', 'dr', 'doc.');
 
     /**
-     * @param string|null $gender 'male', 'female' or null for any
-     * @example 'Adamczyk'
-     */
-    public function lastName($gender = null)
-    {
-        if ($gender === static::GENDER_MALE) {
-            return static::lastNameMale();
-        } elseif ($gender === static::GENDER_FEMALE) {
-            return static::lastNameFemale();
-        }
-
-        return $this->generator->parse(static::randomElement(static::$lastNameFormat));
-    }
-
-    public static function lastNameMale()
-    {
-        return static::randomElement(static::$lastNameMale);
-    }
-
-    public static function lastNameFemale()
-    {
-        return static::randomElement(static::$lastNameFemale);
-    }
-
-    public function title($gender = null)
-    {
-        return static::randomElement(static::$title);
-    }
-
-    /**
      * replaced by specific unisex Polish title
      */
     public static function titleMale()
     {
         return static::title();
+    }
+
+    public function title($gender = null)
+    {
+        return static::randomElement(static::$title);
     }
 
     /**
@@ -222,5 +197,30 @@ class Person extends \Faker\Provider\Person
         $result[] = $checksum;
 
         return implode('', $result);
+    }
+
+    /**
+     * @param string|null $gender 'male', 'female' or null for any
+     * @example 'Adamczyk'
+     */
+    public function lastName($gender = null)
+    {
+        if ($gender === static::GENDER_MALE) {
+            return static::lastNameMale();
+        } elseif ($gender === static::GENDER_FEMALE) {
+            return static::lastNameFemale();
+        }
+
+        return $this->generator->parse(static::randomElement(static::$lastNameFormat));
+    }
+
+    public static function lastNameMale()
+    {
+        return static::randomElement(static::$lastNameMale);
+    }
+
+    public static function lastNameFemale()
+    {
+        return static::randomElement(static::$lastNameFemale);
     }
 }

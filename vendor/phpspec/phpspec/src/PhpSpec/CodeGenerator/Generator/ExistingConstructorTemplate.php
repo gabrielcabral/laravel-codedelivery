@@ -89,23 +89,6 @@ class ExistingConstructorTemplate
     }
 
     /**
-     * @return string
-     */
-    private function getCreateObjectContent()
-    {
-        $values = $this->getValues(true);
-
-        if (!$content = $this->templates->render('named_constructor_create_object', $values)) {
-            $content = $this->templates->renderString(
-                $this->getCreateObjectTemplate(),
-                $values
-            );
-        }
-
-        return $content;
-    }
-
-    /**
      * @param  bool  $constructorArguments
      * @return array
      */
@@ -128,16 +111,33 @@ class ExistingConstructorTemplate
     /**
      * @return string
      */
-    private function getCreateObjectTemplate()
+    private function getExceptionTemplate()
     {
-        return file_get_contents(__DIR__.'/templates/named_constructor_create_object.template');
+        return file_get_contents(__DIR__ . '/templates/named_constructor_exception.template');
     }
 
     /**
      * @return string
      */
-    private function getExceptionTemplate()
+    private function getCreateObjectContent()
     {
-        return file_get_contents(__DIR__.'/templates/named_constructor_exception.template');
+        $values = $this->getValues(true);
+
+        if (!$content = $this->templates->render('named_constructor_create_object', $values)) {
+            $content = $this->templates->renderString(
+                $this->getCreateObjectTemplate(),
+                $values
+            );
+        }
+
+        return $content;
+    }
+
+    /**
+     * @return string
+     */
+    private function getCreateObjectTemplate()
+    {
+        return file_get_contents(__DIR__ . '/templates/named_constructor_create_object.template');
     }
 }

@@ -39,14 +39,6 @@ class InstantiatorTest extends PHPUnit_Framework_TestCase
     private $instantiator;
 
     /**
-     * {@inheritDoc}
-     */
-    protected function setUp()
-    {
-        $this->instantiator = new Instantiator();
-    }
-
-    /**
      * @param string $className
      *
      * @dataProvider getInstantiableClasses
@@ -215,5 +207,13 @@ class InstantiatorTest extends PHPUnit_Framework_TestCase
         }
 
         return $classNames;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function setUp()
+    {
+        $this->instantiator = new Instantiator();
     }
 }

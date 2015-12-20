@@ -13,8 +13,8 @@
 
 namespace PhpSpec\Formatter;
 
-use PhpSpec\Event\SuiteEvent;
 use PhpSpec\Event\ExampleEvent;
+use PhpSpec\Event\SuiteEvent;
 
 class DotFormatter extends ConsoleFormatter
 {
@@ -107,15 +107,15 @@ class DotFormatter extends ConsoleFormatter
         $this->getIO()->writeln(sprintf("\n%sms", round($event->getTime() * 1000)));
     }
 
-    private function plural($count)
-    {
-        return $count !== 1 ? 's' : '';
-    }
-
     private function outputTotalSpecCount()
     {
         $count = $this->getStatisticsCollector()->getTotalSpecs();
         $this->getIO()->writeln(sprintf("%d spec%s", $count, $this->plural($count)));
+    }
+
+    private function plural($count)
+    {
+        return $count !== 1 ? 's' : '';
     }
 
     private function outputTotalExamplesCount()

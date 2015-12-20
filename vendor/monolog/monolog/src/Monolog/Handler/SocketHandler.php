@@ -54,6 +54,37 @@ class SocketHandler extends AbstractProcessingHandler
     }
 
     /**
+     * Get persistent setting
+     *
+     * @return bool
+     */
+    public function isPersistent()
+    {
+        return $this->persistent;
+    }
+
+    /**
+     * Set socket connection to nbe persistent. It only has effect before the connection is initiated.
+     *
+     * @param bool $persistent
+     */
+    public function setPersistent($persistent)
+    {
+        $this->persistent = (boolean)$persistent;
+    }
+
+    /**
+     * Close socket, if open
+     */
+    public function closeSocket()
+    {
+        if (is_resource($this->resource)) {
+            fclose($this->resource);
+            $this->resource = null;
+        }
+    }
+
+    /**
      * Get current connection string
      *
      * @return string
@@ -194,26 +225,6 @@ class SocketHandler extends AbstractProcessingHandler
     }
 
     /**
-     * Get persistent setting
-     *
-     * @return bool
-     */
-    public function isPersistent()
-    {
-        return $this->persistent;
-    }
-
-    /**
-     * Set socket connection to nbe persistent. It only has effect before the connection is initiated.
-     *
-     * @param bool $persistent
-     */
-    public function setPersistent($persistent)
-    {
-        $this->persistent = (boolean)$persistent;
-    }
-
-    /**
      * Wrapper to allow mocking
      */
     protected function pfsockopen()
@@ -322,16 +333,5 @@ class SocketHandler extends AbstractProcessingHandler
         }
 
         return false;
-    }
-
-    /**
-     * Close socket, if open
-     */
-    public function closeSocket()
-    {
-        if (is_resource($this->resource)) {
-            fclose($this->resource);
-            $this->resource = null;
-        }
     }
 }

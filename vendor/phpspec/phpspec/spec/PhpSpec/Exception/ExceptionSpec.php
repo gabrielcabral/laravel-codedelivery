@@ -3,7 +3,6 @@
 namespace spec\PhpSpec\Exception;
 
 use PhpSpec\ObjectBehavior;
-
 use ReflectionMethod;
 
 class ExceptionSpec extends ObjectBehavior

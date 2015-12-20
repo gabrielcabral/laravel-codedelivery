@@ -22,15 +22,6 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
      */
     private $reportingLevel;
 
-    protected function setUp()
-    {
-        $this->reportingLevel = error_reporting();
-        error_reporting($this->reportingLevel & ~E_USER_DEPRECATED);
-
-        $this->input = $this->getMock('Symfony\Component\Console\Input\InputInterface');
-        $this->output = $this->getMock('Symfony\Component\Console\Output\OutputInterface');
-    }
-
     /**
      * Symfony <2.5 case
      *
@@ -99,6 +90,15 @@ class FactoryTest extends \PHPUnit_Framework_TestCase
 
         $questionHelper->expects($this->once())->method('ask');
         $prompter->askConfirmation('Are you sure?');
+    }
+
+    protected function setUp()
+    {
+        $this->reportingLevel = error_reporting();
+        error_reporting($this->reportingLevel & ~E_USER_DEPRECATED);
+
+        $this->input = $this->getMock('Symfony\Component\Console\Input\InputInterface');
+        $this->output = $this->getMock('Symfony\Component\Console\Output\OutputInterface');
     }
 
     protected function tearDown()

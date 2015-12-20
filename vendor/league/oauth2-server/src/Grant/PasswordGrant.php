@@ -65,22 +65,6 @@ class PasswordGrant extends AbstractGrant
     }
 
     /**
-     * Return the callback function
-     *
-     * @return callable
-     *
-     * @throws
-     */
-    protected function getVerifyCredentialsCallback()
-    {
-        if (is_null($this->callback) || !is_callable($this->callback)) {
-            throw new Exception\ServerErrorException('Null or non-callable callback set on Password grant');
-        }
-
-        return $this->callback;
-    }
-
-    /**
      * Complete the password grant
      *
      * @return array
@@ -178,5 +162,21 @@ class PasswordGrant extends AbstractGrant
         }
 
         return $this->server->getTokenType()->generateResponse();
+    }
+
+    /**
+     * Return the callback function
+     *
+     * @return callable
+     *
+     * @throws
+     */
+    protected function getVerifyCredentialsCallback()
+    {
+        if (is_null($this->callback) || !is_callable($this->callback)) {
+            throw new Exception\ServerErrorException('Null or non-callable callback set on Password grant');
+        }
+
+        return $this->callback;
     }
 }

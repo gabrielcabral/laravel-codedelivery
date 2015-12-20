@@ -24,22 +24,6 @@ class MatchingOnce
         return $this->_isNotSurplus($item) && $this->_isMatched($item);
     }
 
-    public function isFinished($items)
-    {
-        if (empty($this->_elementMatchers)) {
-            return true;
-        }
-
-        $this->_mismatchDescription
-                 ->appendText('No item matches: ')->appendList('', ', ', '', $this->_elementMatchers)
-                 ->appendText(' in ')->appendValueList('[', ', ', ']', $items)
-                 ;
-
-        return false;
-    }
-
-    // -- Private Methods
-
     private function _isNotSurplus($item)
     {
         if (empty($this->_elementMatchers)) {
@@ -50,6 +34,8 @@ class MatchingOnce
 
         return true;
     }
+
+    // -- Private Methods
 
     private function _isMatched($item)
     {
@@ -63,6 +49,19 @@ class MatchingOnce
         }
 
         $this->_mismatchDescription->appendText('Not matched: ')->appendValue($item);
+
+        return false;
+    }
+
+    public function isFinished($items)
+    {
+        if (empty($this->_elementMatchers)) {
+            return true;
+        }
+
+        $this->_mismatchDescription
+            ->appendText('No item matches: ')->appendList('', ', ', '', $this->_elementMatchers)
+            ->appendText(' in ')->appendValueList('[', ', ', ']', $items);
 
         return false;
     }

@@ -50,41 +50,6 @@ class JsonResponse extends Response
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public static function create($data = null, $status = 200, $headers = array())
-    {
-        return new static($data, $status, $headers);
-    }
-
-    /**
-     * Sets the JSONP callback.
-     *
-     * @param string|null $callback The JSONP callback or null to use none
-     *
-     * @return JsonResponse
-     *
-     * @throws \InvalidArgumentException When the callback name is not valid
-     */
-    public function setCallback($callback = null)
-    {
-        if (null !== $callback) {
-            // taken from http://www.geekality.net/2011/08/03/valid-javascript-identifier/
-            $pattern = '/^[$_\p{L}][$_\p{L}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{200C}\x{200D}]*+$/u';
-            $parts = explode('.', $callback);
-            foreach ($parts as $part) {
-                if (!preg_match($pattern, $part)) {
-                    throw new \InvalidArgumentException('The callback name is not valid.');
-                }
-            }
-        }
-
-        $this->callback = $callback;
-
-        return $this->update();
-    }
-
-    /**
      * Sets the data to be sent as JSON.
      *
      * @param mixed $data
@@ -150,53 +115,6 @@ class JsonResponse extends Response
         return $this->update();
     }
 
-    /**
-     * Returns options used while encoding data to JSON.
-     *
-     * @return int
-     */
-    public function getEncodingOptions()
-    {
-        return $this->encodingOptions;
-    }
-
-    /**
-     * Sets options used while encoding data to JSON.
-     *
-     * @param int $encodingOptions
-     *
-     * @return JsonResponse
-     */
-    public function setEncodingOptions($encodingOptions)
-    {
-        $this->encodingOptions = (int) $encodingOptions;
-
-        return $this->setData(json_decode($this->data));
-    }
-
-    /**
-     * Updates the content and headers according to the JSON data and callback.
-     *
-     * @return JsonResponse
-     */
-    protected function update()
-    {
-        if (null !== $this->callback) {
-            // Not using application/javascript for compatibility reasons with older browsers.
-            $this->headers->set('Content-Type', 'text/javascript');
-
-            return $this->setContent(sprintf('/**/%s(%s);', $this->callback, $this->data));
-        }
-
-        // Only set the header when there is none or when it equals 'text/javascript' (from a previous update with callback)
-        // in order to not overwrite a custom definition.
-        if (!$this->headers->has('Content-Type') || 'text/javascript' === $this->headers->get('Content-Type')) {
-            $this->headers->set('Content-Type', 'application/json');
-        }
-
-        return $this->setContent($this->data);
-    }
-
     private function transformJsonError()
     {
         if (function_exists('json_last_error_msg')) {
@@ -222,5 +140,87 @@ class JsonResponse extends Response
             default:
                 return 'Unknown error.';
         }
+    }
+
+    /**
+     * Updates the content and headers according to the JSON data and callback.
+     *
+     * @return JsonResponse
+     */
+    protected function update()
+    {
+        if (null !== $this->callback) {
+            // Not using application/javascript for compatibility reasons with older browsers.
+            $this->headers->set('Content-Type', 'text/javascript');
+
+            return $this->setContent(sprintf('/**/%s(%s);', $this->callback, $this->data));
+        }
+
+        // Only set the header when there is none or when it equals 'text/javascript' (from a previous update with callback)
+        // in order to not overwrite a custom definition.
+        if (!$this->headers->has('Content-Type') || 'text/javascript' === $this->headers->get('Content-Type')) {
+            $this->headers->set('Content-Type', 'application/json');
+        }
+
+        return $this->setContent($this->data);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function create($data = null, $status = 200, $headers = array())
+    {
+        return new static($data, $status, $headers);
+    }
+
+    /**
+     * Sets the JSONP callback.
+     *
+     * @param string|null $callback The JSONP callback or null to use none
+     *
+     * @return JsonResponse
+     *
+     * @throws \InvalidArgumentException When the callback name is not valid
+     */
+    public function setCallback($callback = null)
+    {
+        if (null !== $callback) {
+            // taken from http://www.geekality.net/2011/08/03/valid-javascript-identifier/
+            $pattern = '/^[$_\p{L}][$_\p{L}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{200C}\x{200D}]*+$/u';
+            $parts = explode('.', $callback);
+            foreach ($parts as $part) {
+                if (!preg_match($pattern, $part)) {
+                    throw new \InvalidArgumentException('The callback name is not valid.');
+                }
+            }
+        }
+
+        $this->callback = $callback;
+
+        return $this->update();
+    }
+
+    /**
+     * Returns options used while encoding data to JSON.
+     *
+     * @return int
+     */
+    public function getEncodingOptions()
+    {
+        return $this->encodingOptions;
+    }
+
+    /**
+     * Sets options used while encoding data to JSON.
+     *
+     * @param int $encodingOptions
+     *
+     * @return JsonResponse
+     */
+    public function setEncodingOptions($encodingOptions)
+    {
+        $this->encodingOptions = (int)$encodingOptions;
+
+        return $this->setData(json_decode($this->data));
     }
 }

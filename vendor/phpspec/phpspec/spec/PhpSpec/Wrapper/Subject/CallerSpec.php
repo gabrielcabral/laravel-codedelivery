@@ -4,16 +4,13 @@ namespace spec\PhpSpec\Wrapper\Subject;
 
 use Phpspec\CodeAnalysis\AccessInspectorInterface;
 use PhpSpec\Exception\ExceptionFactory;
+use PhpSpec\Loader\Node\ExampleNode;
+use PhpSpec\ObjectBehavior;
+use PhpSpec\Wrapper\Subject;
 use PhpSpec\Wrapper\Subject\WrappedObject;
 use PhpSpec\Wrapper\Wrapper;
-use PhpSpec\Wrapper\Subject;
-
-use PhpSpec\Loader\Node\ExampleNode;
-
-use Symfony\Component\EventDispatcher\EventDispatcherInterface as Dispatcher;
-
-use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface as Dispatcher;
 
 class CallerSpec extends ObjectBehavior
 {

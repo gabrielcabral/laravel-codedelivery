@@ -178,6 +178,15 @@ class PHPConsoleHandlerTest extends TestCase
         }
     }
 
+    protected function initDebugDispatcherMock(Connector $connector)
+    {
+        return $this->getMockBuilder('PhpConsole\Dispatcher\Debug')
+            ->disableOriginalConstructor()
+            ->setMethods(array('dispatchDebug'))
+            ->setConstructorArgs(array($connector, $connector->getDumper()))
+            ->getMock();
+    }
+
     public function testOptionUseOwnErrorsAndExceptionsHandler()
     {
         $this->initLogger(array('useOwnErrorsHandler' => true, 'useOwnExceptionsHandler' => true));
@@ -251,15 +260,6 @@ class PHPConsoleHandlerTest extends TestCase
             ->will($this->returnValue(true));
 
         return $connector;
-    }
-
-    protected function initDebugDispatcherMock(Connector $connector)
-    {
-        return $this->getMockBuilder('PhpConsole\Dispatcher\Debug')
-            ->disableOriginalConstructor()
-            ->setMethods(array('dispatchDebug'))
-            ->setConstructorArgs(array($connector, $connector->getDumper()))
-            ->getMock();
     }
 
     protected function initErrorDispatcherMock(Connector $connector)

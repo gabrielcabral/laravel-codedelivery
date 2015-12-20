@@ -35,16 +35,14 @@ abstract class AbstractOperation implements OperationInterface
      * @var MessageCatalogue
      */
     protected $result;
-
-    /**
-     * @var null|array
-     */
-    private $domains;
-
     /**
      * @var array
      */
     protected $messages;
+    /**
+     * @var null|array
+     */
+    private $domains;
 
     /**
      * @param MessageCatalogueInterface $source
@@ -68,18 +66,6 @@ abstract class AbstractOperation implements OperationInterface
     /**
      * {@inheritdoc}
      */
-    public function getDomains()
-    {
-        if (null === $this->domains) {
-            $this->domains = array_values(array_unique(array_merge($this->source->getDomains(), $this->target->getDomains())));
-        }
-
-        return $this->domains;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getMessages($domain)
     {
         if (!in_array($domain, $this->getDomains())) {
@@ -92,6 +78,23 @@ abstract class AbstractOperation implements OperationInterface
 
         return $this->messages[$domain]['all'];
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDomains()
+    {
+        if (null === $this->domains) {
+            $this->domains = array_values(array_unique(array_merge($this->source->getDomains(), $this->target->getDomains())));
+        }
+
+        return $this->domains;
+    }
+
+    /**
+     * @param string $domain
+     */
+    abstract protected function processDomain($domain);
 
     /**
      * {@inheritdoc}
@@ -138,9 +141,4 @@ abstract class AbstractOperation implements OperationInterface
 
         return $this->result;
     }
-
-    /**
-     * @param string $domain
-     */
-    abstract protected function processDomain($domain);
 }

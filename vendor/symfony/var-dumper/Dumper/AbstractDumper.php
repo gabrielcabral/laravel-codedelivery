@@ -48,31 +48,6 @@ abstract class AbstractDumper implements DataDumperInterface, DumperInterface
     }
 
     /**
-     * Sets the output destination of the dumps.
-     *
-     * @param callable|resource|string $output A line dumper callable, an opened stream or an output path.
-     *
-     * @return callable|resource|string The previous output destination.
-     */
-    public function setOutput($output)
-    {
-        $prev = null !== $this->outputStream ? $this->outputStream : $this->lineDumper;
-
-        if (is_callable($output)) {
-            $this->outputStream = null;
-            $this->lineDumper = $output;
-        } else {
-            if (is_string($output)) {
-                $output = fopen($output, 'wb');
-            }
-            $this->outputStream = $output;
-            $this->lineDumper = array($this, 'echoLine');
-        }
-
-        return $prev;
-    }
-
-    /**
      * Sets the default character encoding to use for non-UTF8 strings.
      *
      * @param string $charset The default character encoding to use for non-UTF8 strings.
@@ -105,6 +80,31 @@ abstract class AbstractDumper implements DataDumperInterface, DumperInterface
             $this->charset = 'ISO-8859-1';
         }
         restore_error_handler();
+
+        return $prev;
+    }
+
+    /**
+     * Sets the output destination of the dumps.
+     *
+     * @param callable|resource|string $output A line dumper callable, an opened stream or an output path.
+     *
+     * @return callable|resource|string The previous output destination.
+     */
+    public function setOutput($output)
+    {
+        $prev = null !== $this->outputStream ? $this->outputStream : $this->lineDumper;
+
+        if (is_callable($output)) {
+            $this->outputStream = null;
+            $this->lineDumper = $output;
+        } else {
+            if (is_string($output)) {
+                $output = fopen($output, 'wb');
+            }
+            $this->outputStream = $output;
+            $this->lineDumper = array($this, 'echoLine');
+        }
 
         return $prev;
     }

@@ -68,6 +68,28 @@ abstract class DuringCall
      * @param array  $arguments
      *
      * @return mixed
+     *
+     * @throws MatcherException
+     */
+    public function __call($method, array $arguments = array())
+    {
+        if (preg_match('/^during(.+)$/', $method, $matches)) {
+            return $this->during(lcfirst($matches[1]), $arguments);
+        }
+
+        throw new MatcherException('Incorrect usage of matcher Throw, ' .
+            'either prefix the method with "during" and capitalize the ' .
+            'first character of the method or use ->during(\'callable\', ' .
+            'array(arguments)).' . PHP_EOL . 'E.g.' . PHP_EOL . '->during' .
+            ucfirst($method) . '(arguments)' . PHP_EOL . 'or' . PHP_EOL .
+            '->during(\'' . $method . '\', array(arguments))');
+    }
+
+    /**
+     * @param string $method
+     * @param array $arguments
+     *
+     * @return mixed
      */
     public function during($method, array $arguments = array())
     {
@@ -99,26 +121,13 @@ abstract class DuringCall
     }
 
     /**
+     * @param object $object
      * @param string $method
      * @param array  $arguments
      *
      * @return mixed
-     *
-     * @throws MatcherException
      */
-    public function __call($method, array $arguments = array())
-    {
-        if (preg_match('/^during(.+)$/', $method, $matches)) {
-            return $this->during(lcfirst($matches[1]), $arguments);
-        }
-
-        throw new MatcherException('Incorrect usage of matcher Throw, '.
-            'either prefix the method with "during" and capitalize the '.
-            'first character of the method or use ->during(\'callable\', '.
-            'array(arguments)).'.PHP_EOL.'E.g.'.PHP_EOL.'->during'.
-            ucfirst($method).'(arguments)'.PHP_EOL.'or'.PHP_EOL.
-            '->during(\''.$method.'\', array(arguments))');
-    }
+    abstract protected function runDuring($object, $method, array $arguments = array());
 
     /**
      * @return array
@@ -135,13 +144,4 @@ abstract class DuringCall
     {
         return $this->matcher;
     }
-
-    /**
-     * @param object $object
-     * @param string $method
-     * @param array  $arguments
-     *
-     * @return mixed
-     */
-    abstract protected function runDuring($object, $method, array $arguments = array());
 }

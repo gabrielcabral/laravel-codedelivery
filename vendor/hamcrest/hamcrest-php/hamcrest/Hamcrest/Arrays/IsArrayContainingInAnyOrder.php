@@ -25,6 +25,25 @@ class IsArrayContainingInAnyOrder extends TypeSafeDiagnosingMatcher
         $this->_elementMatchers = $elementMatchers;
     }
 
+    /**
+     * An array with elements that match the given matchers.
+     *
+     * @factory containsInAnyOrder ...
+     */
+    public static function arrayContainingInAnyOrder(/* args... */)
+    {
+        $args = func_get_args();
+
+        return new self(Util::createMatcherArray($args));
+    }
+
+    public function describeTo(Description $description)
+    {
+        $description->appendList('[', ', ', ']', $this->_elementMatchers)
+                                ->appendText(' in any order')
+                                ;
+    }
+
     protected function matchesSafelyWithDiagnosticDescription($array, Description $mismatchDescription)
     {
         $matching = new MatchingOnce($this->_elementMatchers, $mismatchDescription);
@@ -36,24 +55,5 @@ class IsArrayContainingInAnyOrder extends TypeSafeDiagnosingMatcher
         }
 
         return $matching->isFinished($array);
-    }
-
-    public function describeTo(Description $description)
-    {
-        $description->appendList('[', ', ', ']', $this->_elementMatchers)
-                                ->appendText(' in any order')
-                                ;
-    }
-
-    /**
-     * An array with elements that match the given matchers.
-     *
-     * @factory containsInAnyOrder ...
-     */
-    public static function arrayContainingInAnyOrder(/* args... */)
-    {
-        $args = func_get_args();
-
-        return new self(Util::createMatcherArray($args));
     }
 }

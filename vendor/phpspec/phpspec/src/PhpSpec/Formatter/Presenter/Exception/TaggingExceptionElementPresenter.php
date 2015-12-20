@@ -94,18 +94,6 @@ final class TaggingExceptionElementPresenter implements ExceptionElementPresente
     }
 
     /**
-     * @param string $function
-     * @param array $args
-     * @return string
-     */
-    public function presentExceptionTraceFunction($function, array $args)
-    {
-        $template = '   <trace><trace-func>%s</trace-func>(<trace-args>%s</trace-args>)</trace>';
-
-        return sprintf($template, $function, $this->presentExceptionTraceArguments($args));
-    }
-
-    /**
      * @param array $args
      * @return array
      */
@@ -118,5 +106,17 @@ final class TaggingExceptionElementPresenter implements ExceptionElementPresente
         }, $args);
 
         return implode(', ', $taggedArgs);
+    }
+
+    /**
+     * @param string $function
+     * @param array $args
+     * @return string
+     */
+    public function presentExceptionTraceFunction($function, array $args)
+    {
+        $template = '   <trace><trace-func>%s</trace-func>(<trace-args>%s</trace-args>)</trace>';
+
+        return sprintf($template, $function, $this->presentExceptionTraceArguments($args));
     }
 }

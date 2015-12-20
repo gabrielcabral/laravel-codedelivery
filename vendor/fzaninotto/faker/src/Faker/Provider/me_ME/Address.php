@@ -104,11 +104,6 @@ class Address extends \Faker\Provider\Address
         return static::randomElement(static::$street);
     }
 
-    public function cityName()
-    {
-        return static::randomElement(static::$cityNames);
-    }
-
     /**
      * @example '77.147489'
      */
@@ -123,5 +118,10 @@ class Address extends \Faker\Provider\Address
     public static function longitude()
     {
         return number_format(mt_rand(19260000, 19270000)/1000000, 6);
+    }
+
+    public function cityName()
+    {
+        return static::randomElement(static::$cityNames);
     }
 }

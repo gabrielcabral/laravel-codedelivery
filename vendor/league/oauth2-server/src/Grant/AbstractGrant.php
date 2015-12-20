@@ -59,24 +59,6 @@ abstract class AbstractGrant implements GrantTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function getIdentifier()
-    {
-        return $this->identifier;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setIdentifier($identifier)
-    {
-        $this->identifier = $identifier;
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getResponseType()
     {
         return $this->responseType;
@@ -174,6 +156,24 @@ abstract class AbstractGrant implements GrantTypeInterface
         }
 
         return $scopes;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIdentifier()
+    {
+        return $this->identifier;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setIdentifier($identifier)
+    {
+        $this->identifier = $identifier;
+
+        return $this;
     }
 
     /**

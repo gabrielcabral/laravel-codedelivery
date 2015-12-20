@@ -129,16 +129,6 @@ class Cookie
     }
 
     /**
-     * Gets the domain that the cookie is available to.
-     *
-     * @return string
-     */
-    public function getDomain()
-    {
-        return $this->domain;
-    }
-
-    /**
      * Gets the time the cookie expires.
      *
      * @return int
@@ -149,13 +139,13 @@ class Cookie
     }
 
     /**
-     * Gets the path on the server in which the cookie will be available on.
+     * Gets the domain that the cookie is available to.
      *
      * @return string
      */
-    public function getPath()
+    public function getDomain()
     {
-        return $this->path;
+        return $this->domain;
     }
 
     /**
@@ -176,6 +166,16 @@ class Cookie
     public function isHttpOnly()
     {
         return $this->httpOnly;
+    }
+
+    /**
+     * Gets the path on the server in which the cookie will be available on.
+     *
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
     }
 
     /**

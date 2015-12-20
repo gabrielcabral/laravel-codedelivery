@@ -10,8 +10,6 @@ abstract class AbstractMatcherTest extends \PHPUnit_Framework_TestCase
     const ARGUMENT_IGNORED = "ignored";
     const ANY_NON_NULL_ARGUMENT = "notnull";
 
-    abstract protected function createMatcher();
-
     public function assertMatches(\Hamcrest\Matcher $matcher, $arg, $message)
     {
         $this->assertTrue($matcher->matches($arg), $message);
@@ -53,6 +51,8 @@ abstract class AbstractMatcherTest extends \PHPUnit_Framework_TestCase
             new \Hamcrest\NullDescription()
         );
     }
+
+    abstract protected function createMatcher();
 
     public function testCopesWithUnknownTypes()
     {

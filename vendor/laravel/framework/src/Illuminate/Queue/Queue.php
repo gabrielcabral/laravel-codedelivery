@@ -4,12 +4,12 @@ namespace Illuminate\Queue;
 
 use Closure;
 use DateTime;
-use RuntimeException;
-use Illuminate\Support\Arr;
-use SuperClosure\Serializer;
 use Illuminate\Container\Container;
-use Illuminate\Contracts\Queue\QueueableEntity;
 use Illuminate\Contracts\Encryption\Encrypter as EncrypterContract;
+use Illuminate\Contracts\Queue\QueueableEntity;
+use Illuminate\Support\Arr;
+use RuntimeException;
+use SuperClosure\Serializer;
 
 abstract class Queue
 {
@@ -75,6 +75,28 @@ abstract class Queue
     }
 
     /**
+     * Set the IoC container instance.
+     *
+     * @param  \Illuminate\Container\Container $container
+     * @return void
+     */
+    public function setContainer(Container $container)
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * Set the encrypter instance.
+     *
+     * @param  \Illuminate\Contracts\Encryption\Encrypter $crypt
+     * @return void
+     */
+    public function setEncrypter(EncrypterContract $crypt)
+    {
+        $this->crypt = $crypt;
+    }
+
+    /**
      * Create a payload string from the given job and data.
      *
      * @param  string  $job
@@ -94,6 +116,20 @@ abstract class Queue
         }
 
         return json_encode($this->createPlainPayload($job, $data));
+    }
+
+    /**
+     * Create a payload string for the given Closure job.
+     *
+     * @param  \Closure $job
+     * @param  mixed $data
+     * @return string
+     */
+    protected function createClosurePayload($job, $data)
+    {
+        $closure = $this->crypt->encrypt((new Serializer)->serialize($job));
+
+        return ['job' => 'IlluminateQueueClosure', 'data' => compact('closure')];
     }
 
     /**
@@ -149,20 +185,6 @@ abstract class Queue
     }
 
     /**
-     * Create a payload string for the given Closure job.
-     *
-     * @param  \Closure  $job
-     * @param  mixed     $data
-     * @return string
-     */
-    protected function createClosurePayload($job, $data)
-    {
-        $closure = $this->crypt->encrypt((new Serializer)->serialize($job));
-
-        return ['job' => 'IlluminateQueueClosure', 'data' => compact('closure')];
-    }
-
-    /**
      * Set additional meta on a payload string.
      *
      * @param  string  $payload
@@ -200,27 +222,5 @@ abstract class Queue
     protected function getTime()
     {
         return time();
-    }
-
-    /**
-     * Set the IoC container instance.
-     *
-     * @param  \Illuminate\Container\Container  $container
-     * @return void
-     */
-    public function setContainer(Container $container)
-    {
-        $this->container = $container;
-    }
-
-    /**
-     * Set the encrypter instance.
-     *
-     * @param  \Illuminate\Contracts\Encryption\Encrypter  $crypt
-     * @return void
-     */
-    public function setEncrypter(EncrypterContract $crypt)
-    {
-        $this->crypt = $crypt;
     }
 }

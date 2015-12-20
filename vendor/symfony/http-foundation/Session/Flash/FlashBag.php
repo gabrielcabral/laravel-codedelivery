@@ -86,9 +86,9 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
     /**
      * {@inheritdoc}
      */
-    public function peekAll()
+    public function has($type)
     {
-        return $this->flashes;
+        return array_key_exists($type, $this->flashes) && $this->flashes[$type];
     }
 
     /**
@@ -110,20 +110,9 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
     /**
      * {@inheritdoc}
      */
-    public function all()
-    {
-        $return = $this->peekAll();
-        $this->flashes = array();
-
-        return $return;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function set($type, $messages)
     {
-        $this->flashes[$type] = (array) $messages;
+        $this->flashes[$type] = (array)$messages;
     }
 
     /**
@@ -132,14 +121,6 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
     public function setAll(array $messages)
     {
         $this->flashes = $messages;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function has($type)
-    {
-        return array_key_exists($type, $this->flashes) && $this->flashes[$type];
     }
 
     /**
@@ -164,6 +145,25 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
     public function clear()
     {
         return $this->all();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function all()
+    {
+        $return = $this->peekAll();
+        $this->flashes = array();
+
+        return $return;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function peekAll()
+    {
+        return $this->flashes;
     }
 
     /**

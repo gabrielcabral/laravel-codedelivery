@@ -12,9 +12,9 @@
 namespace Prophecy\Promise;
 
 use Doctrine\Instantiator\Instantiator;
-use Prophecy\Prophecy\ObjectProphecy;
-use Prophecy\Prophecy\MethodProphecy;
 use Prophecy\Exception\InvalidArgumentException;
+use Prophecy\Prophecy\MethodProphecy;
+use Prophecy\Prophecy\ObjectProphecy;
 use ReflectionClass;
 
 /**

@@ -2,8 +2,8 @@
 
 namespace Illuminate\Console;
 
-use Illuminate\Support\Str;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputArgument;
 
 abstract class GeneratorCommand extends Command
@@ -36,13 +36,6 @@ abstract class GeneratorCommand extends Command
     }
 
     /**
-     * Get the stub file for the generator.
-     *
-     * @return string
-     */
-    abstract protected function getStub();
-
-    /**
      * Execute the console command.
      *
      * @return bool|null
@@ -64,32 +57,6 @@ abstract class GeneratorCommand extends Command
         $this->files->put($path, $this->buildClass($name));
 
         $this->info($this->type.' created successfully.');
-    }
-
-    /**
-     * Determine if the class already exists.
-     *
-     * @param  string  $rawName
-     * @return bool
-     */
-    protected function alreadyExists($rawName)
-    {
-        $name = $this->parseName($rawName);
-
-        return $this->files->exists($this->getPath($name));
-    }
-
-    /**
-     * Get the destination class path.
-     *
-     * @param  string  $name
-     * @return string
-     */
-    protected function getPath($name)
-    {
-        $name = str_replace($this->laravel->getNamespace(), '', $name);
-
-        return $this->laravel['path'].'/'.str_replace('\\', '/', $name).'.php';
     }
 
     /**
@@ -125,6 +92,42 @@ abstract class GeneratorCommand extends Command
     }
 
     /**
+     * Get the desired class name from the input.
+     *
+     * @return string
+     */
+    protected function getNameInput()
+    {
+        return $this->argument('name');
+    }
+
+    /**
+     * Get the destination class path.
+     *
+     * @param  string $name
+     * @return string
+     */
+    protected function getPath($name)
+    {
+        $name = str_replace($this->laravel->getNamespace(), '', $name);
+
+        return $this->laravel['path'] . '/' . str_replace('\\', '/', $name) . '.php';
+    }
+
+    /**
+     * Determine if the class already exists.
+     *
+     * @param  string $rawName
+     * @return bool
+     */
+    protected function alreadyExists($rawName)
+    {
+        $name = $this->parseName($rawName);
+
+        return $this->files->exists($this->getPath($name));
+    }
+
+    /**
      * Build the directory for the class if necessary.
      *
      * @param  string  $path
@@ -151,6 +154,38 @@ abstract class GeneratorCommand extends Command
     }
 
     /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    abstract protected function getStub();
+
+    /**
+     * Replace the class name for the given stub.
+     *
+     * @param  string  $stub
+     * @param  string  $name
+     * @return string
+     */
+    protected function replaceClass($stub, $name)
+    {
+        $class = str_replace($this->getNamespace($name) . '\\', '', $name);
+
+        return str_replace('DummyClass', $class, $stub);
+    }
+
+    /**
+     * Get the full namespace name for a given class.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function getNamespace($name)
+    {
+        return trim(implode('\\', array_slice(explode('\\', $name), 0, -1)), '\\');
+    }
+
+    /**
      * Replace the namespace for the given stub.
      *
      * @param  string  $stub
@@ -168,41 +203,6 @@ abstract class GeneratorCommand extends Command
         );
 
         return $this;
-    }
-
-    /**
-     * Get the full namespace name for a given class.
-     *
-     * @param  string  $name
-     * @return string
-     */
-    protected function getNamespace($name)
-    {
-        return trim(implode('\\', array_slice(explode('\\', $name), 0, -1)), '\\');
-    }
-
-    /**
-     * Replace the class name for the given stub.
-     *
-     * @param  string  $stub
-     * @param  string  $name
-     * @return string
-     */
-    protected function replaceClass($stub, $name)
-    {
-        $class = str_replace($this->getNamespace($name).'\\', '', $name);
-
-        return str_replace('DummyClass', $class, $stub);
-    }
-
-    /**
-     * Get the desired class name from the input.
-     *
-     * @return string
-     */
-    protected function getNameInput()
-    {
-        return $this->argument('name');
     }
 
     /**

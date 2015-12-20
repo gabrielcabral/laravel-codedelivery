@@ -35,17 +35,6 @@ final class InMemoryTypeHintIndex implements TypeHintIndex
      * @param string $class
      * @param string $method
      * @param string $argument
-     * @param \Exception $exception
-     */
-    public function addInvalid($class, $method, $argument, \Exception $exception)
-    {
-        $this->store($class, $method, $argument, $exception);
-    }
-
-    /**
-     * @param string $class
-     * @param string $method
-     * @param string $argument
      * @param mixed $typehint
      */
     private function store($class, $method, $argument, $typehint)
@@ -62,6 +51,17 @@ final class InMemoryTypeHintIndex implements TypeHintIndex
         }
 
         $this->typehints[$class][$method][$argument] = $typehint;
+    }
+
+    /**
+     * @param string $class
+     * @param string $method
+     * @param string $argument
+     * @param \Exception $exception
+     */
+    public function addInvalid($class, $method, $argument, \Exception $exception)
+    {
+        $this->store($class, $method, $argument, $exception);
     }
 
     /**

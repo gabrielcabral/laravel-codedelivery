@@ -22,15 +22,6 @@ class GlobalFunctionFile extends FactoryFile
         $this->functions .= PHP_EOL . $this->generateFactoryCall($call);
     }
 
-    public function build()
-    {
-        $this->addFileHeader();
-        $this->addPart('functions_imports');
-        $this->addPart('functions_header');
-        $this->addCode($this->functions);
-        $this->addPart('functions_footer');
-    }
-
     public function generateFactoryCall(FactoryCall $call)
     {
         $code = "if (!function_exists('{$call->getName()}')) {";
@@ -38,5 +29,14 @@ class GlobalFunctionFile extends FactoryFile
         $code.= "}\n";
 
         return $code;
+    }
+
+    public function build()
+    {
+        $this->addFileHeader();
+        $this->addPart('functions_imports');
+        $this->addPart('functions_header');
+        $this->addCode($this->functions);
+        $this->addPart('functions_footer');
     }
 }

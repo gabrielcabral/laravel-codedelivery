@@ -18,9 +18,12 @@ class StringDescription extends BaseDescription
         $this->_out = (string) $out;
     }
 
-    public function __toString()
+    /**
+     * Alias for {@link toString()}.
+     */
+    public static function asString(SelfDescribing $selfDescribing)
     {
-        return $this->_out;
+        return self::toString($selfDescribing);
     }
 
     /**
@@ -40,12 +43,9 @@ class StringDescription extends BaseDescription
         return (string) $self->appendDescriptionOf($selfDescribing);
     }
 
-    /**
-     * Alias for {@link toString()}.
-     */
-    public static function asString(SelfDescribing $selfDescribing)
+    public function __toString()
     {
-        return self::toString($selfDescribing);
+        return $this->_out;
     }
 
     // -- Protected Methods

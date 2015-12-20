@@ -814,6 +814,48 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
     }
 
     /**
+     * Run the given callable while being unguarded.
+     *
+     * @param  callable $callback
+     * @return mixed
+     */
+    public static function unguarded(callable $callback)
+    {
+        if (static::$unguarded) {
+            return $callback();
+        }
+
+        static::unguard();
+
+        $result = $callback();
+
+        static::reguard();
+
+        return $result;
+    }
+
+    /**
+     * Disable all mass assignable restrictions.
+     *
+     * @param  bool $state
+     * @return void
+     */
+    public static function unguard($state = true)
+    {
+        static::$unguarded = $state;
+    }
+
+    /**
+     * Enable the mass assignment restrictions.
+     *
+     * @return void
+     */
+    public static function reguard()
+    {
+        static::$unguarded = false;
+    }
+
+    /**
      * Save a new model and return the instance.
      *
      * @param  array  $attributes
@@ -1798,48 +1840,6 @@ abstract class Model implements ArrayAccess, Arrayable, Jsonable, JsonSerializab
         return static::unguarded(function () use ($model, $attributes) {
             return $model->fill($attributes);
         });
-    }
-
-    /**
-     * Run the given callable while being unguarded.
-     *
-     * @param  callable $callback
-     * @return mixed
-     */
-    public static function unguarded(callable $callback)
-    {
-        if (static::$unguarded) {
-            return $callback();
-        }
-
-        static::unguard();
-
-        $result = $callback();
-
-        static::reguard();
-
-        return $result;
-    }
-
-    /**
-     * Disable all mass assignable restrictions.
-     *
-     * @param  bool $state
-     * @return void
-     */
-    public static function unguard($state = true)
-    {
-        static::$unguarded = $state;
-    }
-
-    /**
-     * Enable the mass assignment restrictions.
-     *
-     * @return void
-     */
-    public static function reguard()
-    {
-        static::$unguarded = false;
     }
 
     /**

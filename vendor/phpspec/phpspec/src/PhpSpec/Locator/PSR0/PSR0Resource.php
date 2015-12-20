@@ -37,19 +37,19 @@ class PSR0Resource implements ResourceInterface
     }
 
     /**
+     * @return string
+     */
+    public function getSpecName()
+    {
+        return $this->getName() . 'Spec';
+    }
+
+    /**
      * @return mixed
      */
     public function getName()
     {
         return end($this->parts);
-    }
-
-    /**
-     * @return string
-     */
-    public function getSpecName()
-    {
-        return $this->getName().'Spec';
     }
 
     /**

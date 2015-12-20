@@ -6,11 +6,6 @@ use Hamcrest\AbstractMatcherTest;
 class IsArrayContainingKeyTest extends AbstractMatcherTest
 {
 
-    protected function createMatcher()
-    {
-        return IsArrayContainingKey::hasKeyInArray('irrelevant');
-    }
-
     public function testMatchesSingleElementArrayContainingKey()
     {
         $array = array('a'=>1);
@@ -58,5 +53,10 @@ class IsArrayContainingKeyTest extends AbstractMatcherTest
         $array = array('a'=>1, 'b'=>2, 'c'=>3);
 
         $this->assertMismatchDescription('array was ["a" => <1>, "b" => <2>, "c" => <3>]', hasKey('d'), $array);
+    }
+
+    protected function createMatcher()
+    {
+        return IsArrayContainingKey::hasKeyInArray('irrelevant');
     }
 }
