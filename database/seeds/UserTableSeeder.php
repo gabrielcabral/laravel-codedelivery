@@ -1,8 +1,8 @@
 <?php
 
+use CodeDelivery\Models\Client;
+use CodeDelivery\Models\User;
 use Illuminate\Database\Seeder;
-use codedelivery\Models\User;
-use codedelivery\Models\Client;
 
 class UserTableSeeder extends Seeder
 {

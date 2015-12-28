@@ -1,9 +1,9 @@
 <?php
 
+use CodeDelivery\Models\Category;
+use CodeDelivery\Models\Product;
 use Illuminate\Database\Seeder;
-use codedelivery\Models\Category;
-use codedelivery\Models\Product;
-use Illuminate\Database\Eloquent\Collection;
+
 class CategoryTableSeeder extends Seeder
 {
     /**
