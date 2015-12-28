@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Database\Seeder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,6 +17,7 @@ class DatabaseSeeder extends Seeder
          $this->call(UserTableSeeder::class);
          $this->call(CategoryTableSeeder::class);
         $this->call(ProductTableSeeder::class);
+        $this->call(CupomTableSeeder::class);
 
         Model::reguard();
     }

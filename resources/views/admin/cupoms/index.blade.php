@@ -23,7 +23,8 @@
                     <td>{{$cupom->code}}</td>
                     <td>{{$cupom->value}}</td>
                     <td>
-                        <a href="{{route('admin.cupoms.edit', ['id'=> $cupom->id])}}" class="btn btn-default">Editar</a>
+                        <a href="{{route('admin.cupoms.edit', ['id'=> $cupom->id])}}" class="btn btn-warning"><span
+                                    class="glyphicon glyphicon-pencil"></span> Editar</a>
                     </td>
                 </tr>
             @endforeach

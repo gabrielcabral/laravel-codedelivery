@@ -6,6 +6,15 @@ use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
+    /**
+     * Bootstrap the application services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        //
+    }
 
     /**
      * Register the application services.
@@ -37,6 +46,14 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(
             'CodeDelivery\Repositories\OrderItemRepository',
             'CodeDelivery\Repositories\OrderItemRepositoryEloquent'
+        );
+        $this->app->bind(
+            'CodeDelivery\Repositories\ProductRepository',
+            'CodeDelivery\Repositories\ProductRepositoryEloquent'
+        );
+        $this->app->bind(
+            'CodeDelivery\Repositories\UserRepository',
+            'CodeDelivery\Repositories\UserRepositoryEloquent'
         );
         $this->app->bind(
             'CodeDelivery\Repositories\CupomRepository',
