@@ -24,7 +24,7 @@ class UserTableSeeder extends Seeder
             'name' => 'Admin',
             'email' => 'admin@user.com',
             'password' => bcrypt(123456),
-            'role' => 'admin',
+            'role' => 'Admin',
             'remember_token' => str_random(10),
         ])->client()->save(factory(Client::class)->make());
 
