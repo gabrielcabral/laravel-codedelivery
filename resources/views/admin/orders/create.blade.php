@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container">
-        <h3>Nova Pedido</h3>
+        <h3>Novo Pedido</h3>
 
         @include('errors._check')
 
