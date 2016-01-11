@@ -5,8 +5,15 @@
         <h3>Novo Pedido</h3>
 
         @include('errors._check')
-
+        <div class="container">
         {!! Form::open(['route' => 'admin.orders.store']) !!}
+            <div class="form-group">
+                <label>Total: </label>
+
+                <p id="total"></p>
+                <a href="#" class="btn btn-default">novo item</a>
+            </div>
+
 
             @include('admin.orders._form')
 
@@ -15,6 +22,7 @@
             </div>
 
         {!! Form::close() !!}
+        </div>
 
     </div>
 @stop()

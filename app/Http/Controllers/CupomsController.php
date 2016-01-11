@@ -2,12 +2,9 @@
 
 namespace CodeDelivery\Http\Controllers;
 
-use CodeDelivery\Repositories\CupomRepository;
-use Illuminate\Http\Request;
-
 use CodeDelivery\Http\Requests;
 use CodeDelivery\Http\Requests\AdminCupomRequest;
-use CodeDelivery\Http\Controllers\Controller;
+use CodeDelivery\Repositories\CupomRepository;
 
 class CupomsController extends Controller
 {
@@ -19,9 +16,7 @@ class CupomsController extends Controller
     }
 
     public  function index(){
-//        $nome = "Allan";
-//        $linguagens = ['PHP', 'Java', 'Python'];
-//        return view('admin.cupoms.index', compact('nome', 'linguagens'));
+
 
         $cupoms = $this->repository->paginate(5);
 
@@ -44,12 +39,13 @@ class CupomsController extends Controller
 
     public function edit($id){
 
-        $category = $this->repository->find($id);
+        $cupom = $this->repository->find($id);
 
-        return view('admin.cupoms.edit', compact('category'));
+        return view('admin.cupoms.edit', compact('cupom'));
     }
 
-    public function update(AdminCategoryRequest $request, $id){
+    public function update(AdminCupomRequest $request, $id)
+    {
 
         $data = $request->all();
 
