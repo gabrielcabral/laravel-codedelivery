@@ -2,12 +2,9 @@
 
 namespace CodeDelivery\Http\Controllers;
 
-use CodeDelivery\Repositories\CategoryRepository;
-use Illuminate\Http\Request;
-
 use CodeDelivery\Http\Requests;
 use CodeDelivery\Http\Requests\AdminCategoryRequest;
-use CodeDelivery\Http\Controllers\Controller;
+use CodeDelivery\Repositories\CategoryRepository;
 
 class CategoriesController extends Controller
 {
@@ -21,7 +18,7 @@ class CategoriesController extends Controller
     public  function index(){
 
 
-        $categories = $this->repository->paginate(15);
+        $categories = $this->repository->paginate(5);
 
         return view('admin.categories.index', compact('categories'));
     }

@@ -12,7 +12,9 @@
         "prettus/l5-repository": "^2.1",
         "bestmomo/scafold": "dev-master",
         "illuminate/html": "^5.0@dev",
-        "lucadegasperi/oauth2-server-laravel": "^5.1"
+        "lucadegasperi/oauth2-server-laravel": "^5.1",
+        "barryvdh/laravel-debugbar": "^2.2",
+        "maximebf/debugbar": "1.*"
 
     },
     "require-dev": {

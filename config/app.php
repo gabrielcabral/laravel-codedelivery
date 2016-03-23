@@ -152,6 +152,7 @@ return [
         CodeDelivery\Providers\EventServiceProvider::class,
         CodeDelivery\Providers\RouteServiceProvider::class,
         CodeDelivery\Providers\RepositoryServiceProvider::class,
+        Barryvdh\Debugbar\ServiceProvider::class,
 
     ],
 
@@ -204,6 +205,8 @@ return [
         'Html'      => Illuminate\Html\HtmlFacade::class,
         'Form'      => Illuminate\Html\FormFacade::class,
        'Authorizer' => LucaDegasperi\OAuth2Server\Facades\Authorizer::class,
+        'Debugbar' => Barryvdh\Debugbar\Facade::class,
+
 
     ],
 

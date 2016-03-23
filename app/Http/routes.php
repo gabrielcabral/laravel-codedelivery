@@ -34,6 +34,7 @@ Route::group(['prefix'=>'admin', 'middleware' => 'auth.checkrole:Admin' , 'as' =
 
     Route::get('products', ['as' => 'products.index', 'uses' => 'ProductsController@index']);
     Route::group(['prefix'=>'products', 'as' => 'products.'], function() {
+
         Route::get('create', ['as' => 'create', 'uses' => 'ProductsController@create']);
         Route::get('edit/{id}', ['as' => 'edit', 'uses' => 'ProductsController@edit']);
         Route::get('destroy/{id}', ['as' => 'destroy', 'uses' => 'ProductsController@destroy']);
