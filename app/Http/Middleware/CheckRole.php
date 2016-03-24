@@ -5,6 +5,10 @@ namespace CodeDelivery\Http\Middleware;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Class CheckRole
+ * @package CodeDelivery\Http\Middleware
+ */
 class CheckRole
 {
     /**

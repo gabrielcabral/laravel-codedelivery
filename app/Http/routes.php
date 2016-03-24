@@ -38,9 +38,7 @@ Route::group(['prefix'=>'admin', 'middleware' => 'auth.checkrole:Admin' , 'as' =
         Route::get('create', ['as' => 'create', 'uses' => 'ProductsController@create']);
         Route::get('edit/{id}', ['as' => 'edit', 'uses' => 'ProductsController@edit']);
         Route::get('destroy/{id}', ['as' => 'destroy', 'uses' => 'ProductsController@destroy']);
-
         Route::post('update/{id}', ['as' => 'update', 'uses' => 'ProductsController@update']);
-
         Route::post('store', ['as' => 'store', 'uses' => 'ProductsController@store']);
     });
 
@@ -48,9 +46,7 @@ Route::group(['prefix'=>'admin', 'middleware' => 'auth.checkrole:Admin' , 'as' =
     Route::group(['prefix'=>'clients', 'as' => 'clients.'], function() {
         Route::get('create', ['as' => 'create', 'uses' => 'ClientsController@create']);
         Route::get('edit/{id}', ['as' => 'edit', 'uses' => 'ClientsController@edit']);
-
         Route::post('update/{id}', ['as' => 'update', 'uses' => 'ClientsController@update']);
-
         Route::post('store', ['as' => 'store', 'uses' => 'ClientsController@store']);
     });
 
@@ -58,11 +54,8 @@ Route::group(['prefix'=>'admin', 'middleware' => 'auth.checkrole:Admin' , 'as' =
     Route::group(['prefix'=>'orders', 'as' => 'orders.'], function() {
         Route::get('create', ['as' => 'create', 'uses' => 'OrdersController@create']);
         Route::get('edit/{id}', ['as' => 'edit', 'uses' => 'OrdersController@edit']);
-
         Route::post('update/{id}', ['as' => 'update', 'uses' => 'OrdersController@update']);
-
         Route::post('store', ['as' => 'store', 'uses' => 'OrdersController@store']);
-
         Route::get('itens/{id}', ['as' => 'itens.index', 'uses' => 'OrderItensController@index']);
         Route::group(['prefix'=>'itens', 'as' => 'itens.'], function() {
             Route::get('create/{id}', ['as' => 'create', 'uses' => 'OrderItensController@create']);
@@ -70,7 +63,6 @@ Route::group(['prefix'=>'admin', 'middleware' => 'auth.checkrole:Admin' , 'as' =
 //            Route::get('edit/{id}', ['as' => 'edit', 'uses' => 'OrderItensController@edit']);
 //
 //            Route::post('update/{id}', ['as' => 'update', 'uses' => 'OrderItensController@update']);
-
             Route::post('store/{id}', ['as' => 'store', 'uses' => 'OrderItensController@store']);
         });
     });
@@ -79,9 +71,7 @@ Route::group(['prefix'=>'admin', 'middleware' => 'auth.checkrole:Admin' , 'as' =
     Route::group(['prefix'=>'cupoms', 'as' => 'cupoms.'], function() {
         Route::get('create', ['as' => 'create', 'uses' => 'CupomsController@create']);
         Route::get('edit/{id}', ['as' => 'edit', 'uses' => 'CupomsController@edit']);
-
         Route::post('update/{id}', ['as' => 'update', 'uses' => 'CupomsController@update']);
-
         Route::post('store', ['as' => 'store', 'uses' => 'CupomsController@store']);
     });
 });
@@ -100,21 +90,20 @@ Route::post('oauth/access_token', function() {
 
 Route::group(['prefix'=>'api', 'middleware' => 'oauth', 'as' => 'api.'], function(){
 
-    Route::group(['prefix'=>'client', 'middleware' => 'oauth.checkrole:client', 'as' => 'client.'], function(){
-
-        Route::resource('order', 'Api\Client\ClientCheckoutController', [
+    Route::group(['prefix' => 'client', 'middleware' => 'oauth.checkrole:client', 'as' => 'client.'], function () {
+        /*Route::resource('order', 'Api\Client\ClientCheckoutController', [
             'except' => ['create', 'edit', 'destroy']
-        ]);
+        ]);*/
     });
 
-    Route::group(['prefix'=>'deliveryman', 'middleware' => 'oauth.checkrole:deliveryman', 'as' => 'deliveryman.'], function(){
-        Route::resource('order', 'Api\Deliveryman\DeliverymanCheckoutController', [
-            'except' => ['create', 'edit', 'destroy', 'store']
-        ]);
+    Route::group(['prefix' => 'deliveryman', 'middleware' => 'oauth.checkrole:deliveryman', 'as' => 'deliveryman.'], function () {
+        /* Route::resource('order', 'Api\Deliveryman\DeliverymanCheckoutController', [
+             'except' => ['create', 'edit', 'destroy', 'store']
+         ]);
 
-        Route::patch('order/{id}/update-status',[
-            'uses' => 'Api\Deliveryman\DeliverymanCheckoutController@updateStatus',
-            'as' => 'orders.update_status'
-        ]);
+         Route::patch('order/{id}/update-status',[
+             'uses' => 'Api\Deliveryman\DeliverymanCheckoutController@updateStatus',
+             'as' => 'orders.update_status'
+         ]);*/
     });
 });
