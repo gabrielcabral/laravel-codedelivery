@@ -8,7 +8,7 @@ use CodeDelivery\Http\Requests;
 class DeliverymanCheckoutController extends Controller
 {
 
-    /* private $repository, $userRepository, $productRepository;
+    private $repository, $userRepository, $productRepository;
 
      public function __construct(
          OrderRepository $repository,
@@ -44,5 +44,5 @@ class DeliverymanCheckoutController extends Controller
              abort(400, 'Order não encontrado');
          }
 
-     }*/
+     }
 }

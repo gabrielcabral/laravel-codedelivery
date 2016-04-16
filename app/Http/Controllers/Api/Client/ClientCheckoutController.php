@@ -4,11 +4,12 @@ namespace CodeDelivery\Http\Controllers\Api\Client;
 
 use CodeDelivery\Http\Controllers\Controller;
 use CodeDelivery\Http\Requests;
+use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 
 class ClientCheckoutController extends Controller
 {
 
-    /*   private $repository, $userRepository, $productRepository;
+    private $repository, $userRepository, $productRepository;
 
        public function __construct(
            OrderRepository $repository,
@@ -59,5 +60,5 @@ class ClientCheckoutController extends Controller
 
        public function update(AdminCategoryRequest $request, $id){
            return redirect()->route('customer.order.index');
-       }*/
+       }
 }
