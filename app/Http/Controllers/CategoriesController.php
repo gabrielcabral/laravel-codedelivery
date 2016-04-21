@@ -11,11 +11,13 @@ class CategoriesController extends Controller
 
     private $repository;
 
-    public function __construct(CategoryRepository $repository){
+    public function __construct(CategoryRepository $repository)
+    {
         $this->repository = $repository;
     }
 
-    public  function index(){
+    public function index()
+    {
 
 
         $categories = $this->repository->paginate(5);
@@ -23,11 +25,13 @@ class CategoriesController extends Controller
         return view('admin.categories.index', compact('categories'));
     }
 
-    public function create(){
+    public function create()
+    {
         return view('admin.categories.create');
     }
 
-    public  function store(AdminCategoryRequest $request){
+    public function store(AdminCategoryRequest $request)
+    {
 
         $data = $request->all();
 
@@ -37,14 +41,16 @@ class CategoriesController extends Controller
 
     }
 
-    public function edit($id){
+    public function edit($id)
+    {
 
         $category = $this->repository->find($id);
 
         return view('admin.categories.edit', compact('category'));
     }
 
-    public function update(AdminCategoryRequest $request, $id){
+    public function update(AdminCategoryRequest $request, $id)
+    {
 
         $data = $request->all();
 

@@ -11,11 +11,13 @@ class CupomsController extends Controller
 
     private $repository;
 
-    public function __construct(CupomRepository $repository){
+    public function __construct(CupomRepository $repository)
+    {
         $this->repository = $repository;
     }
 
-    public  function index(){
+    public function index()
+    {
 
 
         $cupoms = $this->repository->paginate(5);
@@ -23,21 +25,24 @@ class CupomsController extends Controller
         return view('admin.cupoms.index', compact('cupoms'));
     }
 
-    public function create(){
+    public function create()
+    {
         return view('admin.cupoms.create');
     }
 
-    public  function store(AdminCupomRequest $request){
+    public function store(AdminCupomRequest $request)
+    {
 
         $data = $request->all();
 
         $this->repository->create($data);
 
         return redirect()->route('admin.cupoms.index');
-//        dd($request->all());
+        //        dd($request->all());
     }
 
-    public function edit($id){
+    public function edit($id)
+    {
 
         $cupom = $this->repository->find($id);
 
