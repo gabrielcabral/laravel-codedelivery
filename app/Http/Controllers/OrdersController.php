@@ -27,7 +27,7 @@ class OrdersController extends Controller
 
     public function index()
     {
-        $orders = $this->repository->paginate(5);
+        $orders = $this->repository->paginate(50);
         return view('admin.orders.index', compact('orders'));
     }
 

@@ -17,7 +17,7 @@
 
             <tbody>
             @foreach($categories as $category)
-                <tr>
+                <tr style="height: 10px">
                     <td>{{$category->id}}</td>
                     <td>{{$category->name}}</td>
                     <td>

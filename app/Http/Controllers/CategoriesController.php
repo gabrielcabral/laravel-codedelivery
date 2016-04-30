@@ -20,7 +20,7 @@ class CategoriesController extends Controller
     {
 
 
-        $categories = $this->repository->paginate(5);
+        $categories = $this->repository->paginate(50);
 
         return view('admin.categories.index', compact('categories'));
     }

@@ -20,7 +20,7 @@ class CupomsController extends Controller
     {
 
 
-        $cupoms = $this->repository->paginate(5);
+        $cupoms = $this->repository->paginate(50);
 
         return view('admin.cupoms.index', compact('cupoms'));
     }
